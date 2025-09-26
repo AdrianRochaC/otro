@@ -40,7 +40,10 @@ const appConfig = {
       'http://farmeoa.com',
       'http://www.farmeoa.com',
       'https://farmeoa.com:3001',
-      'http://farmeoa.com:3001'
+      'http://farmeoa.com:3001',
+      'https://otro-frontend.onrender.com',
+      'https://otro-k5x5.onrender.com',
+      'https://*.onrender.com'
     ]
   }
 };
