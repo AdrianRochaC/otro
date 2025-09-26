@@ -1,0 +1,99 @@
+.login-wrapper {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  padding: 2rem;
+  font-family: "Segoe UI", sans-serif;
+  background: linear-gradient(135deg, #a8e063, #56ab2f); /* Fondo verde degradado */
+  background-size: cover;
+  background-position: center;
+  position: relative;
+}
+
+.login-title {
+  font-size: 3rem;
+  font-weight: 900;
+  margin-bottom: 2rem;
+  text-align: center;
+  font-family: 'Segoe UI', sans-serif;
+  letter-spacing: 1.2px;
+  color: #ffffff;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(255, 255, 255, 0.2),
+    0 0 20px rgba(255, 255, 255, 0.1);
+  background: none;
+  -webkit-background-clip: unset;
+  -webkit-text-fill-color: unset;
+}
+
+.login-title span {
+  color: #eaffea;
+  font-weight: 900;
+  text-transform: uppercase;
+  text-shadow:
+    0 2px 4px rgba(0, 0, 0, 0.4),
+    0 0 10px rgba(255, 255, 255, 0.2);
+}
+
+.login-container {
+  background-color: var(--bg-card);
+  padding: 3rem 2rem;
+  max-width: 450px;
+  width: 100%;
+  border-radius: var(--radius-large);
+  box-shadow: var(--shadow-card);
+  border: 1px solid var(--border-primary);
+  z-index: 1;
+}
+
+.login-container h1 {
+  text-align: center;
+  color: var(--text-primary);
+  margin-bottom: 2rem;
+  font-size: 2rem;
+}
+
+.login-form {
+  display: flex;
+  flex-direction: column;
+  gap: 1.2rem;
+}
+
+.login-form label {
+  font-weight: 600;
+  color: var(--text-primary);
+}
+
+.login-form input {
+  padding: 12px;
+  border-radius: var(--radius-small);
+  border: 1px solid var(--border-secondary);
+  font-size: 1rem;
+  background: var(--bg-input);
+  color: var(--text-primary);
+}
+
+.login-form input:focus {
+  outline: none;
+  border-color: var(--border-focus);
+  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+}
+
+.login-form button {
+  background: var(--gradient-success);
+  color: var(--text-white);
+  border: none;
+  padding: 14px;
+  border-radius: var(--radius-small);
+  cursor: pointer;
+  font-weight: 600;
+  transition: all 0.3s ease;
+}
+
+.login-form button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(16, 185, 129, 0.3);
+}
