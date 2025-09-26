@@ -1,7 +1,6 @@
 {
   "name": "proyectocapacitaciones-backend",
   "version": "1.0.0",
-  "type": "module",
   "description": "Backend para el sistema de capacitaciones con IA",
   "main": "server.js",
   "scripts": {
@@ -40,5 +39,8 @@
     "evaluaciones"
   ],
   "author": "Tu Nombre",
-  "license": "MIT"
+  "license": "MIT",
+  "engines": {
+    "node": ">=12.0.0"
+  }
 }

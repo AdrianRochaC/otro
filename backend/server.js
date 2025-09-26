@@ -1,49 +1,51 @@
 // server.js - Backend con Login, Registro y Gestión de Usuarios
-import express from 'express';
-import mysql from 'mysql2/promise';
-import bcrypt from 'bcrypt';
-import cors from 'cors';
-import jwt from 'jsonwebtoken';
-import multer from 'multer';
-import path from 'path';
-import { fileURLToPath } from 'url';
-import fs from 'fs';
-import dotenv from 'dotenv';
+const express = require('express');
+const mysql = require('mysql2/promise');
+const bcrypt = require('bcrypt');
+const cors = require('cors');
+const jwt = require('jsonwebtoken');
+const multer = require('multer');
+const path = require('path');
+const fs = require('fs');
+const dotenv = require('dotenv');
 
 // Cargar variables de entorno
 dotenv.config();
 // Agregar importación de los endpoints de preferencias
-import {
+const {
   updateBackgroundImage,
   getBackgroundImage
-} from './userPreferences.js';
+} = require('./userPreferences.js');
 
 // Importar funciones corregidas de métricas de cargos
-import { getCargoMetrics } from './cargosMetrics.js';
+const { getCargoMetrics } = require('./cargosMetrics.js');
 
 // Importar servicio de reportes Excel
-import excelReportService from './excelReportService.js';
+const excelReportService = require('./excelReportService.js');
 
 // Importar servicio de video y OpenAI
-import videoProcessor from './videoProcessor.js';
-import OpenAI from 'openai';
+const videoProcessor = require('./videoProcessor.js');
+const OpenAI = require('openai');
+
+// Importar configuraciones centralizadas PRIMERO
+const { dbConfig, createConnection, testConnection } = require('./config/database.js');
+const appConfig = require('./config/app.js');
 
 const app = express();
-const PORT = 3001;
-const JWT_SECRET = 'tu_clave_secreta_jwt'; // En producción usar variable de entorno
+const PORT = appConfig.server.port;
+const JWT_SECRET = appConfig.jwt.secret;
 
-// Compatibilidad __dirname en módulos ES
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// En CommonJS __dirname ya está disponible
 
 // Configuración de OpenAI para el chatbot
 const openai = new OpenAI({
   apiKey: process.env.OPENAI_API_KEY || 'OPENAI_API_KEY'
 });
 
-// Middleware para verificar JWT
-const verifyToken = (req, res, next) => {
-  const token = req.headers.authorization?.split(' ')[1];
+// Middleware para verificar JWT (compatible con versiones antiguas)
+function verifyToken(req, res, next) {
+  var authHeader = req.headers.authorization;
+  var token = authHeader ? authHeader.split(' ')[1] : null;
 
   if (!token) {
     return res.status(401).json({
@@ -53,7 +55,7 @@ const verifyToken = (req, res, next) => {
   }
 
   try {
-    const decoded = jwt.verify(token, JWT_SECRET);
+    var decoded = jwt.verify(token, JWT_SECRET);
     req.user = decoded;
     next();
   } catch (error) {
@@ -62,14 +64,39 @@ const verifyToken = (req, res, next) => {
       message: 'Token inválido'
     });
   }
+}
+
+// Middleware CORS configurado para desarrollo y producción (compatible con versiones antiguas)
+var corsOptions = {
+  origin: function (origin, callback) {
+    // Permitir requests sin origin (como mobile apps o curl)
+    if (!origin) return callback(null, true);
+    
+    // En desarrollo, permitir localhost
+    if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
+      return callback(null, true);
+    }
+    
+    // En producción, permitir tu dominio farmeoa.com
+    var allowedOrigins = appConfig.cors.allowedOrigins;
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      return callback(null, true);
+    }
+    
+    // Para desarrollo, permitir cualquier origen
+    if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    callback(new Error('No permitido por CORS'));
+  },
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+  credentials: true
 };
 
-// Middleware
-app.use(cors({
-  origin: '*',
-  methods: ['GET', 'POST', 'PUT', 'DELETE'],
-  allowedHeaders: ['Content-Type', 'Authorization']
-}));
+app.use(cors(corsOptions));
 // Configurar límites de payload más grandes para imágenes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -141,7 +168,7 @@ app.post('/api/documents', verifyToken, documentUpload.single('document'), async
       return res.status(400).json({ success: false, message: 'No se subió ningún archivo.' });
     }
     const { is_global, roles, users } = req.body;
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     // Insertar documento
     const [result] = await connection.execute(
       `INSERT INTO documents (name, filename, mimetype, size, user_id, is_global) VALUES (?, ?, ?, ?, ?, ?)`,
@@ -178,7 +205,7 @@ app.post('/api/documents', verifyToken, documentUpload.single('document'), async
 // Endpoint para listar documentos según permisos
 app.get('/api/documents', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     // Obtener rol y user_id
     const [userRows] = await connection.execute('SELECT id, rol FROM usuarios WHERE id = ?', [req.user.id]);
     if (userRows.length === 0) return res.json({ success: true, documents: [] });
@@ -223,7 +250,7 @@ app.get('/api/documents', verifyToken, async (req, res) => {
 // Endpoint para obtener destinatarios de un documento
 app.get('/api/documents/:id/targets', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const docId = req.params.id;
     const [targets] = await connection.execute(
       'SELECT target_type, target_value FROM document_targets WHERE document_id = ?',
@@ -248,7 +275,7 @@ app.put('/api/documents/:id', verifyToken, documentUpload.single('document'), as
       return res.status(400).json({ success: false, message: 'El nombre del documento es requerido' });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     // Verificar que el documento existe
     const [existingDoc] = await connection.execute(
@@ -305,7 +332,7 @@ app.put('/api/documents/:id', verifyToken, documentUpload.single('document'), as
 app.delete('/api/documents/:id', verifyToken, async (req, res) => {
   try {
     const docId = req.params.id;
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     // Verificar que el documento existe
     const [existingDoc] = await connection.execute(
@@ -332,19 +359,12 @@ app.delete('/api/documents/:id', verifyToken, async (req, res) => {
   }
 });
 
-const dbConfig = {
-  host: process.env.DB_HOST || 'metro.proxy.rlwy.net',
-  port: process.env.DB_PORT || 15580,
-  user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'tjhQWfbfMbKlxUvoEHUERzLEkEMKVcOH',
-  database: process.env.DB_NAME || 'railway'
-};
 
 // === RUTAS DE PREFERENCIAS DE USUARIO ===
 // Obtener preferencias del usuario
 app.get('/api/user-preferences', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     const [rows] = await connection.execute(
       'SELECT theme, color_scheme, font_size, font_family, spacing, animations, background_type, background_image IS NOT NULL AS has_background_image, background_color FROM user_preferences WHERE user_id = ?',
@@ -368,7 +388,7 @@ app.get('/api/user-preferences', verifyToken, async (req, res) => {
       };
 
       // Crear preferencias por defecto
-      const insertConnection = await mysql.createConnection(dbConfig);
+      const insertConnection = await createConnection();
       await insertConnection.execute(
         `INSERT INTO user_preferences (user_id, theme, color_scheme, font_size, font_family, spacing, animations, background_type, background_color)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -402,7 +422,7 @@ app.put('/api/user-preferences', verifyToken, async (req, res) => {
       background_color 
     } = req.body;
     
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     // Verificar si el usuario ya tiene preferencias
     const [existing] = await connection.execute(
@@ -455,7 +475,7 @@ app.put('/api/user-preferences', verifyToken, async (req, res) => {
 // Resetear preferencias a valores por defecto
 app.post('/api/user-preferences/reset', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     await connection.execute(
       `UPDATE user_preferences 
@@ -498,7 +518,7 @@ app.get('/api/user-preferences/background-image', verifyToken, getBackgroundImag
 // Obtener notificaciones del usuario autenticado
 app.get('/api/notifications', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const [rows] = await connection.execute(
       'SELECT * FROM notifications WHERE user_id = ? ORDER BY created_at DESC',
       [req.user.id]
@@ -513,7 +533,7 @@ app.get('/api/notifications', verifyToken, async (req, res) => {
 // Marcar notificación como leída
 app.post('/api/notifications/:id/read', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     await connection.execute('UPDATE notifications SET is_read = 1 WHERE id = ?', [req.params.id]);
     await connection.end();
     res.json({ success: true });
@@ -525,7 +545,7 @@ app.post('/api/notifications/:id/read', verifyToken, async (req, res) => {
 // Obtener cantidad de no leídas
 app.get('/api/notifications/unread/count', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const [rows] = await connection.execute(
       'SELECT COUNT(*) as count FROM notifications WHERE user_id = ? AND is_read = 0',
       [req.user.id]
@@ -537,90 +557,121 @@ app.get('/api/notifications/unread/count', verifyToken, async (req, res) => {
   }
 });
 
-// Ruta de prueba
-app.get('/api/test', (req, res) => {
+// Ruta de prueba (compatible con versiones antiguas)
+app.get('/api/test', function(req, res) {
   res.json({ message: 'Backend funcionando correctamente' });
 });
 
-// Ruta de login
-app.post('/api/login', async (req, res) => {
-  try {
-    const { email, password } = req.body;
+// Middleware para manejar rutas no encontradas (evitar 404)
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`,
+    availableRoutes: [
+      'GET /api/test',
+      'POST /api/login',
+      'POST /api/register',
+      'GET /api/users',
+      'GET /api/courses',
+      'POST /api/courses',
+      'GET /api/documents',
+      'POST /api/documents',
+      'GET /api/bitacora',
+      'POST /api/bitacora',
+      'GET /api/cargos',
+      'POST /api/chatbot'
+    ]
+  });
+});
 
-    // Validaciones básicas
-    if (!email || !password) {
-      return res.status(400).json({
-        success: false,
-        message: 'Email y contraseña son requeridos'
-      });
-    }
+// Ruta de login (compatible con versiones antiguas)
+app.post('/api/login', function(req, res) {
+  var email = req.body.email;
+  var password = req.body.password;
 
-    // Conectar a la base de datos
-    const connection = await mysql.createConnection(dbConfig);
-
-    // Buscar usuario por email
-    const [users] = await connection.execute(
-      'SELECT id, nombre, email, password, rol, activo FROM usuarios WHERE email = ?',
-      [email]
-    );
-
-    await connection.end();
-
-    if (users.length === 0) {
-      return res.status(401).json({
-        success: false,
-        message: 'Email o contraseña incorrectos'
-      });
-    }
-
-    const user = users[0];
-
-    // Verificar si el usuario está activo
-    if (!user.activo) {
-      return res.status(403).json({
-        success: false,
-        message: 'Usuario desactivado'
-      });
-    }
-
-    // Verificar contraseña
-    const isValidPassword = await bcrypt.compare(password, user.password);
-
-    if (!isValidPassword) {
-      return res.status(401).json({
-        success: false,
-        message: 'Email o contraseña incorrectos'
-      });
-    }
-
-    // Crear token con id, email, rol y nombre
-    const token = jwt.sign(
-      {
-        id: user.id,
-        email: user.email,
-        rol: user.rol,
-        nombre: user.nombre
-      },
-      JWT_SECRET,
-      { expiresIn: '24h' }
-    );
-
-    // Quitar contraseña de la respuesta
-    const { password: _, ...userWithoutPassword } = user;
-
-    res.json({
-      success: true,
-      message: 'Login exitoso',
-      user: userWithoutPassword,
-      token
-    });
-
-  } catch (error) {
-    res.status(500).json({
+  // Validaciones básicas
+  if (!email || !password) {
+    return res.status(400).json({
       success: false,
-      message: 'Error interno del servidor'
+      message: 'Email y contraseña son requeridos'
     });
   }
+
+  // Conectar a la base de datos
+  createConnection()
+    .then(function(connection) {
+      // Buscar usuario por email
+      return connection.execute(
+        'SELECT id, nombre, email, password, rol, activo FROM usuarios WHERE email = ?',
+        [email]
+      );
+    })
+    .then(function(results) {
+      var users = results[0];
+      
+      if (users.length === 0) {
+        return res.status(401).json({
+          success: false,
+          message: 'Email o contraseña incorrectos'
+        });
+      }
+
+      var user = users[0];
+
+      // Verificar si el usuario está activo
+      if (!user.activo) {
+        return res.status(403).json({
+          success: false,
+          message: 'Usuario desactivado'
+        });
+      }
+
+      // Verificar contraseña
+      return bcrypt.compare(password, user.password)
+        .then(function(isValidPassword) {
+          if (!isValidPassword) {
+            return res.status(401).json({
+              success: false,
+              message: 'Email o contraseña incorrectos'
+            });
+          }
+
+          // Crear token con id, email, rol y nombre
+          var token = jwt.sign(
+            {
+              id: user.id,
+              email: user.email,
+              rol: user.rol,
+              nombre: user.nombre
+            },
+            JWT_SECRET,
+            { expiresIn: '24h' }
+          );
+
+          // Quitar contraseña de la respuesta
+          var userWithoutPassword = {
+            id: user.id,
+            nombre: user.nombre,
+            email: user.email,
+            rol: user.rol,
+            activo: user.activo
+          };
+
+          res.json({
+            success: true,
+            message: 'Login exitoso',
+            user: userWithoutPassword,
+            token: token
+          });
+        });
+    })
+    .catch(function(error) {
+      console.error('Error en login:', error);
+      res.status(500).json({
+        success: false,
+        message: 'Error interno del servidor'
+      });
+    });
 });
 
 // Ruta de registro
@@ -654,7 +705,7 @@ app.post('/api/register', async (req, res) => {
     }
 
     // Conectar a la base de datos
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Verificar si el email ya existe
     const [existingUser] = await connection.execute(
@@ -714,7 +765,7 @@ app.post('/api/register', async (req, res) => {
 // Obtener todos los usuarios
 app.get('/api/users', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Obtener todos los usuarios sin las contraseñas
     const [users] = await connection.execute(
@@ -759,7 +810,7 @@ app.put('/api/users/:id', verifyToken, async (req, res) => {
       });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Verificar si el email ya existe en otro usuario
     const [existingUser] = await connection.execute(
@@ -817,7 +868,7 @@ app.put('/api/users/:id/reset-password', verifyToken, async (req, res) => {
       });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Encriptar nueva contraseña
     const hashedPassword = await bcrypt.hash(newPassword, 10);
@@ -856,7 +907,7 @@ app.put('/api/users/:id/toggle-status', verifyToken, async (req, res) => {
     const { id } = req.params;
     const { activo } = req.body;
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Actualizar estado del usuario
     const [result] = await connection.execute(
@@ -891,7 +942,7 @@ app.get('/api/profile/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     const [users] = await connection.execute(
       'SELECT id, nombre, email, rol, activo FROM usuarios WHERE id = ?',
@@ -941,7 +992,7 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
       return res.status(400).json({ success: false, message: 'Error al procesar las preguntas de evaluación.' });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Verificar que el cargo existe y obtener su nombre
     const [cargoResult] = await connection.execute(
@@ -1022,7 +1073,7 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
 app.get('/api/courses', verifyToken, async (req, res) => {
   try {
     const { rol } = req.query;
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     const [courses] = rol
       ? await connection.execute(`SELECT * FROM courses WHERE role = ?`, [rol])
@@ -1066,7 +1117,7 @@ app.get('/api/courses', verifyToken, async (req, res) => {
 app.get('/api/courses/:id/questions', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     const [questions] = await connection.execute(
       `SELECT id, question, option_1, option_2, option_3, option_4, correct_index FROM questions WHERE course_id = ?`,
@@ -1092,7 +1143,7 @@ app.get('/api/courses/:id/questions', verifyToken, async (req, res) => {
 app.delete('/api/courses/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Eliminar preguntas relacionadas (si hay)
     await connection.execute(`DELETE FROM questions WHERE course_id = ?`, [id]);
@@ -1122,7 +1173,7 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
       return res.status(400).json({ success: false, message: 'Todos los campos del curso son requeridos' });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     // Verificar que el cargo existe y obtener su nombre
     const [cargoResult] = await connection.execute(
@@ -1189,7 +1240,7 @@ app.post('/api/progress', verifyToken, async (req, res) => {
 
   let connection;
   try {
-    connection = await mysql.createConnection(dbConfig);
+    connection = await createConnection();
 
     // Verificar si ya existe progreso previo
     const [existing] = await connection.execute(
@@ -1273,7 +1324,7 @@ app.get('/api/progress', verifyToken, async (req, res) => {
   let connection;
 
   try {
-    connection = await mysql.createConnection(dbConfig);
+    connection = await createConnection();
     const [rows] = await connection.execute(
       `SELECT 
         cp.course_id,
@@ -1311,7 +1362,7 @@ app.get('/api/progress/all', verifyToken, async (req, res) => {
   }
 
   try {
-    connection = await mysql.createConnection(dbConfig);
+    connection = await createConnection();
 
     const [rows] = await connection.execute(
       `SELECT 
@@ -1347,7 +1398,7 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
 
   let connection;
   try {
-    connection = await mysql.createConnection(dbConfig);
+    connection = await createConnection();
 
     const [progress] = await connection.execute(
       `SELECT * FROM course_progress WHERE user_id = ? AND course_id = ?`,
@@ -1372,7 +1423,7 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
 
 app.get('/api/bitacora', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const [rows] = await connection.execute(`
       SELECT id, titulo, descripcion, estado, asignados, deadline, created_at, updated_at 
       FROM bitacora_global 
@@ -1396,7 +1447,7 @@ app.post('/api/bitacora', verifyToken, async (req, res) => {
   }
 
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     for (const userId of asignados) {
       await connection.execute(`
@@ -1430,7 +1481,7 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
   const { titulo, descripcion, estado, asignados, deadline } = req.body;
 
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
 
     const [rows] = await connection.execute(`SELECT * FROM bitacora_global WHERE id = ?`, [tareaId]);
     if (rows.length === 0) return res.status(404).json({ success: false, message: 'Tarea no encontrada' });
@@ -1481,7 +1532,7 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
 // Obtener usuarios (para mostrar nombres)
 app.get('/api/usuarios', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const [rows] = await connection.execute('SELECT id, nombre FROM usuarios');
     await connection.end();
     res.json({ success: true, usuarios: rows });
@@ -1495,7 +1546,7 @@ app.delete('/api/bitacora/:id', verifyToken, async (req, res) => {
   if (rol !== 'Admin') return res.status(403).json({ success: false, message: 'Solo Admin puede eliminar' });
 
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const [result] = await connection.execute(`DELETE FROM bitacora_global WHERE id = ?`, [req.params.id]);
     await connection.end();
 
@@ -1514,7 +1565,7 @@ app.delete('/api/bitacora/:id', verifyToken, async (req, res) => {
 // Obtener todos los cargos
 app.get('/api/cargos', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     const [cargos] = await connection.execute(
       'SELECT * FROM cargos ORDER BY nombre ASC'
@@ -1546,7 +1597,7 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
       });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     // Obtener datos completos de cargos con estadísticas detalladas
     const [cargos] = await connection.execute(`
@@ -1622,7 +1673,7 @@ app.get('/api/cargos/:id/reporte-excel', verifyToken, async (req, res) => {
     }
 
     const cargoId = req.params.id;
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     // Obtener datos completos del cargo específico
     const [cargos] = await connection.execute(`
@@ -1706,7 +1757,7 @@ app.get('/api/cargos/:id/reporte-excel', verifyToken, async (req, res) => {
         });
       }
       
-      const connection = await mysql.createConnection(dbConfig);
+      const connection = await createConnection();
       
       // Verificar si el cargo ya existe
       const [existingCargo] = await connection.execute(
@@ -1756,7 +1807,7 @@ app.put('/api/cargos/:id', verifyToken, async (req, res) => {
       });
     }
     
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     // Verificar si el cargo existe
     const [existingCargo] = await connection.execute(
@@ -1812,7 +1863,7 @@ app.delete('/api/cargos/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
 
-    connection = await mysql.createConnection(dbConfig);
+    connection = await createConnection();
     await connection.beginTransaction();
 
     // 1) Verificar cargo y obtener su nombre
@@ -1929,7 +1980,7 @@ app.get('/api/cargos/:id/metrics', verifyToken, async (req, res) => {
 // Obtener cargos para el registro
 app.get('/api/cargos/activos', async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     const [cargos] = await connection.execute(
       'SELECT id, nombre, descripcion FROM cargos ORDER BY nombre ASC'
@@ -1961,7 +2012,7 @@ app.get('/api/cargos/para-cursos', verifyToken, async (req, res) => {
       });
     }
 
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     
     const [cargos] = await connection.execute(
       'SELECT id, nombre, descripcion FROM cargos ORDER BY nombre ASC'
@@ -2270,7 +2321,7 @@ app.post('/api/chatbot', verifyToken, async (req, res) => {
 // Endpoint para obtener historial de conversaciones del usuario
 app.get('/api/chatbot/history', verifyToken, async (req, res) => {
   try {
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     const [rows] = await connection.execute(
       'SELECT id, message, response, timestamp FROM chatbot_history WHERE user_id = ? ORDER BY timestamp DESC LIMIT 20',
       [req.user.id]
@@ -2294,7 +2345,7 @@ app.post('/api/chatbot/save', verifyToken, async (req, res) => {
   try {
     const { message, response } = req.body;
     
-    const connection = await mysql.createConnection(dbConfig);
+    const connection = await createConnection();
     await connection.execute(
       'INSERT INTO chatbot_history (user_id, message, response, timestamp) VALUES (?, ?, ?, NOW())',
       [req.user.id, message, response]
@@ -2318,9 +2369,63 @@ setInterval(() => {
   videoProcessor.cleanup();
 }, 3600000); // 1 hora
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Servidor corriendo en puerto ${PORT}`);
+// Middleware global para manejar errores (evitar 500)
+app.use((error, req, res, next) => {
+  console.error('Error del servidor:', error);
+  
+  // Si es error de CORS
+  if (error.message === 'No permitido por CORS') {
+    return res.status(403).json({
+      success: false,
+      message: 'Acceso denegado por CORS',
+      origin: req.headers.origin
+    });
+  }
+  
+  // Error genérico del servidor
+  res.status(500).json({
+    success: false,
+    message: 'Error interno del servidor',
+    error: process.env.NODE_ENV === 'development' ? error.message : 'Error interno'
+  });
 });
 
+// Middleware para rutas no encontradas fuera de /api
+app.use('*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: 'Ruta no encontrada',
+    path: req.originalUrl,
+    method: req.method
+  });
+});
+
+// Iniciar servidor SIN requerir conexión a la base de datos (compatible con versiones antiguas)
+function startServer() {
+  // Iniciar servidor inmediatamente
+  app.listen(PORT, '0.0.0.0', function() {
+    console.log('🚀 Servidor corriendo en puerto ' + PORT);
+    console.log('🌐 Ambiente: ' + (process.env.NODE_ENV || 'development'));
+    console.log('🔒 CORS configurado para: ' + (process.env.NODE_ENV === 'production' ? 'producción' : 'desarrollo'));
+    console.log('🗄️ Base de datos: ' + dbConfig.host + ':' + dbConfig.port + '/' + dbConfig.database);
+    console.log('✅ Servidor listo para recibir peticiones');
+    
+    // Probar conexión a la base de datos en segundo plano
+    testConnection()
+      .then(function(dbConnected) {
+        if (dbConnected) {
+          console.log('✅ Base de datos conectada correctamente');
+        } else {
+          console.log('⚠️ Base de datos no disponible - algunas funciones pueden no funcionar');
+        }
+      })
+      .catch(function(error) {
+        console.log('⚠️ Error probando base de datos:', error.message);
+      });
+  });
+}
+
+startServer();
+
 // Exportar para uso
-export default app;
+module.exports = app;

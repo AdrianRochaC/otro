@@ -1,7 +1,7 @@
-import { executeQuery, checkConnectionHealth } from './db-setup/connection-manager.js';
+const { executeQuery, checkConnectionHealth } = require('./db-setup/connection-manager.js');
 
 // Obtener métricas de un cargo específico (versión corregida)
-export async function getCargoMetrics(cargoId) {
+async function getCargoMetrics(cargoId) {
   try {
     // Verificar conexión
     await checkConnectionHealth();
@@ -65,7 +65,7 @@ export async function getCargoMetrics(cargoId) {
 }
 
 // Obtener estadísticas completas de un cargo
-export async function getCargoStats(cargoId) {
+async function getCargoStats(cargoId) {
   try {
     const cargoInfo = await executeQuery('SELECT * FROM cargos WHERE id = ?', [cargoId]);
     if (cargoInfo.length === 0) throw new Error('Cargo no encontrado');
@@ -159,7 +159,7 @@ export async function getCargoStats(cargoId) {
 }
 
 // Obtener estadísticas de todos los cargos
-export async function getAllCargosStats() {
+async function getAllCargosStats() {
   try {
     const cargos = await executeQuery(`
       SELECT 
@@ -183,3 +183,9 @@ export async function getAllCargosStats() {
     throw error;
   }
 }
+
+module.exports = {
+  getCargoMetrics,
+  getCargoStats,
+  getAllCargosStats
+};

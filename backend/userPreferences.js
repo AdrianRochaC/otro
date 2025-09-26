@@ -1,5 +1,5 @@
-import mysql from 'mysql2/promise';
-import multer from 'multer';
+const mysql = require('mysql2/promise');
+const multer = require('multer');
 const uploadMemory = multer({ storage: multer.memoryStorage() });
 
 // Configuración de la base de datos
@@ -196,7 +196,7 @@ const resetUserPreferences = async (req, res) => {
   }
 };
 
-export {
+module.exports = {
   getUserPreferences,
   updateUserPreferences,
   createUserPreferences,

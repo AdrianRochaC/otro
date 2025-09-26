@@ -1,5 +1,5 @@
-import ExcelJS from 'exceljs';
-import { getCargoMetrics } from './cargosMetrics.js';
+const ExcelJS = require('exceljs');
+const { getCargoMetrics } = require('./cargosMetrics.js');
 
 class ExcelReportService {
   constructor() {
@@ -605,5 +605,5 @@ class ExcelReportService {
   }
 }
 
-export default new ExcelReportService();
+module.exports = new ExcelReportService();
 

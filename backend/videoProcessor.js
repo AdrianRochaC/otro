@@ -1,12 +1,10 @@
-import ytdl from 'ytdl-core';
-import fs from 'fs';
-import path from 'path';
-import ffmpeg from 'fluent-ffmpeg';
-import { fileURLToPath } from 'url';
-import { AssemblyAI } from 'assemblyai';
+const ytdl = require('ytdl-core');
+const fs = require('fs');
+const path = require('path');
+const ffmpeg = require('fluent-ffmpeg');
+const { AssemblyAI } = require('assemblyai');
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+// En CommonJS __dirname ya está disponible
 
 class VideoProcessor {
   constructor() {
@@ -234,4 +232,4 @@ class VideoProcessor {
   }
 }
 
-export default new VideoProcessor();
+module.exports = new VideoProcessor();
