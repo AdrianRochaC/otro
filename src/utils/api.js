@@ -6,20 +6,21 @@ const getBackendURL = () => {
     return "http://localhost:3001";
   }
   
-  // Si estamos en producción
+  // Si estamos en Render
+  if (window.location.hostname.includes('onrender.com')) {
+    return "https://otro-k5x5.onrender.com";
+  }
+  
+  // Si estamos en farmeoa.com
+  if (window.location.hostname === 'farmeoa.com') {
+    return "https://farmeoa.com:3001";
+  }
+  
+  // Para otros hosting con carpetas separadas:
+  // Frontend en public_html, Backend en app/backend
   const protocol = window.location.protocol;
   const hostname = window.location.hostname;
-  
-  // Para hosting con carpetas separadas:
-  // Frontend en public_html, Backend en app/backend
-  // El backend estará en el mismo dominio pero puerto 3001
   return `${protocol}//${hostname}:3001`;
-  
-  // Si tu hosting usa subdominios, descomenta la siguiente línea:
-  // return `${protocol}//api.${hostname}`;
-  
-  // Si tu hosting usa una ruta específica, descomenta la siguiente línea:
-  // return `${protocol}//${hostname}/api`;
 };
 
 export const BACKEND_URL = getBackendURL();
