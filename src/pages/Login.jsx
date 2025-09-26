@@ -2,6 +2,7 @@ import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Login.css";
 import { initializePreferences } from '../utils/preferencesApi';
+import { apiFetch } from '../utils/api';
 
 const Login = () => {
   const [email, setEmail] = useState("");
@@ -41,13 +42,14 @@ const Login = () => {
     setLoading(true);
 
     try {
-      const response = await fetch("/api/login", {
+      console.log('🔐 Iniciando login...');
+      const response = await apiFetch("/api/login", {
         method: "POST",
-        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ email, password })
       });
 
       const result = await response.json();
+      console.log('✅ Login exitoso:', result);
 
       if (result.success) {
         localStorage.setItem("authToken", result.token);
@@ -60,7 +62,14 @@ const Login = () => {
       }
 
     } catch (error) {
-      alert("❌ Error de conexión. Verifica que el servidor esté funcionando.");
+      console.error('💥 Error en login:', error);
+      console.error('💥 Error message:', error.message);
+      console.error('💥 Error stack:', error.stack);
+      
+      // Mostrar error detallado en consola y alert
+      const errorMessage = error.message || "Error de conexión. Verifica que el servidor esté funcionando.";
+      console.error('💥 Mostrando error al usuario:', errorMessage);
+      alert("❌ " + errorMessage);
     } finally {
       setLoading(false);
     }
