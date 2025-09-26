@@ -1,5 +1,5 @@
 // utils/api.js
-export const BACKEND_URL = "https://urban-winner-v65q4g4q7pp4cp99j-3001.app.github.dev";
+export const BACKEND_URL = "http://localhost:3001";
 
 export const apiFetch = async (path, options = {}) => {
   const token = localStorage.getItem("authToken");
