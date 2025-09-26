@@ -571,28 +571,6 @@ app.get('/api/test', function(req, res) {
   res.json({ message: 'Backend funcionando correctamente' });
 });
 
-// Middleware para manejar rutas no encontradas (evitar 404)
-app.use('/api/*', (req, res) => {
-  res.status(404).json({
-    success: false,
-    message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`,
-    availableRoutes: [
-      'GET /api/test',
-      'POST /api/login',
-      'POST /api/register',
-      'GET /api/users',
-      'GET /api/courses',
-      'POST /api/courses',
-      'GET /api/documents',
-      'POST /api/documents',
-      'GET /api/bitacora',
-      'POST /api/bitacora',
-      'GET /api/cargos',
-      'POST /api/chatbot'
-    ]
-  });
-});
-
 // Ruta de login (compatible con versiones antiguas)
 app.post('/api/login', function(req, res) {
   var email = req.body.email;
@@ -2377,6 +2355,28 @@ app.post('/api/chatbot/save', verifyToken, async (req, res) => {
 setInterval(() => {
   videoProcessor.cleanup();
 }, 3600000); // 1 hora
+
+// Middleware para manejar rutas no encontradas (evitar 404)
+app.use('/api/*', (req, res) => {
+  res.status(404).json({
+    success: false,
+    message: `Ruta no encontrada: ${req.method} ${req.originalUrl}`,
+    availableRoutes: [
+      'GET /api/test',
+      'POST /api/login',
+      'POST /api/register',
+      'GET /api/users',
+      'GET /api/courses',
+      'POST /api/courses',
+      'GET /api/documents',
+      'POST /api/documents',
+      'GET /api/bitacora',
+      'POST /api/bitacora',
+      'GET /api/cargos',
+      'POST /api/chatbot'
+    ]
+  });
+});
 
 // Middleware global para manejar errores (evitar 500)
 app.use((error, req, res, next) => {
