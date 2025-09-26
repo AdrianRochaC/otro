@@ -72,20 +72,29 @@ var corsOptions = {
     // Permitir requests sin origin (como mobile apps o curl)
     if (!origin) return callback(null, true);
     
-    // En desarrollo, permitir localhost
+    // Permitir localhost para desarrollo
     if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
       return callback(null, true);
     }
     
-    // En producción, permitir tu dominio farmeoa.com
-    var allowedOrigins = appConfig.cors.allowedOrigins;
+    // Permitir Render
+    if (origin.indexOf('onrender.com') !== -1) {
+      return callback(null, true);
+    }
     
-    if (allowedOrigins.indexOf(origin) !== -1) {
+    // Permitir farmeoa.com
+    if (origin.indexOf('farmeoa.com') !== -1) {
       return callback(null, true);
     }
     
     // Para desarrollo, permitir cualquier origen
     if (process.env.NODE_ENV !== 'production') {
+      return callback(null, true);
+    }
+    
+    // En producción, permitir solo orígenes específicos
+    var allowedOrigins = appConfig.cors.allowedOrigins;
+    if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
     
