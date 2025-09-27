@@ -2,12 +2,13 @@
 import React from 'react';
 import HomeMenuList from './HomeMenuList';
 import Chatbot from '../Chatbot';
-import { useLocation } from 'react-router-dom';
+import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { BACKEND_URL } from '../../utils/api';
 
 const Layout = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
+  const navigate = useNavigate();
   
   // Determinar si es admin
   const isAdmin = user && (user.rol === 'Admin' || user.rol === 'Administrador');
@@ -40,7 +41,7 @@ const Layout = ({ children }) => {
   const handleLogout = () => {
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
   return (

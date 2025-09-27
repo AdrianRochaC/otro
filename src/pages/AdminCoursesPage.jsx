@@ -68,7 +68,7 @@ const AdminCoursesPage = () => {
           alert("Sesión expirada. Inicia sesión nuevamente.");
           localStorage.removeItem("authToken");
           localStorage.removeItem("user");
-          window.location.href = "/login";
+          navigate("/login", { replace: true });
         }
         return res.json();
       })
@@ -345,7 +345,7 @@ const AdminCoursesPage = () => {
 
     if (!token) {
       alert("⚠️ Token no encontrado. Inicia sesión nuevamente.");
-      window.location.href = "/login";
+      navigate("/login", { replace: true });
       return;
     }
 
@@ -361,7 +361,7 @@ const AdminCoursesPage = () => {
         alert("⚠️ Sesión expirada. Inicia sesión nuevamente.");
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        navigate("/login", { replace: true });
         return;
       }
 

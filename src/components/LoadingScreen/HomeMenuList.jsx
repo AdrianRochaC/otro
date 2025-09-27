@@ -72,7 +72,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
     localStorage.removeItem('user');
     localStorage.removeItem('authToken');
     clearUserPreferencesAndStyles();
-    window.location.href = '/login';
+    navigate('/login', { replace: true });
   };
 
   const handleNotifClick = () => {

@@ -25,7 +25,7 @@ const CoursesPage = () => {
 
       if (!user || !token) {
         alert("⚠️ Debes iniciar sesión.");
-        window.location.href = "/login";
+        navigate("/login", { replace: true });
         return;
       }
 
@@ -40,7 +40,7 @@ const CoursesPage = () => {
         alert("⚠️ Sesión expirada. Inicia sesión nuevamente.");
         localStorage.removeItem("authToken");
         localStorage.removeItem("user");
-        window.location.href = "/login";
+        navigate("/login", { replace: true });
         return;
       }
 
