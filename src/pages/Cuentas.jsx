@@ -2,6 +2,7 @@
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Cuentas.css";
+import { BACKEND_URL } from '../utils/api';
 
 const Cuentas = () => {
   const [users, setUsers] = useState([]);
@@ -46,7 +47,7 @@ const Cuentas = () => {
         return;
       }
 
-      const response = await fetch('/api/users', {
+      const response = await fetch(`${BACKEND_URL}/api/users`, {
         headers: {
           'Authorization': `Bearer ${token}`,
           'Content-Type': 'application/json'
@@ -129,7 +130,7 @@ const Cuentas = () => {
         return;
       }
 
-      const response = await fetch(`/api/users/${selectedUser.id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/users/${selectedUser.id}`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -174,7 +175,7 @@ const Cuentas = () => {
         return;
       }
 
-      const response = await fetch(`/api/users/${selectedUser.id}/reset-password`, {
+      const response = await fetch(`${BACKEND_URL}/api/users/${selectedUser.id}/reset-password`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
@@ -209,7 +210,7 @@ const Cuentas = () => {
         return;
       }
 
-      const response = await fetch(`/api/users/${userId}/toggle-status`, {
+      const response = await fetch(`${BACKEND_URL}/api/users/${userId}/toggle-status`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',

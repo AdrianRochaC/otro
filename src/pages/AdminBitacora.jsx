@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { FaPlus, FaEdit, FaTrash, FaCircle, FaUser } from "react-icons/fa";
 import "./AdminBitacora.css";
+import { BACKEND_URL } from '../utils/api';
 
 const AdminBitacora = () => {
   const [tareas, setTareas] = useState([]);
@@ -36,7 +37,7 @@ const AdminBitacora = () => {
 
   const fetchTareas = async () => {
     try {
-      const response = await fetch("/api/bitacora", {
+      const response = await fetch(`${BACKEND_URL}/api/bitacora`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -90,7 +91,7 @@ const AdminBitacora = () => {
   const handleDelete = async (id) => {
     if (!confirm("¿Estás seguro de eliminar esta tarea?")) return;
     try {
-      const response = await fetch(`/api/bitacora/${id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/bitacora/${id}`, {
         method: "DELETE",
         headers: { Authorization: `Bearer ${token}` },
       });

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from "react";
 import "./Perfil.css";
+import { BACKEND_URL } from '../utils/api';
 
 const Perfil = () => {
   const [user, setUser] = useState(null);
@@ -19,7 +20,7 @@ const Perfil = () => {
         setUser(userData);
 
         // Obtener progreso
-        const response = await fetch("api/progress", {
+        const response = await fetch(`${BACKEND_URL}/api/progress`, {
           headers: {
             Authorization: `Bearer ${token}`
           }
