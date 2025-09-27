@@ -1,5 +1,7 @@
 // preferencesApi.js - Servicio para manejar preferencias de usuario
-const API_BASE_URL = 'http://localhost:3001/api';
+import { BACKEND_URL } from './api';
+
+const API_BASE_URL = `${BACKEND_URL}/api`;
 
 // Función para obtener el token de autenticación
 const getAuthToken = () => {
@@ -245,7 +247,7 @@ export const initializePreferences = async () => {
     // Si tiene imagen de fondo, cargarla y aplicarla
     if (preferences.has_background_image) {
       const token = getAuthToken();
-      const res = await fetch('http://localhost:3001/api/user-preferences/background-image', {
+      const res = await fetch(`${API_BASE_URL}/user-preferences/background-image`, {
         headers: { Authorization: `Bearer ${token}` }
       });
       if (res.ok) {
