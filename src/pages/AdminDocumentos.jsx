@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import Modal from '../components/Modal';
 import './AdminDocumentos.css'; // Asegúrate de crear este archivo para los estilos
 import { FaEdit, FaTrash } from 'react-icons/fa';
+import { BACKEND_URL } from '../utils/api';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = BACKEND_URL;
 
 const AdminDocumentos = () => {
   const [modalOpen, setModalOpen] = useState(false);

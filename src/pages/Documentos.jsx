@@ -1,5 +1,7 @@
 import React, { useEffect, useState } from 'react';
-const API_URL = 'http://localhost:3001';
+import { BACKEND_URL } from '../utils/api';
+
+const API_URL = BACKEND_URL;
 
 const Documentos = () => {
   const [documents, setDocuments] = useState([]);

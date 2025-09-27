@@ -2,8 +2,9 @@ import React, { useState, useEffect } from 'react';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaDownload, FaUsers, FaGraduationCap, FaFileAlt } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import './AdminCargos.css';
+import { BACKEND_URL } from '../utils/api';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = BACKEND_URL;
 
 const AdminCargos = () => {
   const [cargos, setCargos] = useState([]);
