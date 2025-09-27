@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { X, Palette, Moon, Sun, Settings, Type, Eye, Zap, Image, Upload, Info, Camera } from 'lucide-react';
 import { getUserPreferences, updateUserPreferences, syncPreferencesWithLocalStorage, getAuthStatus } from '../utils/preferencesApi';
+import { BACKEND_URL } from '../utils/api';
 import './PersonalizationModal.css';
 
 const PersonalizationModal = ({ isOpen, onClose }) => {
@@ -70,7 +71,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
     setError(null);
     try {
       const token = localStorage.getItem('authToken');
-      await fetch('/api/user-preferences/background-image', {
+      await fetch(`${BACKEND_URL}/api/user-preferences/background-image`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
@@ -102,7 +103,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       setBackgroundColor(preferences.background_color);
       if (preferences.has_background_image) {
         const token = localStorage.getItem('authToken');
-        const res = await fetch('/api/user-preferences/background-image', {
+        const res = await fetch(`${BACKEND_URL}/api/user-preferences/background-image`, {
           headers: { Authorization: `Bearer ${token}` }
         });
         if (res.ok) {
