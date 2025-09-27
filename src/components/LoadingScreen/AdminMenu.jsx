@@ -8,6 +8,7 @@ import {
   LogOut,
   Settings
 } from "lucide-react";
+import { BACKEND_URL } from '../../utils/api';
 import { FaBell, FaCog, FaFileAlt, FaUsers } from "react-icons/fa";
 import "./AdminMenu.css";
 import "./Notifications.anim.css";
@@ -33,8 +34,7 @@ const AdminMenu = () => {
   }, [token]);
 
   const fetchNotifications = async () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/api/notifications`, {
+    const res = await fetch(`${BACKEND_URL}/api/notifications`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -42,8 +42,7 @@ const AdminMenu = () => {
   };
 
   const fetchUnreadCount = async () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/api/notifications/unread/count`, {
+    const res = await fetch(`${BACKEND_URL}/api/notifications/unread/count`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -193,7 +192,7 @@ const AdminMenu = () => {
                               {n.is_read ? (
                                 <span style={{color:'var(--text-success)',fontWeight:'bold',fontSize:'1.05rem',transition:'color 0.2s'}}>Leída</span>
                               ) : (
-                                <button onClick={async () => {const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';await fetch(`${API_URL}/api/notifications/${n.id}/read`, {method: 'POST',headers: { Authorization: `Bearer ${token}` }});fetchNotifications();}} style={{padding:'6px 14px',background:'var(--gradient-primary)',color:'var(--text-white)',border:'none',borderRadius:'8px',cursor:'pointer',fontSize:'1.05rem',boxShadow:'var(--shadow-light)',fontWeight:'500',transition:'background 0.2s'}} onMouseEnter={e => {e.currentTarget.style.background='var(--gradient-primary-hover)';}} onMouseLeave={e => {e.currentTarget.style.background='var(--gradient-primary)';}}>Leído</button>
+                                <button onClick={async () => {await fetch(`${BACKEND_URL}/api/notifications/${n.id}/read`, {method: 'POST',headers: { Authorization: `Bearer ${token}` }});fetchNotifications();}} style={{padding:'6px 14px',background:'var(--gradient-primary)',color:'var(--text-white)',border:'none',borderRadius:'8px',cursor:'pointer',fontSize:'1.05rem',boxShadow:'var(--shadow-light)',fontWeight:'500',transition:'background 0.2s'}} onMouseEnter={e => {e.currentTarget.style.background='var(--gradient-primary-hover)';}} onMouseLeave={e => {e.currentTarget.style.background='var(--gradient-primary)';}}>Leído</button>
                               )}
                             </div>
                         </div>
