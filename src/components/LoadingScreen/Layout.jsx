@@ -17,17 +17,25 @@ const Layout = ({ children }) => {
   const [collapsed, setCollapsed] = useState(false);
 
   useEffect(() => {
-    // Obtener cantidad de notificaciones no leídas
+    // Obtener cantidad de notificaciones no leídas solo si hay usuario logueado
     const token = localStorage.getItem('authToken');
-    if (!token) return;
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if (!token || !user || location.pathname === '/login' || location.pathname === '/register') {
+      return;
+    }
+    
     fetch(`${BACKEND_URL}/api/notifications/unread/count`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())
       .then(data => {
         if (data.success) setUnreadCount(data.count);
+      })
+      .catch(error => {
+        console.log('Error fetching notifications:', error);
       });
-  }, []);
+  }, [location.pathname]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
