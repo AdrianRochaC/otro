@@ -1,6 +1,7 @@
 import React, { useState, useEffect, useRef } from 'react';
 import './Chatbot.css';
 import { MessageCircle, X, Send, Clock, User, Bot } from 'lucide-react';
+import { BACKEND_URL } from '../utils/api';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -12,7 +13,7 @@ const Chatbot = () => {
   const [showHistory, setShowHistory] = useState(false);
   const messagesEndRef = useRef(null);
 
-  const API_URL = 'http://localhost:3001/api';
+  const API_URL = `${BACKEND_URL}/api`;
   const token = localStorage.getItem('authToken');
 
   useEffect(() => {

@@ -3,6 +3,7 @@ import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import axios from "axios";
 import "./DetailPage.css";
+import { BACKEND_URL } from '../utils/api';
 
 const DetailPage = () => {
   const { id } = useParams();
@@ -185,7 +186,7 @@ const DetailPage = () => {
             />
           ) : (
             <ReactPlayer
-              url={`http://localhost:3001${course.videoUrl || course.video_url}`}
+              url={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
               controls
               onProgress={handleProgress}
               onEnded={() => setVideoEnded(true)}

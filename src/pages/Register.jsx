@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import "./Register.css";
+import { BACKEND_URL } from '../utils/api';
 
-const API_URL = 'http://localhost:3001';
+const API_URL = BACKEND_URL;
 
 const Register = () => {
   const [name, setName] = useState("");

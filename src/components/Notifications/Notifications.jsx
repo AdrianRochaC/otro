@@ -1,8 +1,9 @@
 import React, { useEffect, useState } from 'react';
 import { FaBell } from 'react-icons/fa';
 import './Notifications.css';
+import { BACKEND_URL } from '../../utils/api';
 
-const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
+const API_URL = BACKEND_URL;
 
 export default function Notifications({ token }) {
   const [notifications, setNotifications] = useState([]);
