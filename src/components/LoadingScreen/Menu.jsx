@@ -9,6 +9,7 @@ import {
   FaCog,
   FaFileAlt
 } from "react-icons/fa";
+import { BACKEND_URL } from '../../utils/api';
 import "./Menu.css";
 import "./Notifications.anim.css";
 import { useEffect, useState } from 'react';
@@ -33,8 +34,7 @@ const Menu = () => {
   }, [token]);
 
   const fetchNotifications = async () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/api/notifications`, {
+    const res = await fetch(`${BACKEND_URL}/api/notifications`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -45,8 +45,7 @@ const Menu = () => {
   };
 
   const fetchUnreadCount = async () => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    const res = await fetch(`${API_URL}/api/notifications/unread/count`, {
+    const res = await fetch(`${BACKEND_URL}/api/notifications/unread/count`, {
       headers: { Authorization: `Bearer ${token}` }
     });
     const data = await res.json();
@@ -94,8 +93,7 @@ const Menu = () => {
   };
 
   const handleMarkAsRead = async (id) => {
-    const API_URL = import.meta.env.VITE_API_URL || 'http://localhost:3001';
-    await fetch(`${API_URL}/api/notifications/${id}/read`, {
+    await fetch(`${BACKEND_URL}/api/notifications/${id}/read`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     });

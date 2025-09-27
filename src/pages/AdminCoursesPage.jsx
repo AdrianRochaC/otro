@@ -37,7 +37,7 @@ const AdminCoursesPage = () => {
 
   const fetchCargos = async () => {
     try {
-      const response = await fetch(`${API_URL_INTERNAL}/cargos/para-cursos`, {
+      const response = await fetch(`${API_URL_INTERNAL}/api/cargos/para-cursos`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -58,7 +58,7 @@ const AdminCoursesPage = () => {
   };
 
   const fetchCourses = () => {
-    fetch(`${API_URL_INTERNAL}/courses`, {
+    fetch(`${API_URL_INTERNAL}/api/courses`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
