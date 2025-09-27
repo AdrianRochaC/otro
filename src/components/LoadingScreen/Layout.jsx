@@ -4,6 +4,7 @@ import HomeMenuList from './HomeMenuList';
 import Chatbot from '../Chatbot';
 import { useLocation } from 'react-router-dom';
 import { useState, useEffect } from 'react';
+import { BACKEND_URL } from '../../utils/api';
 
 const Layout = ({ children }) => {
   const user = JSON.parse(localStorage.getItem('user') || 'null');
@@ -19,8 +20,7 @@ const Layout = ({ children }) => {
     // Obtener cantidad de notificaciones no leídas
     const token = localStorage.getItem('authToken');
     if (!token) return;
-    const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001';
-    fetch(`${API_URL}/api/notifications/unread/count`, {
+    fetch(`${BACKEND_URL}/api/notifications/unread/count`, {
       headers: { Authorization: `Bearer ${token}` }
     })
       .then(res => res.json())

@@ -350,7 +350,7 @@ const AdminCoursesPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL_INTERNAL}/courses/${id}`, {
+      const response = await fetch(`${API_URL_INTERNAL}/api/courses/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,

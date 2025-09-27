@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { BookOpenCheck, ClipboardList, Users2, BarChart3, User, Settings, Home } from "lucide-react";
 import { FaGraduationCap, FaClipboardList, FaUser, FaBell, FaCog, FaHome, FaFileAlt, FaUsers } from "react-icons/fa";
 import PersonalizationModal from '../PersonalizationModal';
+import { BACKEND_URL } from '../../utils/api';
 
 const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -79,8 +80,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
     if (!showNotifDropdown) {
       setLoading(true);
       const token = localStorage.getItem('authToken');
-      const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001';
-      fetch(`${API_URL}/api/notifications`, {
+      fetch(`${BACKEND_URL}/api/notifications`, {
         headers: { Authorization: `Bearer ${token}` }
       })
         .then(res => res.json())
@@ -93,8 +93,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
 
   const handleMarkAsRead = async (id) => {
     const token = localStorage.getItem('authToken');
-    const API_URL = import.meta.env?.VITE_API_URL || 'http://localhost:3001';
-    await fetch(`${API_URL}/api/notifications/${id}/read`, {
+    await fetch(`${BACKEND_URL}/api/notifications/${id}/read`, {
       method: 'POST',
       headers: { Authorization: `Bearer ${token}` }
     });
