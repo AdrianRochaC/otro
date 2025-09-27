@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CoursesPage.css";
+import { BACKEND_URL } from '../utils/api';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -29,7 +30,7 @@ const CoursesPage = () => {
       }
 
       const rol = user.rol;
-      const response = await fetch(`/api/courses?rol=${encodeURIComponent(rol)}`, {
+      const response = await fetch(`${BACKEND_URL}/api/courses?rol=${encodeURIComponent(rol)}`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -94,7 +95,7 @@ const CoursesPage = () => {
                       />
                     ) : (
                       <video
-                        src={`http://localhost:3001${course.videoUrl || course.video_url}`}
+                        src={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
                         controls
                         width="100%"
                         height="315"

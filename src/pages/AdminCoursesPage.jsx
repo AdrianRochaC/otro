@@ -2,9 +2,10 @@ import React, { useState, useEffect } from "react";
 import "./AdminCoursesPage.css";
 import { useNavigate } from "react-router-dom";
 import { BookOpenCheck, ClipboardList, Users2, BarChart3, User } from "lucide-react";
+import { BACKEND_URL } from '../utils/api';
 
 // Constantes para la API
-const API_URL = 'http://localhost:3001';
+const API_URL_INTERNAL = BACKEND_URL;
 
 const AdminCoursesPage = () => {
   const [title, setTitle] = useState("");
@@ -25,7 +26,7 @@ const AdminCoursesPage = () => {
   const [loading, setLoading] = useState(false); // Estado para IA
   const [aiStatus, setAiStatus] = useState({}); // Estado para IA
 
-  const API_URL = "http://localhost:3001/api";
+  const API_URL_INTERNAL_INTERNAL = `${BACKEND_URL}/api`;
   const token = localStorage.getItem("authToken");
   const navigate = useNavigate();
 
@@ -36,7 +37,7 @@ const AdminCoursesPage = () => {
 
   const fetchCargos = async () => {
     try {
-      const response = await fetch(`${API_URL}/cargos/para-cursos`, {
+      const response = await fetch(`${API_URL_INTERNAL}/cargos/para-cursos`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -57,7 +58,7 @@ const AdminCoursesPage = () => {
   };
 
   const fetchCourses = () => {
-    fetch(`${API_URL}/courses`, {
+    fetch(`${API_URL_INTERNAL}/courses`, {
       headers: {
         Authorization: `Bearer ${token}`,
       },
@@ -138,7 +139,7 @@ const AdminCoursesPage = () => {
     }
 
     try {
-      const url = editingCourse ? `${API_URL}/courses/${editingCourse}` : `${API_URL}/courses`;
+      const url = editingCourse ? `${API_URL_INTERNAL}/courses/${editingCourse}` : `${API_URL_INTERNAL}/courses`;
       const method = editingCourse ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -225,7 +226,7 @@ const AdminCoursesPage = () => {
       // Si hay video de YouTube, analizarlo
       if (videoUrl && !useFile) {
         try {
-          const response = await fetch(`${API_URL}/ai/analyze-youtube`, {
+          const response = await fetch(`${API_URL_INTERNAL}/ai/analyze-youtube`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -272,7 +273,7 @@ const AdminCoursesPage = () => {
             formData.append('description', description);
             formData.append('numQuestions', '5');
             
-            const response = await fetch(`${API_URL}/ai/analyze-video-file`, {
+            const response = await fetch(`${API_URL_INTERNAL}/ai/analyze-video-file`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -299,7 +300,7 @@ const AdminCoursesPage = () => {
       }
 
       // Si es archivo de documento o solo texto, usar el endpoint general
-      const response = await fetch(`${API_URL}/ai/generate-questions`, {
+      const response = await fetch(`${API_URL_INTERNAL}/ai/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -349,7 +350,7 @@ const AdminCoursesPage = () => {
     }
 
     try {
-      const response = await fetch(`${API_URL}/courses/${id}`, {
+      const response = await fetch(`${API_URL_INTERNAL}/courses/${id}`, {
         method: "DELETE",
         headers: {
           Authorization: `Bearer ${token}`,
@@ -397,7 +398,7 @@ const AdminCoursesPage = () => {
       setQuestions(course.evaluation);
     } else {
       try {
-        const res = await fetch(`${API_URL}/courses/${course.id}/questions`, {
+        const res = await fetch(`${API_URL_INTERNAL}/courses/${course.id}/questions`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },
@@ -718,7 +719,7 @@ const AdminCoursesPage = () => {
                     />
                   ) : (
                     <video
-                      src={`http://localhost:3001${course.videoUrl || course.video_url}`}
+                      src={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
                       controls
                       width="100%"
                       height="315"
