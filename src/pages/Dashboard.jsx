@@ -1,6 +1,7 @@
 
 import React, { useEffect, useState } from "react";
 import axios from "axios";
+import { BACKEND_URL } from "../utils/api";
 import "./Dashboard.css";
 
 const Dashboard = () => {
@@ -17,8 +18,8 @@ const Dashboard = () => {
     }
     // Obtener usuarios y progreso en paralelo
     Promise.all([
-      axios.get("/api/users", { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get("/api/progress/all", { headers: { Authorization: `Bearer ${token}` } })
+      axios.get(`${BACKEND_URL}/api/users`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${BACKEND_URL}/api/progress/all`, { headers: { Authorization: `Bearer ${token}` } })
     ])
       .then(([usersRes, progressRes]) => {
         if (usersRes.data.success && progressRes.data.success) {

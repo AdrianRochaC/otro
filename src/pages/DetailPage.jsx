@@ -24,7 +24,7 @@ const DetailPage = () => {
 
   useEffect(() => {
     axios
-      .get(`/api/courses?rol=${user.rol}`, {
+      .get(`${BACKEND_URL}/api/courses?rol=${user.rol}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then(async (res) => {
@@ -34,7 +34,7 @@ const DetailPage = () => {
           return navigate("/courses");
         }
 
-        const questionsRes = await axios.get(`/api/courses/${id}/questions`, {
+        const questionsRes = await axios.get(`${BACKEND_URL}/api/courses/${id}/questions`, {
           headers: { Authorization: `Bearer ${token}` },
         });
 
