@@ -1,4 +1,5 @@
 import React, { useEffect, useState } from "react";
+import { BACKEND_URL } from "../utils/api";
 import "./Bitacora.css";
 import { FaCircle } from "react-icons/fa";
 
@@ -43,7 +44,7 @@ const Bitacora = () => {
 
   const cambiarEstado = async (tarea, nuevoEstado) => {
     try {
-      const response = await fetch(`/api/bitacora/${tarea.id}`, {
+      const response = await fetch(`${BACKEND_URL}/api/bitacora/${tarea.id}`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

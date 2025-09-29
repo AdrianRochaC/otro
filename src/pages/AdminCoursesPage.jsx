@@ -139,7 +139,7 @@ const AdminCoursesPage = () => {
     }
 
     try {
-      const url = editingCourse ? `${API_URL_INTERNAL}/courses/${editingCourse}` : `${API_URL_INTERNAL}/courses`;
+      const url = editingCourse ? `${API_URL_INTERNAL}/api/courses/${editingCourse}` : `${API_URL_INTERNAL}/api/courses`;
       const method = editingCourse ? "PUT" : "POST";
 
       const res = await fetch(url, {
@@ -398,7 +398,7 @@ const AdminCoursesPage = () => {
       setQuestions(course.evaluation);
     } else {
       try {
-        const res = await fetch(`${API_URL_INTERNAL}/courses/${course.id}/questions`, {
+        const res = await fetch(`${API_URL_INTERNAL}/api/courses/${course.id}/questions`, {
           headers: {
             Authorization: `Bearer ${token}`,
           },

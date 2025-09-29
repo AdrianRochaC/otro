@@ -153,6 +153,22 @@ const backgroundImageUpload = multer({
   }
 });
 
+// Configuración de Multer para análisis de video con IA (en memoria)
+const videoAnalysisUpload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 100 * 1024 * 1024 // 100MB máximo para videos
+  },
+  fileFilter: function (req, file, cb) {
+    // Permitir solo videos
+    if (file.mimetype.startsWith('video/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de video'), false);
+    }
+  }
+});
+
 // Configuración de Multer para documentos
 const documentStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -2274,7 +2290,7 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
 });
 
 // RUTA: Analizar archivo de video MP4 y generar preguntas
-app.post('/api/ai/analyze-video-file', upload.single('videoFile'), verifyToken, async (req, res) => {
+app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), verifyToken, async (req, res) => {
   try {
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {

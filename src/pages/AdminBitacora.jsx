@@ -26,7 +26,7 @@ const AdminBitacora = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const response = await fetch("/api/usuarios", {
+      const response = await fetch(`${BACKEND_URL}/api/usuarios`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
@@ -55,8 +55,8 @@ const AdminBitacora = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     const url = editingTarea
-      ? `/api/bitacora/${editingTarea.id}`
-      : "/api/bitacora";
+      ? `${BACKEND_URL}/api/bitacora/${editingTarea.id}`
+      : `${BACKEND_URL}/api/bitacora`;
     const method = editingTarea ? "PUT" : "POST";
 
     try {
