@@ -124,19 +124,35 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
-// Middleware específico para manejar peticiones OPTIONS (preflight)
-app.options('*', (req, res) => {
-  console.log('=== PETICIÓN OPTIONS (PREFLIGHT) ===');
-  console.log('Path:', req.path);
+// Middleware adicional para CORS (backup)
+app.use((req, res, next) => {
+  console.log('=== MIDDLEWARE CORS BACKUP ===');
   console.log('Origin:', req.headers.origin);
   console.log('Method:', req.method);
-  console.log('Headers:', req.headers);
+  console.log('Path:', req.path);
   
-  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
-  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.sendStatus(200);
+  // Permitir orígenes específicos
+  const allowedOrigins = [
+    'https://otro-frontend.onrender.com',
+    'http://localhost:5173',
+    'http://localhost:3000'
+  ];
+  
+  const origin = req.headers.origin;
+  if (allowedOrigins.includes(origin) || !origin) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+  }
+  
+  // Manejar peticiones OPTIONS
+  if (req.method === 'OPTIONS') {
+    console.log('Respondiendo a OPTIONS');
+    return res.sendStatus(200);
+  }
+  
+  next();
 });
 
 // Configurar límites de payload más grandes para imágenes
@@ -615,6 +631,8 @@ app.put('/api/user-preferences/background-image', verifyToken, backgroundImageUp
 
 // Endpoint para obtener imagen de fondo
 app.get('/api/user-preferences/background-image', verifyToken, async (req, res) => {
+  console.log('=== ENDPOINT BACKGROUND-IMAGE LLAMADO ===');
+  console.log('Usuario:', req.user);
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute(
@@ -725,6 +743,8 @@ app.post('/api/notifications/:id/read', verifyToken, async (req, res) => {
 
 // Obtener cantidad de no leídas
 app.get('/api/notifications/unread/count', verifyToken, async (req, res) => {
+  console.log('=== ENDPOINT NOTIFICATIONS COUNT LLAMADO ===');
+  console.log('Usuario:', req.user);
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute(
