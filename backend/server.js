@@ -1215,11 +1215,17 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
 app.get('/api/courses', verifyToken, async (req, res) => {
   try {
     const { rol } = req.query;
+    console.log('=== CARGANDO CURSOS ===');
+    console.log('Rol solicitado:', rol);
+    console.log('Usuario:', req.user);
+    
     const connection = await createConnection();
 
     const [courses] = rol
       ? await connection.execute(`SELECT * FROM courses WHERE role = ?`, [rol])
       : await connection.execute(`SELECT * FROM courses`);
+    
+    console.log('Cursos encontrados en DB:', courses.length);
 
     // Agrega las preguntas para cada curso
     const formattedCourses = await Promise.all(courses.map(async (course) => {
@@ -1249,6 +1255,9 @@ app.get('/api/courses', verifyToken, async (req, res) => {
 
     await connection.end();
 
+    console.log('Cursos formateados:', formattedCourses.length);
+    console.log('Primer curso:', formattedCourses[0]);
+    
     res.json({ success: true, courses: formattedCourses });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
@@ -2213,9 +2222,14 @@ app.post('/api/courses/:id/generate-questions', verifyToken, async (req, res) =>
 
 // RUTA: Generar preguntas personalizadas con IA
 app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
+  console.log('=== INICIO GENERACIÓN DE PREGUNTAS ===');
+  console.log('Usuario:', req.user);
+  console.log('Body:', req.body);
+  
   try {
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
+      console.log('Error: Usuario no es admin');
       return res.status(403).json({
         success: false,
         message: 'Solo los administradores pueden usar el servicio de IA'
@@ -2223,6 +2237,7 @@ app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
     }
 
     const { title, description, content, contentType, numQuestions = 5 } = req.body;
+    console.log('Parámetros recibidos:', { title, description, content, contentType, numQuestions });
 
     if (!title || !description) {
       return res.status(400).json({
@@ -2307,9 +2322,19 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
 
 // RUTA: Analizar archivo de video MP4 y generar preguntas
 app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), verifyToken, async (req, res) => {
+  console.log('=== INICIO ANÁLISIS DE VIDEO ===');
+  console.log('Usuario:', req.user);
+  console.log('Archivo recibido:', req.file ? {
+    originalname: req.file.originalname,
+    mimetype: req.file.mimetype,
+    size: req.file.size
+  } : 'No hay archivo');
+  console.log('Body:', req.body);
+  
   try {
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
+      console.log('Error: Usuario no es admin');
       return res.status(403).json({
         success: false,
         message: 'Solo los administradores pueden analizar archivos de video'
@@ -2317,6 +2342,7 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     }
 
     if (!req.file) {
+      console.log('Error: No se envió archivo');
       return res.status(400).json({
         success: false,
         message: 'No se envió ningún archivo de video'
@@ -2324,6 +2350,7 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     }
 
     const { title, description, numQuestions = 5 } = req.body;
+    console.log('Parámetros recibidos:', { title, description, numQuestions });
     
     // Con multer.memoryStorage(), el archivo está en req.file.buffer
     // Necesitamos guardarlo temporalmente para procesarlo
@@ -2331,20 +2358,29 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     const path = require('path');
     const tempDir = path.join(__dirname, 'temp', 'videos');
     
+    console.log('Directorio temporal:', tempDir);
+    
     // Crear directorio temporal si no existe
     if (!fs.existsSync(tempDir)) {
+      console.log('Creando directorio temporal...');
       fs.mkdirSync(tempDir, { recursive: true });
     }
     
     const tempFileName = `temp_${Date.now()}_${req.file.originalname}`;
     const tempFilePath = path.join(tempDir, tempFileName);
     
+    console.log('Archivo temporal:', tempFilePath);
+    
     // Guardar archivo temporalmente
+    console.log('Guardando archivo temporal...');
     fs.writeFileSync(tempFilePath, req.file.buffer);
+    console.log('Archivo guardado exitosamente');
     
     try {
       // Analizar contenido del archivo de video con transcripción real
+      console.log('Iniciando análisis de video con IA...');
       const videoData = await aiService.processMP4WithTranscription(tempFilePath);
+      console.log('Análisis completado:', videoData);
     
     // Combinar con datos personalizados si se proporcionan
     const courseData = {

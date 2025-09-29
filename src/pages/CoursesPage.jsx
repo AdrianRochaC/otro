@@ -45,7 +45,9 @@ const CoursesPage = () => {
       }
 
       const data = await response.json();
+      console.log('Cursos recibidos en CoursesPage:', data);
       if (data.success) {
+        console.log('Cursos cargados:', data.courses);
         setCourses(data.courses);
       } else {
         alert("Error al cargar cursos");
