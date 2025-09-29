@@ -94,10 +94,26 @@ var corsOptions = {
     
     // En producción, permitir solo orígenes específicos
     var allowedOrigins = appConfig.cors.allowedOrigins;
+    
+    // Verificar si el origen está en la lista exacta
     if (allowedOrigins.indexOf(origin) !== -1) {
       return callback(null, true);
     }
     
+    // Verificar patrones con wildcard
+    for (var i = 0; i < allowedOrigins.length; i++) {
+      var allowedOrigin = allowedOrigins[i];
+      if (allowedOrigin.includes('*')) {
+        var pattern = allowedOrigin.replace(/\*/g, '.*');
+        var regex = new RegExp('^' + pattern + '$');
+        if (regex.test(origin)) {
+          return callback(null, true);
+        }
+      }
+    }
+    
+    console.log('CORS: Origen no permitido:', origin);
+    console.log('CORS: Orígenes permitidos:', allowedOrigins);
     callback(new Error('No permitido por CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],

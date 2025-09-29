@@ -226,7 +226,7 @@ const AdminCoursesPage = () => {
       // Si hay video de YouTube, analizarlo
       if (videoUrl && !useFile) {
         try {
-          const response = await fetch(`${API_URL_INTERNAL}/ai/analyze-youtube`, {
+          const response = await fetch(`${API_URL_INTERNAL}/api/ai/analyze-youtube`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -273,7 +273,7 @@ const AdminCoursesPage = () => {
             formData.append('description', description);
             formData.append('numQuestions', '5');
             
-            const response = await fetch(`${API_URL_INTERNAL}/ai/analyze-video-file`, {
+            const response = await fetch(`${API_URL_INTERNAL}/api/ai/analyze-video-file`, {
               method: 'POST',
               headers: {
                 'Authorization': `Bearer ${token}`
@@ -300,7 +300,7 @@ const AdminCoursesPage = () => {
       }
 
       // Si es archivo de documento o solo texto, usar el endpoint general
-      const response = await fetch(`${API_URL_INTERNAL}/ai/generate-questions`, {
+      const response = await fetch(`${API_URL_INTERNAL}/api/ai/generate-questions`, {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
