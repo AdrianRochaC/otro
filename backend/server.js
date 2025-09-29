@@ -25,6 +25,7 @@ const excelReportService = require('./excelReportService.js');
 
 // Importar servicio de video y OpenAI
 const videoProcessor = require('./videoProcessor.js');
+const aiService = require('./aiService.js');
 const OpenAI = require('openai');
 
 // Importar configuraciones centralizadas PRIMERO

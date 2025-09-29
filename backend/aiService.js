@@ -1,10 +1,10 @@
-import OpenAI from 'openai';
-import { executeQuery } from '../db-setup/connection-manager.js';
-import ytdl from 'ytdl-core';
-import fs from 'fs';
-import path from 'path';
-import dotenv from 'dotenv';
-import videoProcessor from './videoProcessor.js';
+const OpenAI = require('openai');
+const { executeQuery } = require('../db-setup/connection-manager.js');
+const ytdl = require('ytdl-core');
+const fs = require('fs');
+const path = require('path');
+const dotenv = require('dotenv');
+const videoProcessor = require('./videoProcessor.js');
 
 dotenv.config();
 
@@ -397,4 +397,4 @@ Basándote en la transcripción real del archivo de video, genera preguntas de e
   }
 }
 
-export default new AIService();
+module.exports = new AIService();

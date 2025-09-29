@@ -210,7 +210,9 @@ const DetailPage = () => {
             />
           ) : (
             <ReactPlayer
-              url={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
+              url={course.videoUrl && course.videoUrl.startsWith('http') 
+                ? course.videoUrl 
+                : `${BACKEND_URL}${course.videoUrl || course.video_url}`}
               controls
               onProgress={handleProgress}
               onEnded={() => setVideoEnded(true)}
