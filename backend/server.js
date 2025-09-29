@@ -123,6 +123,22 @@ var corsOptions = {
 };
 
 app.use(cors(corsOptions));
+
+// Middleware específico para manejar peticiones OPTIONS (preflight)
+app.options('*', (req, res) => {
+  console.log('=== PETICIÓN OPTIONS (PREFLIGHT) ===');
+  console.log('Path:', req.path);
+  console.log('Origin:', req.headers.origin);
+  console.log('Method:', req.method);
+  console.log('Headers:', req.headers);
+  
+  res.header('Access-Control-Allow-Origin', req.headers.origin || '*');
+  res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.sendStatus(200);
+});
+
 // Configurar límites de payload más grandes para imágenes
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ limit: '10mb', extended: true }));
@@ -2223,6 +2239,7 @@ app.post('/api/courses/:id/generate-questions', verifyToken, async (req, res) =>
 
 // RUTA: Generar preguntas personalizadas con IA
 app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
+  console.log('=== ENDPOINT GENERATE-QUESTIONS LLAMADO ===');
   console.log('=== INICIO GENERACIÓN DE PREGUNTAS ===');
   console.log('Usuario:', req.user);
   console.log('Body:', req.body);
@@ -2323,6 +2340,7 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
 
 // RUTA: Analizar archivo de video MP4 y generar preguntas
 app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), verifyToken, async (req, res) => {
+  console.log('=== ENDPOINT ANALYZE-VIDEO-FILE LLAMADO ===');
   console.log('=== INICIO ANÁLISIS DE VIDEO ===');
   console.log('Usuario:', req.user);
   console.log('Archivo recibido:', req.file ? {

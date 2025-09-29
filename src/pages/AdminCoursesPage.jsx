@@ -719,7 +719,9 @@ const AdminCoursesPage = () => {
                     />
                   ) : (
                     <video
-                      src={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
+                      src={(course.videoUrl || course.video_url) && (course.videoUrl || course.video_url).startsWith('http') 
+                        ? (course.videoUrl || course.video_url)
+                        : `${BACKEND_URL}${course.videoUrl || course.video_url}`}
                       controls
                       width="100%"
                       height="315"
