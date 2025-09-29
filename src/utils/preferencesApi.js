@@ -248,7 +248,7 @@ export const initializePreferences = async () => {
     syncPreferencesWithLocalStorage(preferences);
 
     // Si tiene imagen de fondo, cargarla y aplicarla
-    if (preferences.has_background_image) {
+    if (preferences.has_background_image && preferences.background_type === 'image') {
       try {
         const token = getAuthToken();
         const res = await fetch(`${API_BASE_URL}/user-preferences/background-image`, {
@@ -276,9 +276,10 @@ export const initializePreferences = async () => {
         preferences.background_image_url = '';
       }
     } else {
-      // No hay imagen de fondo, usar color
+      // No hay imagen de fondo o se seleccionó color, usar color
       preferences.background_type = preferences.background_type || 'color';
       preferences.background_image_url = '';
+      console.log('Usando color de fondo:', preferences.background_color);
     }
     
     // Aplicar todas las preferencias al DOM

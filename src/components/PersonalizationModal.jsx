@@ -104,7 +104,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       setBackgroundType(preferences.background_type);
       setBackgroundColor(preferences.background_color);
       
-      if (preferences.has_background_image) {
+      if (preferences.has_background_image && preferences.background_type === 'image') {
         try {
           const token = localStorage.getItem('authToken');
           const res = await fetch(`${BACKEND_URL}/api/user-preferences/background-image`, {
@@ -118,17 +118,17 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
             console.log('Imagen de fondo cargada en modal:', imageUrl);
           } else {
             setBackgroundImageUrl('');
-            applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type, '', preferences.background_color);
-            console.log('No se pudo cargar imagen de fondo en modal');
+            applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'color', '', preferences.background_color);
+            console.log('No se pudo cargar imagen de fondo en modal, usando color');
           }
         } catch (imageError) {
           console.warn('Error al cargar imagen de fondo en modal:', imageError);
           setBackgroundImageUrl('');
-          applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type, '', preferences.background_color);
+          applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'color', '', preferences.background_color);
         }
       } else {
         setBackgroundImageUrl('');
-        applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type, '', preferences.background_color);
+        applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type || 'color', '', preferences.background_color);
       }
     } catch (error) {
       console.error('Error al cargar preferencias en modal:', error);
@@ -272,6 +272,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
   const handleBackgroundTypeChange = async (type) => {
     setBackgroundType(type);
     
+    // Si se selecciona color, limpiar la imagen
     const newPreferences = {
       theme: selectedTheme,
       color_scheme: colorScheme,
@@ -280,11 +281,16 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       spacing: spacing,
       animations: animations,
       background_type: type,
-      background_image_url: backgroundImageUrl,
+      background_image_url: type === 'color' ? '' : backgroundImageUrl,
       background_color: backgroundColor
     };
     
-    applySettings(selectedTheme, colorScheme, fontSize, fontFamily, spacing, animations, type, backgroundImageUrl, backgroundColor);
+    // Limpiar la imagen localmente si se selecciona color
+    if (type === 'color') {
+      setBackgroundImageUrl('');
+    }
+    
+    applySettings(selectedTheme, colorScheme, fontSize, fontFamily, spacing, animations, type, type === 'color' ? '' : backgroundImageUrl, backgroundColor);
     await savePreferences(newPreferences);
   };
 
@@ -332,11 +338,14 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       spacing: spacing,
       animations: animations,
       background_type: 'color',
-      background_image_url: backgroundImageUrl,
+      background_image_url: '', // Limpiar imagen cuando se selecciona color
       background_color: color
     };
     
-    applySettings(selectedTheme, colorScheme, fontSize, fontFamily, spacing, animations, 'color', backgroundImageUrl, color);
+    // Limpiar la imagen localmente
+    setBackgroundImageUrl('');
+    
+    applySettings(selectedTheme, colorScheme, fontSize, fontFamily, spacing, animations, 'color', '', color);
     await savePreferences(newPreferences);
   };
 

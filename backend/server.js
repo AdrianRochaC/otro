@@ -440,15 +440,27 @@ app.put('/api/user-preferences', verifyToken, async (req, res) => {
     );
 
     if (existing.length > 0) {
-      // Actualizar preferencias existentes
-      await connection.execute(
-        `UPDATE user_preferences 
-         SET theme = ?, color_scheme = ?, font_size = ?, font_family = ?, spacing = ?, animations = ?,
-             background_type = ?, background_color = ?
-         WHERE user_id = ?`,
-        [theme, color_scheme, font_size, font_family, spacing, animations, 
-         background_type, background_color, req.user.id]
-      );
+      // Si se selecciona color sólido, limpiar la imagen de fondo
+      if (background_type === 'color') {
+        await connection.execute(
+          `UPDATE user_preferences 
+           SET theme = ?, color_scheme = ?, font_size = ?, font_family = ?, spacing = ?, animations = ?,
+               background_type = ?, background_color = ?, background_image = NULL
+           WHERE user_id = ?`,
+          [theme, color_scheme, font_size, font_family, spacing, animations, 
+           background_type, background_color, req.user.id]
+        );
+      } else {
+        // Mantener la imagen existente si no se especifica lo contrario
+        await connection.execute(
+          `UPDATE user_preferences 
+           SET theme = ?, color_scheme = ?, font_size = ?, font_family = ?, spacing = ?, animations = ?,
+               background_type = ?, background_color = ?
+           WHERE user_id = ?`,
+          [theme, color_scheme, font_size, font_family, spacing, animations, 
+           background_type, background_color, req.user.id]
+        );
+      }
     } else {
       // Crear nuevas preferencias
       await connection.execute(
@@ -538,6 +550,24 @@ app.get('/api/user-preferences/background-image', verifyToken, async (req, res) 
     res.send(rows[0].background_image);
   } catch (error) {
     console.error('Error al obtener imagen de fondo:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para eliminar imagen de fondo
+app.delete('/api/user-preferences/background-image', verifyToken, async (req, res) => {
+  try {
+    const connection = await createConnection();
+    
+    await connection.execute(
+      'UPDATE user_preferences SET background_image = NULL, background_type = ? WHERE user_id = ?',
+      ['color', req.user.id]
+    );
+    
+    await connection.end();
+    res.json({ success: true, message: 'Imagen de fondo eliminada exitosamente' });
+  } catch (error) {
+    console.error('Error al eliminar imagen de fondo:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 });
