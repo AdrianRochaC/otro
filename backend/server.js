@@ -477,6 +477,67 @@ app.put('/api/user-preferences', verifyToken, async (req, res) => {
     });
 
   } catch (error) {
+    console.error('Error al actualizar preferencias:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para subir imagen de fondo
+app.put('/api/user-preferences/background-image', verifyToken, upload.single('background_image'), async (req, res) => {
+  try {
+    if (!req.file) {
+      return res.status(400).json({ success: false, message: 'No se envió ninguna imagen.' });
+    }
+
+    const connection = await createConnection();
+    
+    // Verificar si el usuario ya tiene preferencias
+    const [existing] = await connection.execute(
+      'SELECT id FROM user_preferences WHERE user_id = ?',
+      [req.user.id]
+    );
+
+    if (existing.length > 0) {
+      // Actualizar preferencias existentes
+      await connection.execute(
+        'UPDATE user_preferences SET background_image = ?, background_type = ? WHERE user_id = ?',
+        [req.file.buffer, 'image', req.user.id]
+      );
+    } else {
+      // Crear nuevas preferencias con imagen de fondo
+      await connection.execute(
+        `INSERT INTO user_preferences (user_id, theme, color_scheme, font_size, font_family, spacing, animations, background_type, background_image, background_color)
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+        [req.user.id, 'dark', 'default', 'medium', 'inter', 'normal', 'enabled', 'image', req.file.buffer, 'default']
+      );
+    }
+    
+    await connection.end();
+    res.json({ success: true, message: 'Imagen de fondo actualizada exitosamente' });
+  } catch (error) {
+    console.error('Error al subir imagen de fondo:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+  }
+});
+
+// Endpoint para obtener imagen de fondo
+app.get('/api/user-preferences/background-image', verifyToken, async (req, res) => {
+  try {
+    const connection = await createConnection();
+    const [rows] = await connection.execute(
+      'SELECT background_image FROM user_preferences WHERE user_id = ?',
+      [req.user.id]
+    );
+    await connection.end();
+    
+    if (rows.length === 0 || !rows[0].background_image) {
+      return res.status(404).json({ success: false, message: 'No hay imagen de fondo' });
+    }
+    
+    res.set('Content-Type', 'image/jpeg');
+    res.send(rows[0].background_image);
+  } catch (error) {
+    console.error('Error al obtener imagen de fondo:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 });

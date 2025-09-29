@@ -92,6 +92,8 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       setIsLoading(true);
       setError(null);
       const preferences = await getUserPreferences();
+      console.log('Preferencias cargadas en modal:', preferences);
+      
       setCurrentTheme(preferences.theme);
       setSelectedTheme(preferences.theme);
       setColorScheme(preferences.color_scheme);
@@ -101,17 +103,26 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       setAnimations(preferences.animations);
       setBackgroundType(preferences.background_type);
       setBackgroundColor(preferences.background_color);
+      
       if (preferences.has_background_image) {
-        const token = localStorage.getItem('authToken');
-        const res = await fetch(`${BACKEND_URL}/api/user-preferences/background-image`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        if (res.ok) {
-          const blob = await res.blob();
-          const imageUrl = URL.createObjectURL(blob);
-          setBackgroundImageUrl(imageUrl);
-          applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'image', imageUrl, preferences.background_color);
-        } else {
+        try {
+          const token = localStorage.getItem('authToken');
+          const res = await fetch(`${BACKEND_URL}/api/user-preferences/background-image`, {
+            headers: { Authorization: `Bearer ${token}` }
+          });
+          if (res.ok) {
+            const blob = await res.blob();
+            const imageUrl = URL.createObjectURL(blob);
+            setBackgroundImageUrl(imageUrl);
+            applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'image', imageUrl, preferences.background_color);
+            console.log('Imagen de fondo cargada en modal:', imageUrl);
+          } else {
+            setBackgroundImageUrl('');
+            applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type, '', preferences.background_color);
+            console.log('No se pudo cargar imagen de fondo en modal');
+          }
+        } catch (imageError) {
+          console.warn('Error al cargar imagen de fondo en modal:', imageError);
           setBackgroundImageUrl('');
           applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type, '', preferences.background_color);
         }
@@ -120,6 +131,7 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
         applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type, '', preferences.background_color);
       }
     } catch (error) {
+      console.error('Error al cargar preferencias en modal:', error);
       setError('No se pudieron cargar las preferencias. Usando configuración local.');
       setBackgroundImageUrl('');
     } finally {

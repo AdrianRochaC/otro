@@ -242,33 +242,51 @@ export const initializePreferences = async () => {
 
     // Intentar cargar desde la base de datos
     const preferences = await getUserPreferences();
+    console.log('Preferencias cargadas desde DB:', preferences);
+    
+    // Sincronizar con localStorage
     syncPreferencesWithLocalStorage(preferences);
 
     // Si tiene imagen de fondo, cargarla y aplicarla
     if (preferences.has_background_image) {
-      const token = getAuthToken();
-      const res = await fetch(`${API_BASE_URL}/user-preferences/background-image`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
-      if (res.ok) {
-        const blob = await res.blob();
-        const imageUrl = URL.createObjectURL(blob);
-        preferences.background_type = 'image';
-        preferences.background_image_url = imageUrl;
-        applyPreferencesToDOM(preferences);
-        return preferences;
-      } else if (res.status === 404) {
-        // No hay imagen, continuar sin error
+      try {
+        const token = getAuthToken();
+        const res = await fetch(`${API_BASE_URL}/user-preferences/background-image`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        if (res.ok) {
+          const blob = await res.blob();
+          const imageUrl = URL.createObjectURL(blob);
+          preferences.background_type = 'image';
+          preferences.background_image_url = imageUrl;
+          console.log('Imagen de fondo cargada desde DB:', imageUrl);
+        } else if (res.status === 404) {
+          // No hay imagen, continuar sin error
+          preferences.background_type = 'color';
+          preferences.background_image_url = '';
+          console.log('No se encontró imagen de fondo en DB, usando color');
+        } else {
+          console.warn('Error al cargar imagen de fondo:', res.status);
+          preferences.background_type = 'color';
+          preferences.background_image_url = '';
+        }
+      } catch (imageError) {
+        console.warn('Error al cargar imagen de fondo:', imageError);
         preferences.background_type = 'color';
         preferences.background_image_url = '';
-        applyPreferencesToDOM(preferences);
-        return preferences;
       }
+    } else {
+      // No hay imagen de fondo, usar color
+      preferences.background_type = preferences.background_type || 'color';
+      preferences.background_image_url = '';
     }
-    // Si no hay imagen, aplicar normalmente
+    
+    // Aplicar todas las preferencias al DOM
     applyPreferencesToDOM(preferences);
+    console.log('Preferencias aplicadas al DOM:', preferences);
     return preferences;
   } catch (error) {
+    console.warn('Error al inicializar preferencias, usando localStorage:', error);
     // Si falla, usar localStorage como respaldo
     const localPreferences = loadPreferencesFromLocalStorage();
     applyPreferencesToDOM(localPreferences);
