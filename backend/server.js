@@ -137,6 +137,22 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage: storage });
 
+// Configuración de Multer para imágenes de fondo (en memoria para guardar en DB)
+const backgroundImageUpload = multer({ 
+  storage: multer.memoryStorage(),
+  limits: {
+    fileSize: 5 * 1024 * 1024 // 5MB máximo
+  },
+  fileFilter: function (req, file, cb) {
+    // Permitir solo imágenes
+    if (file.mimetype.startsWith('image/')) {
+      cb(null, true);
+    } else {
+      cb(new Error('Solo se permiten archivos de imagen'), false);
+    }
+  }
+});
+
 // Configuración de Multer para documentos
 const documentStorage = multer.diskStorage({
   destination: function (req, file, cb) {
@@ -495,11 +511,20 @@ app.put('/api/user-preferences', verifyToken, async (req, res) => {
 });
 
 // Endpoint para subir imagen de fondo
-app.put('/api/user-preferences/background-image', verifyToken, upload.single('background_image'), async (req, res) => {
+app.put('/api/user-preferences/background-image', verifyToken, backgroundImageUpload.single('background_image'), async (req, res) => {
   try {
+    console.log('Intentando subir imagen de fondo para usuario:', req.user.id);
+    
     if (!req.file) {
+      console.log('No se recibió archivo');
       return res.status(400).json({ success: false, message: 'No se envió ninguna imagen.' });
     }
+
+    console.log('Archivo recibido:', {
+      originalname: req.file.originalname,
+      mimetype: req.file.mimetype,
+      size: req.file.size
+    });
 
     const connection = await createConnection();
     
@@ -511,12 +536,14 @@ app.put('/api/user-preferences/background-image', verifyToken, upload.single('ba
 
     if (existing.length > 0) {
       // Actualizar preferencias existentes
+      console.log('Actualizando preferencias existentes');
       await connection.execute(
         'UPDATE user_preferences SET background_image = ?, background_type = ? WHERE user_id = ?',
         [req.file.buffer, 'image', req.user.id]
       );
     } else {
       // Crear nuevas preferencias con imagen de fondo
+      console.log('Creando nuevas preferencias con imagen');
       await connection.execute(
         `INSERT INTO user_preferences (user_id, theme, color_scheme, font_size, font_family, spacing, animations, background_type, background_image, background_color)
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
@@ -525,10 +552,15 @@ app.put('/api/user-preferences/background-image', verifyToken, upload.single('ba
     }
     
     await connection.end();
+    console.log('Imagen de fondo actualizada exitosamente');
     res.json({ success: true, message: 'Imagen de fondo actualizada exitosamente' });
   } catch (error) {
     console.error('Error al subir imagen de fondo:', error);
-    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor',
+      error: error.message 
+    });
   }
 });
 
