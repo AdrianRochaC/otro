@@ -2324,10 +2324,27 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     }
 
     const { title, description, numQuestions = 5 } = req.body;
-    const videoPath = req.file.path;
-
-    // Analizar contenido del archivo de video con transcripción real
-    const videoData = await aiService.processMP4WithTranscription(videoPath);
+    
+    // Con multer.memoryStorage(), el archivo está en req.file.buffer
+    // Necesitamos guardarlo temporalmente para procesarlo
+    const fs = require('fs');
+    const path = require('path');
+    const tempDir = path.join(__dirname, 'temp', 'videos');
+    
+    // Crear directorio temporal si no existe
+    if (!fs.existsSync(tempDir)) {
+      fs.mkdirSync(tempDir, { recursive: true });
+    }
+    
+    const tempFileName = `temp_${Date.now()}_${req.file.originalname}`;
+    const tempFilePath = path.join(tempDir, tempFileName);
+    
+    // Guardar archivo temporalmente
+    fs.writeFileSync(tempFilePath, req.file.buffer);
+    
+    try {
+      // Analizar contenido del archivo de video con transcripción real
+      const videoData = await aiService.processMP4WithTranscription(tempFilePath);
     
     // Combinar con datos personalizados si se proporcionan
     const courseData = {
@@ -2340,19 +2357,39 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     // Generar preguntas usando IA
     const questions = await aiService.generateQuestions(courseData, numQuestions);
     
-    res.json({
-      success: true,
-      message: `Se generaron ${questions.length} preguntas para el archivo de video`,
-      videoInfo: {
-        originalName: req.file.originalname,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        ...videoData
-      },
-      questions: questions
-    });
+      res.json({
+        success: true,
+        message: `Se generaron ${questions.length} preguntas para el archivo de video`,
+        videoInfo: {
+          originalName: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          ...videoData
+        },
+        questions: questions
+      });
+      
+    } finally {
+      // Limpiar archivo temporal
+      try {
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+        }
+      } catch (cleanupError) {
+        console.warn('Error limpiando archivo temporal:', cleanupError);
+      }
+    }
 
   } catch (error) {
+    // Limpiar archivo temporal en caso de error
+    try {
+      if (fs.existsSync(tempFilePath)) {
+        fs.unlinkSync(tempFilePath);
+      }
+    } catch (cleanupError) {
+      console.warn('Error limpiando archivo temporal:', cleanupError);
+    }
+    
     res.status(500).json({
       success: false,
       message: 'Error analizando archivo de video: ' + error.message

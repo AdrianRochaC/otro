@@ -23,28 +23,52 @@ const DetailPage = () => {
   if (!token || !user) navigate("/login");
 
   useEffect(() => {
-    axios
-      .get(`${BACKEND_URL}/api/courses?rol=${user.rol}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      })
-      .then(async (res) => {
+    const loadCourse = async () => {
+      try {
+        console.log('Cargando curso con ID:', id);
+        console.log('Rol del usuario:', user.rol);
+        
+        const res = await axios.get(`${BACKEND_URL}/api/courses?rol=${user.rol}`, {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        
+        console.log('Cursos recibidos:', res.data.courses);
         const found = res.data.courses.find((c) => c.id === +id);
+        
         if (!found) {
+          console.error('Curso no encontrado con ID:', id);
           alert("Curso no encontrado");
           return navigate("/courses");
         }
 
-        const questionsRes = await axios.get(`${BACKEND_URL}/api/courses/${id}/questions`, {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        console.log('Curso encontrado:', found);
+        
+        // Cargar preguntas del curso
+        try {
+          const questionsRes = await axios.get(`${BACKEND_URL}/api/courses/${id}/questions`, {
+            headers: { Authorization: `Bearer ${token}` },
+          });
+          
+          console.log('Preguntas cargadas:', questionsRes.data.questions);
+          found.evaluation = questionsRes.data.questions || [];
+        } catch (questionsError) {
+          console.warn('Error cargando preguntas:', questionsError);
+          found.evaluation = [];
+        }
 
-        found.evaluation = questionsRes.data.questions || [];
         setCourse(found);
-      })
-      .catch((err) => {
-        alert("Error al cargar curso");
+        console.log('Curso configurado:', found);
+        
+      } catch (err) {
+        console.error('Error al cargar curso:', err);
+        alert("Error al cargar curso: " + (err.response?.data?.message || err.message));
         navigate("/courses");
-      });
+      }
+    };
+
+    if (id && user.rol && token) {
+      loadCourse();
+    }
   }, [id, navigate, token, user.rol]);
 
   // Nuevo useEffect: cargar progreso desde la base de datos
