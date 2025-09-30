@@ -79,7 +79,7 @@ const DetailPage = () => {
     };
 
     loadCourse();
-  }, [id, navigate, token, user]);
+  }, [id, navigate, token, user.rol]);
 
 
   // Nuevo useEffect: cargar progreso desde la base de datos
@@ -247,6 +247,25 @@ const DetailPage = () => {
               finalUrl,
               backendUrl: BACKEND_URL
             });
+            
+            // Verificar si el archivo existe (solo para archivos locales)
+            if (!isYouTube && videoUrl && !videoUrl.startsWith('http')) {
+              const filename = videoUrl.replace('/uploads/videos/', '');
+              console.log('🔍 Verificando archivo:', filename);
+              
+              // Hacer una petición HEAD para verificar si el archivo existe
+              fetch(finalUrl, { method: 'HEAD' })
+                .then(response => {
+                  if (response.ok) {
+                    console.log('✅ Archivo de video existe');
+                  } else {
+                    console.error('❌ Archivo de video no encontrado:', response.status);
+                  }
+                })
+                .catch(error => {
+                  console.error('❌ Error verificando archivo:', error);
+                });
+            }
             
             return (
               <ReactPlayer
