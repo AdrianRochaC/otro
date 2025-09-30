@@ -12,7 +12,7 @@ const Bitacora = () => {
 
   const fetchTareas = async () => {
     try {
-      const response = await fetch("/api/bitacora", {
+      const response = await fetch(`${BACKEND_URL}/api/bitacora`, {
         headers: {
           Authorization: `Bearer ${token}`,
         },
@@ -33,7 +33,7 @@ const Bitacora = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const res = await fetch("/api/usuarios", {
+      const res = await fetch(`${BACKEND_URL}/api/usuarios`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();

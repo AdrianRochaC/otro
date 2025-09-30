@@ -136,6 +136,17 @@ var corsOptions = {
 
 app.use(cors(corsOptions));
 
+// Middleware de logging para todas las peticiones
+app.use((req, res, next) => {
+  console.log('=== PETICIÓN RECIBIDA ===');
+  console.log('Method:', req.method);
+  console.log('Path:', req.path);
+  console.log('Origin:', req.headers.origin);
+  console.log('User-Agent:', req.headers['user-agent']);
+  console.log('Authorization:', req.headers.authorization ? 'Presente' : 'Ausente');
+  next();
+});
+
 // Middleware adicional para CORS (backup)
 app.use((req, res, next) => {
   console.log('=== MIDDLEWARE CORS BACKUP ===');
@@ -1693,6 +1704,8 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
 
 app.get('/api/bitacora', verifyToken, async (req, res) => {
   console.log('=== ENDPOINT BITACORA LLAMADO ===');
+  console.log('Headers:', req.headers);
+  console.log('User:', req.user);
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute(`
@@ -1805,6 +1818,8 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
 // Obtener usuarios (para mostrar nombres)
 app.get('/api/usuarios', verifyToken, async (req, res) => {
   console.log('=== ENDPOINT USUARIOS LLAMADO ===');
+  console.log('Headers:', req.headers);
+  console.log('User:', req.user);
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute('SELECT id, nombre FROM usuarios');
