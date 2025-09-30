@@ -1,5 +1,5 @@
 const OpenAI = require('openai');
-const { executeQuery } = require('../db-setup/connection-manager.js');
+const { executeQuery } = require('./db-setup/connection-manager.js');
 const ytdl = require('ytdl-core');
 const fs = require('fs');
 const path = require('path');
