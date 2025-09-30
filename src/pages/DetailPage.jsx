@@ -25,6 +25,11 @@ const DetailPage = () => {
 
   useEffect(() => {
     const loadCourse = async () => {
+      if (!user || !user.rol || !token) {
+        console.log('Esperando datos del usuario...', { id, user: user?.rol, token: !!token });
+        return;
+      }
+
       try {
         console.log('Cargando curso con ID:', id);
         console.log('Rol del usuario:', user.rol);
@@ -67,10 +72,8 @@ const DetailPage = () => {
       }
     };
 
-    if (id && user.rol && token) {
-      loadCourse();
-    }
-  }, [id, navigate, token, user.rol]);
+    loadCourse();
+  }, [id, navigate, token, user]);
 
 
   // Nuevo useEffect: cargar progreso desde la base de datos
