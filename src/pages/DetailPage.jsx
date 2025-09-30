@@ -241,17 +241,9 @@ const DetailPage = () => {
                 ? videoUrl 
                 : `${BACKEND_URL}${videoUrl}`);
             
-            console.log('🎬 Configurando video:', {
-              originalUrl: videoUrl,
-              isYouTube,
-              finalUrl,
-              backendUrl: BACKEND_URL
-            });
-            
             // Verificar si el archivo existe (solo para archivos locales)
             if (!isYouTube && videoUrl && !videoUrl.startsWith('http')) {
               const filename = videoUrl.replace('/uploads/videos/', '');
-              console.log('🔍 Verificando archivo:', filename);
               
               // Hacer una petición HEAD para verificar si el archivo existe
               fetch(finalUrl, { method: 'HEAD' })
@@ -276,9 +268,6 @@ const DetailPage = () => {
                 onError={(error) => {
                   console.error('❌ Error en video:', error);
                   console.error('❌ URL del video:', finalUrl);
-                }}
-                onReady={() => {
-                  console.log('✅ Video listo para reproducir:', finalUrl);
                 }}
                 className="react-player"
               />
