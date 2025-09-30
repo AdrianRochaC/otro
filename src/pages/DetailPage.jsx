@@ -18,12 +18,46 @@ const DetailPage = () => {
   const [score, setScore] = useState(null);
   const [attemptsLeft, setAttemptsLeft] = useState(null);
 
-  const token = localStorage.getItem("authToken");
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!token || !user) navigate("/login");
+  const [user, setUser] = useState(null);
+  const [token, setToken] = useState(null);
+  const [loading, setLoading] = useState(true);
+
+  // Cargar datos del usuario de manera más robusta
+  useEffect(() => {
+    const loadUserData = () => {
+      const authToken = localStorage.getItem("authToken");
+      const userData = localStorage.getItem("user");
+      
+      if (!authToken || !userData) {
+        console.log('No hay token o usuario, redirigiendo al login');
+        navigate("/login");
+        return;
+      }
+      
+      try {
+        const parsedUser = JSON.parse(userData);
+        setToken(authToken);
+        setUser(parsedUser);
+        setLoading(false);
+        console.log('Usuario cargado:', parsedUser);
+      } catch (error) {
+        console.error('Error parseando usuario:', error);
+        localStorage.removeItem("authToken");
+        localStorage.removeItem("user");
+        navigate("/login");
+      }
+    };
+
+    loadUserData();
+  }, [navigate]);
 
   useEffect(() => {
     const loadCourse = async () => {
+      if (!id || !user?.rol || !token) {
+        console.log('Esperando datos del usuario...', { id, user: user?.rol, token: !!token });
+        return;
+      }
+
       try {
         console.log('Cargando curso con ID:', id);
         console.log('Rol del usuario:', user.rol);
@@ -66,10 +100,8 @@ const DetailPage = () => {
       }
     };
 
-    if (id && user.rol && token) {
-      loadCourse();
-    }
-  }, [id, navigate, token, user.rol]);
+    loadCourse();
+  }, [id, navigate, token, user]);
 
   // Nuevo useEffect: cargar progreso desde la base de datos
   useEffect(() => {
@@ -211,6 +243,50 @@ const DetailPage = () => {
     setAnswers({ ...answers, [qIdx]: optIdx });
   };
 
+  // Mostrar loading mientras se cargan los datos
+  if (loading) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+          Cargando curso...
+        </div>
+        <div style={{ 
+          width: '40px', 
+          height: '40px', 
+          border: '3px solid var(--border-color)',
+          borderTop: '3px solid var(--primary-color)',
+          borderRadius: '50%',
+          animation: 'spin 1s linear infinite'
+        }}></div>
+      </div>
+    );
+  }
+
+  // Mostrar mensaje si no hay curso cargado
+  if (!course) {
+    return (
+      <div style={{ 
+        display: 'flex', 
+        justifyContent: 'center', 
+        alignItems: 'center', 
+        height: '100vh',
+        flexDirection: 'column',
+        gap: '1rem'
+      }}>
+        <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>
+          Cargando información del curso...
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="detail-page-container">
       <div className="detail-page">
@@ -219,25 +295,39 @@ const DetailPage = () => {
         <p>{course.description}</p>
 
         <div className="detail-video">
-          {course.videoUrl && course.videoUrl.includes('youtube.com/embed/') ? (
-            <ReactPlayer
-              url={course.videoUrl}
-              controls
-              onProgress={handleProgress}
-              onEnded={() => setVideoEnded(true)}
-              className="react-player"
-            />
-          ) : (
-            <ReactPlayer
-              url={course.videoUrl && course.videoUrl.startsWith('http') 
-                ? course.videoUrl 
-                : `${BACKEND_URL}${course.videoUrl || course.video_url}`}
-              controls
-              onProgress={handleProgress}
-              onEnded={() => setVideoEnded(true)}
-              className="react-player"
-            />
-          )}
+          {(() => {
+            const videoUrl = course.videoUrl || course.video_url;
+            const isYouTube = videoUrl && videoUrl.includes('youtube.com/embed/');
+            const finalUrl = isYouTube 
+              ? videoUrl 
+              : (videoUrl && videoUrl.startsWith('http') 
+                ? videoUrl 
+                : `${BACKEND_URL}${videoUrl}`);
+            
+            console.log('🎬 Configurando video:', {
+              originalUrl: videoUrl,
+              isYouTube,
+              finalUrl,
+              backendUrl: BACKEND_URL
+            });
+            
+            return (
+              <ReactPlayer
+                url={finalUrl}
+                controls
+                onProgress={handleProgress}
+                onEnded={() => setVideoEnded(true)}
+                onError={(error) => {
+                  console.error('❌ Error en video:', error);
+                  alert('Error cargando el video. Por favor, recarga la página.');
+                }}
+                onReady={() => {
+                  console.log('✅ Video listo para reproducir');
+                }}
+                className="react-player"
+              />
+            );
+          })()}
         </div>
 
         <div className="video-progress-bar">

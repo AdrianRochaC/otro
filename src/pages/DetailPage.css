@@ -231,3 +231,9 @@
   margin-top: 8px;
 }
 
+/* Animación del spinner de carga */
+@keyframes spin {
+  0% { transform: rotate(0deg); }
+  100% { transform: rotate(360deg); }
+}
+
