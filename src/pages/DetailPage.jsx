@@ -2,7 +2,6 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import axios from "axios";
-import { useUser } from "../hooks/useUser";
 import "./DetailPage.css";
 import { BACKEND_URL } from '../utils/api';
 
@@ -19,20 +18,13 @@ const DetailPage = () => {
   const [score, setScore] = useState(null);
   const [attemptsLeft, setAttemptsLeft] = useState(null);
 
-  const { user, token, loading, isAdmin } = useUser();
-  const [videoExists, setVideoExists] = useState(null);
-  const [checkingVideo, setCheckingVideo] = useState(false);
-  const [videoError, setVideoError] = useState(null);
-  const [retryCount, setRetryCount] = useState(0);
+  const token = localStorage.getItem("authToken");
+  const user = JSON.parse(localStorage.getItem("user"));
+  if (!token || !user) navigate("/login");
 
 
   useEffect(() => {
     const loadCourse = async () => {
-      if (!id || !user || !user.rol || !token) {
-        console.log('Esperando datos del usuario...', { id, user: user?.rol, token: !!token });
-        return;
-      }
-
       try {
         console.log('Cargando curso con ID:', id);
         console.log('Rol del usuario:', user.rol);
@@ -75,52 +67,15 @@ const DetailPage = () => {
       }
     };
 
-    loadCourse();
-  }, [id, navigate, token, user]);
+    if (id && user.rol && token) {
+      loadCourse();
+    }
+  }, [id, navigate, token, user.rol]);
 
-  // Verificar si el archivo de video existe
-  useEffect(() => {
-    const checkVideoFile = async () => {
-      if (!course || !token || !user) return;
-      
-      const videoUrl = course.videoUrl || course.video_url;
-      if (!videoUrl) {
-        setVideoExists(null);
-        return;
-      }
-      
-      // YouTube o URL externa, asumir que existe
-      if (videoUrl.includes('youtube.com/embed/') || videoUrl.startsWith('http')) {
-        setVideoExists(true);
-        return;
-      }
-      
-      // Para archivos locales, verificar si existen
-      setCheckingVideo(true);
-      try {
-        const filename = videoUrl.replace('/uploads/videos/', '');
-        console.log('🔍 Verificando archivo local:', filename);
-        
-        const response = await axios.get(`${BACKEND_URL}/api/check-video/${filename}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
-        
-        console.log('📁 Verificación de archivo:', response.data);
-        setVideoExists(response.data.exists);
-      } catch (error) {
-        console.error('❌ Error verificando archivo:', error);
-        setVideoExists(false);
-      } finally {
-        setCheckingVideo(false);
-      }
-    };
-
-    checkVideoFile();
-  }, [course, token, user]);
 
   // Nuevo useEffect: cargar progreso desde la base de datos
   useEffect(() => {
-    if (!course || !user || isAdmin) return;
+    if (!course || user.rol === "Admin") return;
 
     const progressURL = `${BACKEND_URL}/api/progress/${id}`;
     console.log('🔍 Cargando progreso del curso:', id);
@@ -258,79 +213,7 @@ const DetailPage = () => {
     setAnswers({ ...answers, [qIdx]: optIdx });
   };
 
-  // Función para obtener la URL del video de manera robusta
-  const getVideoUrl = (course) => {
-    if (!course) return null;
-    
-    const videoUrl = course.videoUrl || course.video_url;
-    if (!videoUrl) return null;
-    
-    // Si es YouTube, usar la URL directamente
-    if (videoUrl.includes('youtube.com/embed/')) {
-      return videoUrl;
-    }
-    
-    // Si ya es una URL completa, usarla
-    if (videoUrl.startsWith('http')) {
-      return videoUrl;
-    }
-    
-    // Si es una ruta relativa, construir la URL completa
-    return `${BACKEND_URL}${videoUrl}`;
-  };
 
-  // Función para reintentar la carga del video
-  const retryVideoLoad = () => {
-    console.log('🔄 Reintentando carga del video...');
-    setVideoError(null);
-    setRetryCount(prev => prev + 1);
-    setVideoExists(null);
-    setCheckingVideo(false);
-  };
-
-  // Mostrar loading mientras se cargan los datos
-  if (loading || !user || !token) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        flexDirection: 'column',
-        gap: '1rem'
-      }}>
-        <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>
-          Cargando curso...
-        </div>
-        <div style={{ 
-          width: '40px', 
-          height: '40px', 
-          border: '3px solid var(--border-color)',
-          borderTop: '3px solid var(--primary-color)',
-          borderRadius: '50%',
-          animation: 'spin 1s linear infinite'
-        }}></div>
-      </div>
-    );
-  }
-
-  // Mostrar mensaje si no hay curso cargado
-  if (!course) {
-    return (
-      <div style={{ 
-        display: 'flex', 
-        justifyContent: 'center', 
-        alignItems: 'center', 
-        height: '100vh',
-        flexDirection: 'column',
-        gap: '1rem'
-      }}>
-        <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)' }}>
-          Cargando información del curso...
-        </div>
-      </div>
-    );
-  }
 
   return (
     <div className="detail-page-container">
@@ -340,186 +223,25 @@ const DetailPage = () => {
         <p>{course.description}</p>
 
         <div className="detail-video">
-          {(() => {
-            const finalUrl = getVideoUrl(course);
-            
-            console.log('🎬 Configurando video:', {
-              courseId: course.id,
-              courseTitle: course.title,
-              originalVideoUrl: course.videoUrl || course.video_url,
-              finalUrl,
-              backendUrl: BACKEND_URL,
-              videoExists,
-              checkingVideo
-            });
-            
-            if (!finalUrl) {
-              return (
-                <div style={{ 
-                  padding: '2rem', 
-                  textAlign: 'center', 
-                  background: 'var(--bg-secondary)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-color)'
-                }}>
-                  <div style={{ fontSize: '1.2rem', color: 'var(--text-danger)', marginBottom: '1rem' }}>
-                    ❌ No hay video disponible
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)' }}>
-                    Este curso no tiene un video asociado.
-                  </div>
-                </div>
-              );
-            }
-            
-            // Mostrar loading mientras se verifica el archivo (solo para archivos locales)
-            if (checkingVideo && !finalUrl.includes('youtube.com')) {
-              return (
-                <div style={{ 
-                  padding: '2rem', 
-                  textAlign: 'center', 
-                  background: 'var(--bg-secondary)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-color)'
-                }}>
-                  <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
-                    Verificando archivo de video...
-                  </div>
-                  <div style={{ 
-                    width: '40px', 
-                    height: '40px', 
-                    border: '3px solid var(--border-color)',
-                    borderTop: '3px solid var(--primary-color)',
-                    borderRadius: '50%',
-                    animation: 'spin 1s linear infinite',
-                    margin: '0 auto'
-                  }}></div>
-                </div>
-              );
-            }
-            
-            // Mostrar error si el archivo no existe (solo para archivos locales)
-            if (videoExists === false && !finalUrl.includes('youtube.com')) {
-              const filename = (course.videoUrl || course.video_url)?.replace('/uploads/videos/', '') || 'desconocido';
-              return (
-                <div style={{ 
-                  padding: '2rem', 
-                  textAlign: 'center', 
-                  background: 'var(--bg-secondary)',
-                  borderRadius: '8px',
-                  border: '1px solid var(--border-color)'
-                }}>
-                  <div style={{ fontSize: '1.2rem', color: 'var(--text-danger)', marginBottom: '1rem' }}>
-                    ❌ Video no encontrado
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)' }}>
-                    El archivo de video no está disponible en el servidor.
-                  </div>
-                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-                    Archivo: {filename}
-                  </div>
-                  <button 
-                    onClick={() => window.location.reload()} 
-                    style={{
-                      marginTop: '1rem',
-                      padding: '0.5rem 1rem',
-                      background: 'var(--primary-color)',
-                      color: 'white',
-                      border: 'none',
-                      borderRadius: '4px',
-                      cursor: 'pointer'
-                    }}
-                  >
-                    Recargar página
-                  </button>
-                </div>
-              );
-            }
-            
-            // Mostrar el reproductor de video
-            return (
-              <div>
-                <ReactPlayer
-                  url={finalUrl}
-                  controls
-                  width="100%"
-                  height="100%"
-                  onProgress={handleProgress}
-                  onEnded={() => setVideoEnded(true)}
-                  onError={(error) => {
-                    console.error('❌ Error en video:', error);
-                    console.error('❌ URL del video:', finalUrl);
-                    console.error('❌ Intento número:', retryCount + 1);
-                    setVideoError(error);
-                  }}
-                  onReady={() => {
-                    console.log('✅ Video listo para reproducir:', finalUrl);
-                    setVideoError(null);
-                  }}
-                  onStart={() => {
-                    console.log('▶️ Video iniciado:', finalUrl);
-                    setVideoError(null);
-                  }}
-                  className="react-player"
-                  config={{
-                    file: {
-                      attributes: {
-                        crossOrigin: 'anonymous'
-                      }
-                    }
-                  }}
-                />
-                
-                {/* Mostrar error y botón de reintento si hay error */}
-                {videoError && (
-                  <div style={{ 
-                    marginTop: '1rem',
-                    padding: '1rem', 
-                    textAlign: 'center', 
-                    background: 'var(--bg-secondary)',
-                    borderRadius: '8px',
-                    border: '1px solid var(--border-color)'
-                  }}>
-                    <div style={{ fontSize: '1rem', color: 'var(--text-danger)', marginBottom: '0.5rem' }}>
-                      ❌ Error cargando el video
-                    </div>
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginBottom: '1rem' }}>
-                      Intento {retryCount + 1} de 3
-                    </div>
-                    {retryCount < 2 && (
-                      <button 
-                        onClick={retryVideoLoad}
-                        style={{
-                          padding: '0.5rem 1rem',
-                          background: 'var(--primary-color)',
-                          color: 'white',
-                          border: 'none',
-                          borderRadius: '4px',
-                          cursor: 'pointer',
-                          marginRight: '0.5rem'
-                        }}
-                      >
-                        Reintentar
-                      </button>
-                    )}
-                    <button 
-                      onClick={() => window.location.reload()}
-                      style={{
-                        padding: '0.5rem 1rem',
-                        background: 'var(--secondary-color)',
-                        color: 'white',
-                        border: 'none',
-                        borderRadius: '4px',
-                        cursor: 'pointer'
-                      }}
-                    >
-                      Recargar página
-                    </button>
-                  </div>
-                )}
-              </div>
-            );
-          })()}
+          {course.videoUrl && course.videoUrl.includes('youtube.com/embed/') ? (
+            <ReactPlayer
+              url={course.videoUrl}
+              controls
+              onProgress={handleProgress}
+              onEnded={() => setVideoEnded(true)}
+              className="react-player"
+            />
+          ) : (
+            <ReactPlayer
+              url={course.videoUrl && course.videoUrl.startsWith('http') 
+                ? course.videoUrl 
+                : `${BACKEND_URL}${course.videoUrl || course.video_url}`}
+              controls
+              onProgress={handleProgress}
+              onEnded={() => setVideoEnded(true)}
+              className="react-player"
+            />
+          )}
         </div>
 
         <div className="video-progress-bar">
