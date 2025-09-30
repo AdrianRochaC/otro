@@ -23,7 +23,7 @@ const CoursesPage = () => {
       const user = JSON.parse(localStorage.getItem("user"));
       const token = localStorage.getItem("authToken");
 
-      if (!user || !token) {
+      if (!user || !user.rol || !token) {
         alert("⚠️ Debes iniciar sesión.");
         navigate("/login", { replace: true });
         return;

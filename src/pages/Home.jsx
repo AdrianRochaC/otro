@@ -8,7 +8,7 @@ const Home = () => {
   const navigate = useNavigate();
   const user = JSON.parse(localStorage.getItem("user") || "null");
   
-  if (!user) {
+  if (!user || !user.rol) {
     navigate("/login");
     return null;
   }

@@ -243,11 +243,11 @@ const Cuentas = () => {
   const filteredUsers = users.filter(user => {
     const matchesSearch = user.nombre.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase());
-    const matchesRole = filterRole === "Todos" || user.rol === filterRole;
+    const matchesRole = filterRole === "Todos" || (user.rol && user.rol === filterRole);
     return matchesSearch && matchesRole;
   });
 
-  const uniqueRoles = [...new Set(users.map(user => user.rol))];
+  const uniqueRoles = [...new Set(users.map(user => user.rol).filter(rol => rol))];
   const roles = ["Todos", ...uniqueRoles];
 
   if (loading) {
@@ -340,8 +340,8 @@ const Cuentas = () => {
             <div className="usuario-info">
               <h3>{user.nombre}</h3>
               <p className="usuario-email">{user.email}</p>
-              <span className={`usuario-rol rol-${user.rol.toLowerCase().replace(/\s+/g, '-')}`}>
-                {user.rol}
+              <span className={`usuario-rol rol-${user.rol ? user.rol.toLowerCase().replace(/\s+/g, '-') : 'sin-rol'}`}>
+                {user.rol || 'Sin rol'}
               </span>
             </div>
             <div className="usuario-status">
@@ -391,8 +391,8 @@ const Cuentas = () => {
                   </div>
                   <div className="detail-row">
                     <span className="detail-label">Rol:</span>
-                    <span className={`detail-value rol-badge rol-${selectedUser.rol.toLowerCase().replace(/\s+/g, '-')}`}>
-                      {selectedUser.rol}
+                    <span className={`detail-value rol-badge rol-${selectedUser.rol ? selectedUser.rol.toLowerCase().replace(/\s+/g, '-') : 'sin-rol'}`}>
+                      {selectedUser.rol || 'Sin rol'}
                     </span>
                   </div>
                   <div className="detail-row">
