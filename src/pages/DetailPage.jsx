@@ -80,26 +80,40 @@ const DetailPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        const p = res.data.progress;
-        if (p) {
-          if (p.video_completed) setVideoEnded(true);
-          setAttemptsLeft(course.attempts - (p.attempts_used || 0));
+        if (res.data.success && res.data.progress) {
+          const p = res.data.progress;
+          
+          // Verificar si hay progreso real (no el objeto vacío)
+          if (p.created_at) {
+            // Hay progreso registrado
+            if (p.video_completed) setVideoEnded(true);
+            setAttemptsLeft(course.attempts - (p.attempts_used || 0));
 
-          if (p.evaluation_score != null) {
-            setScore({
-              score: p.evaluation_score,
-              total: p.evaluation_total,
-            });
+            if (p.evaluation_score != null) {
+              setScore({
+                score: p.evaluation_score,
+                total: p.evaluation_total,
+              });
+            }
+          } else {
+            // No hay progreso registrado, usar valores por defecto
+            setAttemptsLeft(course.attempts);
+            setVideoEnded(false);
+            setScore({ score: null, total: null });
           }
         } else {
+          // Fallback en caso de respuesta inesperada
           setAttemptsLeft(course.attempts);
+          setVideoEnded(false);
+          setScore({ score: null, total: null });
         }
       })
       .catch((err) => {
-        // Si no hay progreso registrado, dejar intentos al máximo
-        if (!(err.response && err.response.status === 404)) {
-          }
+        console.error('Error cargando progreso del curso:', err);
+        // En caso de error, usar valores por defecto
         setAttemptsLeft(course.attempts);
+        setVideoEnded(false);
+        setScore({ score: null, total: null });
       });
   }, [course, id, token, user.rol]);
 

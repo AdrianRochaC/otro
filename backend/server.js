@@ -1596,7 +1596,21 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
     await connection.end();
 
     if (progress.length === 0) {
-      return res.status(404).json({ success: false, message: 'No hay progreso registrado para este curso.' });
+      // Devolver un objeto de progreso vacío en lugar de 404
+      return res.json({ 
+        success: true, 
+        progress: {
+          user_id: userId,
+          course_id: parseInt(courseId),
+          video_completed: false,
+          evaluation_score: null,
+          evaluation_total: null,
+          evaluation_status: null,
+          attempts_used: 0,
+          created_at: null,
+          updated_at: null
+        }
+      });
     }
 
     return res.json({ success: true, progress: progress[0] });
