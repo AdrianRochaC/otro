@@ -19,8 +19,14 @@ const DetailPage = () => {
   const [attemptsLeft, setAttemptsLeft] = useState(null);
 
   const token = localStorage.getItem("authToken");
-  const user = JSON.parse(localStorage.getItem("user"));
-  if (!token || !user) navigate("/login");
+  const userData = localStorage.getItem("user");
+  const user = userData ? JSON.parse(userData) : null;
+  
+  if (!token || !user || !user.rol) {
+    console.log('Datos de usuario incompletos, redirigiendo al login');
+    navigate("/login");
+    return null;
+  }
 
 
   useEffect(() => {
