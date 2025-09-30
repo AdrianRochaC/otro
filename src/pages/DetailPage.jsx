@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import ReactPlayer from "react-player";
 import axios from "axios";
+import { useUser } from "../hooks/useUser";
 import "./DetailPage.css";
 import { BACKEND_URL } from '../utils/api';
 
@@ -18,63 +19,12 @@ const DetailPage = () => {
   const [score, setScore] = useState(null);
   const [attemptsLeft, setAttemptsLeft] = useState(null);
 
-  const [user, setUser] = useState(null);
-  const [token, setToken] = useState(null);
-  const [loading, setLoading] = useState(true);
+  const { user, token, loading, isAdmin } = useUser();
   const [videoExists, setVideoExists] = useState(null);
   const [checkingVideo, setCheckingVideo] = useState(false);
-  const [userLoaded, setUserLoaded] = useState(false);
   const [videoError, setVideoError] = useState(null);
   const [retryCount, setRetryCount] = useState(0);
 
-  // Cargar datos del usuario de manera más robusta
-  useEffect(() => {
-    const loadUserData = () => {
-      try {
-        const authToken = localStorage.getItem("authToken");
-        const userData = localStorage.getItem("user");
-        
-        console.log('🔍 Verificando datos de usuario:', {
-          hasToken: !!authToken,
-          hasUserData: !!userData,
-          tokenLength: authToken?.length || 0
-        });
-        
-        if (!authToken || !userData) {
-          console.log('❌ No hay token o usuario, redirigiendo al login');
-          navigate("/login");
-          return;
-        }
-        
-        const parsedUser = JSON.parse(userData);
-        
-        if (!parsedUser || !parsedUser.rol) {
-          console.log('❌ Usuario inválido, redirigiendo al login');
-          localStorage.removeItem("authToken");
-          localStorage.removeItem("user");
-          navigate("/login");
-          return;
-        }
-        
-        setToken(authToken);
-        setUser(parsedUser);
-        setUserLoaded(true);
-        setLoading(false);
-        console.log('✅ Usuario cargado correctamente:', {
-          id: parsedUser.id,
-          rol: parsedUser.rol,
-          nombre: parsedUser.nombre
-        });
-      } catch (error) {
-        console.error('❌ Error parseando usuario:', error);
-        localStorage.removeItem("authToken");
-        localStorage.removeItem("user");
-        navigate("/login");
-      }
-    };
-
-    loadUserData();
-  }, [navigate]);
 
   useEffect(() => {
     const loadCourse = async () => {
@@ -131,7 +81,7 @@ const DetailPage = () => {
   // Verificar si el archivo de video existe
   useEffect(() => {
     const checkVideoFile = async () => {
-      if (!course || !token || !userLoaded) return;
+      if (!course || !token || !user) return;
       
       const videoUrl = course.videoUrl || course.video_url;
       if (!videoUrl) {
@@ -166,11 +116,11 @@ const DetailPage = () => {
     };
 
     checkVideoFile();
-  }, [course, token, userLoaded]);
+  }, [course, token, user]);
 
   // Nuevo useEffect: cargar progreso desde la base de datos
   useEffect(() => {
-    if (!course || !userLoaded || !user || user.rol === "Admin") return;
+    if (!course || !user || isAdmin) return;
 
     const progressURL = `${BACKEND_URL}/api/progress/${id}`;
     console.log('🔍 Cargando progreso del curso:', id);
@@ -339,7 +289,7 @@ const DetailPage = () => {
   };
 
   // Mostrar loading mientras se cargan los datos
-  if (loading || !userLoaded || !user || !token) {
+  if (loading || !user || !token) {
     return (
       <div style={{ 
         display: 'flex', 

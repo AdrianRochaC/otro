@@ -16,6 +16,7 @@ import Home from './pages/Home';
 import AdminDocumentos from "./pages/AdminDocumentos";
 import Documentos from "./pages/Documentos";
 import AdminCargos from "./pages/AdminCargos";
+import ErrorBoundary from "./components/ErrorBoundary";
 
 const useAuth = () => {
   const [user, setUser] = useState(null);
@@ -72,8 +73,9 @@ const DefaultRedirect = () => {
 
 function App() {
   return (
-    <Router>
-      <Routes>
+    <ErrorBoundary>
+      <Router>
+        <Routes>
         {/* Rutas públicas */}
         <Route path="/login" element={
           <PublicRoute>
@@ -192,8 +194,9 @@ function App() {
         {/* Redirecciones */}
         <Route path="/" element={<DefaultRedirect />} />
         <Route path="*" element={<DefaultRedirect />} />
-      </Routes>
-    </Router>
+        </Routes>
+      </Router>
+    </ErrorBoundary>
   );
 }
 
