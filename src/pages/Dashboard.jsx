@@ -7,6 +7,7 @@ import "./Dashboard.css";
 const Dashboard = () => {
   const [progress, setProgress] = useState([]);
   const [users, setUsers] = useState([]);
+  const [generalStats, setGeneralStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [cargoFiltro, setCargoFiltro] = useState('todos');
 
@@ -16,21 +17,27 @@ const Dashboard = () => {
       setLoading(false);
       return;
     }
-    // Obtener usuarios y progreso en paralelo
+    // Obtener usuarios, progreso y estadísticas generales en paralelo
     Promise.all([
       axios.get(`${BACKEND_URL}/api/users`, { headers: { Authorization: `Bearer ${token}` } }),
-      axios.get(`${BACKEND_URL}/api/progress/all`, { headers: { Authorization: `Bearer ${token}` } })
+      axios.get(`${BACKEND_URL}/api/progress/all`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${BACKEND_URL}/api/stats/general`, { headers: { Authorization: `Bearer ${token}` } })
     ])
-      .then(([usersRes, progressRes]) => {
+      .then(([usersRes, progressRes, statsRes]) => {
         if (usersRes.data.success && progressRes.data.success) {
           setUsers(usersRes.data.users);
           setProgress(progressRes.data.progress);
         } else {
           alert("❌ Error al cargar usuarios o progreso");
         }
+        
+        if (statsRes.data.success) {
+          setGeneralStats(statsRes.data.stats);
+        }
       })
       .catch((err) => {
-        alert("❌ No se pudo cargar usuarios o progreso");
+        console.error("Error cargando datos:", err);
+        alert("❌ No se pudo cargar algunos datos del dashboard");
       })
       .finally(() => setLoading(false));
   }, []);
@@ -57,6 +64,45 @@ const Dashboard = () => {
           Visualiza el avance de todos los usuarios en los cursos de la plataforma. <br />
           <span className="dashboard-subtitle">Solo visible para administradores.</span>
         </div>
+        {/* Estadísticas generales */}
+        {generalStats && (
+          <div style={{ 
+            display: 'grid', 
+            gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
+            gap: '1rem', 
+            marginBottom: '2rem',
+            padding: '1.5rem',
+            background: 'var(--bg-secondary)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)'
+          }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
+                {generalStats.usuarios_activos}
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Usuarios Activos</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--success-color)' }}>
+                {generalStats.total_cursos}
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Cursos Totales</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--warning-color)' }}>
+                {generalStats.videos_completados}
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Videos Completados</div>
+            </div>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--info-color)' }}>
+                {Math.round(generalStats.progreso_promedio_general)}%
+              </div>
+              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Progreso Promedio</div>
+            </div>
+          </div>
+        )}
+
         {/* Filtro de cargos */}
         <div style={{ marginTop: '1.5rem', marginBottom: '1.5rem', textAlign: 'center' }}>
           <label style={{ fontWeight: 500, marginRight: 8 }}>Filtrar por cargo:</label>

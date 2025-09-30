@@ -15,6 +15,7 @@ const AdminCargos = () => {
   const [editingCargo, setEditingCargo] = useState(null);
   const [selectedCargo, setSelectedCargo] = useState(null);
   const [cargoMetrics, setCargoMetrics] = useState(null);
+  const [loadingMetrics, setLoadingMetrics] = useState(false);
   const [generatingReport, setGeneratingReport] = useState(false);
   
   // Estados para el formulario de creación
@@ -51,6 +52,7 @@ const AdminCargos = () => {
   };
 
   const fetchCargoMetrics = async (cargoId) => {
+    setLoadingMetrics(true);
     try {
       const token = localStorage.getItem('authToken');
       const response = await fetch(`${API_URL}/api/cargos/${cargoId}/metrics`, {
@@ -61,10 +63,21 @@ const AdminCargos = () => {
       
       if (response.ok) {
         const data = await response.json();
-        setCargoMetrics(data.metrics);
+        if (data.success) {
+          setCargoMetrics(data.metrics);
+        } else {
+          console.error('Error en métricas:', data.message);
+          setCargoMetrics(null);
+        }
+      } else {
+        console.error('Error HTTP:', response.status);
+        setCargoMetrics(null);
       }
     } catch (error) {
-      // Error cargando métricas
+      console.error('Error cargando métricas:', error);
+      setCargoMetrics(null);
+    } finally {
+      setLoadingMetrics(false);
     }
   };
 
@@ -182,6 +195,7 @@ const AdminCargos = () => {
 
   const openDetailModal = async (cargo) => {
     setSelectedCargo(cargo);
+    setCargoMetrics(null); // Resetear métricas anteriores
     setDetailModalOpen(true);
     await fetchCargoMetrics(cargo.id);
   };
@@ -455,43 +469,68 @@ const AdminCargos = () => {
                 </p>
               </div>
 
-              {cargoMetrics && (
-                <div className="cargo-metrics">
-                  <h4>Métricas del Cargo</h4>
-                  <div className="metrics-grid">
-                    <div className="metric-card">
-                      <FaUsers className="metric-icon" />
-                      <div className="metric-content">
-                        <span className="metric-value">{cargoMetrics.totalUsuarios || 0}</span>
-                        <span className="metric-label">Usuarios</span>
-                      </div>
-                    </div>
-                    
-                    <div className="metric-card">
-                      <FaGraduationCap className="metric-icon" />
-                      <div className="metric-content">
-                        <span className="metric-value">{cargoMetrics.totalCursos || 0}</span>
-                        <span className="metric-label">Cursos</span>
-                      </div>
-                    </div>
-                    
-                    <div className="metric-card">
-                      <FaFileAlt className="metric-icon" />
-                      <div className="metric-content">
-                        <span className="metric-value">{cargoMetrics.totalDocumentos || 0}</span>
-                        <span className="metric-label">Documentos</span>
-                      </div>
-                    </div>
-                    
-                    <div className="metric-card">
-                      <div className="metric-content">
-                        <span className="metric-value">{cargoMetrics.promedioProgreso || 0}%</span>
-                        <span className="metric-label">Progreso Promedio</span>
-                      </div>
-                    </div>
+              <div className="cargo-metrics">
+                <h4>📊 Métricas del Cargo</h4>
+                {loadingMetrics ? (
+                  <div className="loading-metrics">
+                    <div className="loading-spinner"></div>
+                    <span>Cargando métricas...</span>
                   </div>
-                </div>
-              )}
+                ) : cargoMetrics ? (
+                  <>
+                    <div className="metrics-grid">
+                      <div className="metric-card">
+                        <FaUsers className="metric-icon" />
+                        <div className="metric-content">
+                          <span className="metric-value">{cargoMetrics.totalUsuarios || 0}</span>
+                          <span className="metric-label">Usuarios</span>
+                        </div>
+                      </div>
+                      
+                      <div className="metric-card">
+                        <FaGraduationCap className="metric-icon" />
+                        <div className="metric-content">
+                          <span className="metric-value">{cargoMetrics.totalCursos || 0}</span>
+                          <span className="metric-label">Cursos</span>
+                        </div>
+                      </div>
+                      
+                      <div className="metric-card">
+                        <FaFileAlt className="metric-icon" />
+                        <div className="metric-content">
+                          <span className="metric-value">{cargoMetrics.totalDocumentos || 0}</span>
+                          <span className="metric-label">Documentos</span>
+                        </div>
+                      </div>
+                      
+                      <div className="metric-card">
+                        <div className="metric-content">
+                          <span className="metric-value">{Math.round(cargoMetrics.promedioProgreso || 0)}%</span>
+                          <span className="metric-label">Progreso Promedio</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {cargoMetrics.promedioProgreso > 0 && (
+                      <div className="progress-bar-container">
+                        <div className="progress-bar">
+                          <div 
+                            className="progress-fill" 
+                            style={{ width: `${Math.min(cargoMetrics.promedioProgreso, 100)}%` }}
+                          ></div>
+                        </div>
+                        <span className="progress-text">
+                          Progreso general del cargo: {Math.round(cargoMetrics.promedioProgreso)}%
+                        </span>
+                      </div>
+                    )}
+                  </>
+                ) : (
+                  <div className="no-metrics">
+                    <span>❌ No se pudieron cargar las métricas</span>
+                  </div>
+                )}
+              </div>
 
               <div className="cargo-actions-modal">
                 <button 

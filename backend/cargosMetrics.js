@@ -38,13 +38,15 @@ async function getCargoMetrics(cargoId) {
     
     // Obtener promedio de progreso de usuarios en este cargo
     const progresoResult = await executeQuery(
-      `SELECT AVG(
+      `SELECT COALESCE(AVG(
         CASE 
           WHEN cp.evaluation_score IS NOT NULL AND cp.evaluation_total > 0 
           THEN (cp.evaluation_score / cp.evaluation_total) * 100
+          WHEN cp.video_completed = 1 AND (cp.evaluation_score IS NULL OR cp.evaluation_total = 0)
+          THEN 50
           ELSE 0 
         END
-      ) as promedio FROM course_progress cp 
+      ), 0) as promedio FROM course_progress cp 
       JOIN usuarios u ON cp.user_id = u.id 
       WHERE u.cargo_id = ?`,
       [cargoId]
@@ -139,7 +141,16 @@ async function getCargoStats(cargoId) {
         COUNT(*) as total_progresos,
         COUNT(CASE WHEN evaluation_status = 'aprobado' THEN 1 END) as aprobados,
         COUNT(CASE WHEN evaluation_status = 'reprobado' THEN 1 END) as reprobados,
-        AVG(evaluation_score) as promedio_puntuacion
+        COUNT(CASE WHEN video_completed = 1 AND (evaluation_status IS NULL OR evaluation_status = '') THEN 1 END) as completados_sin_eval,
+        COALESCE(AVG(
+          CASE 
+            WHEN evaluation_score IS NOT NULL AND evaluation_total > 0 
+            THEN (evaluation_score / evaluation_total) * 100
+            WHEN video_completed = 1 AND (evaluation_score IS NULL OR evaluation_total = 0)
+            THEN 50
+            ELSE 0 
+          END
+        ), 0) as promedio_puntuacion
       FROM course_progress cp
       JOIN usuarios u ON cp.user_id = u.id
       WHERE u.cargo_id = ?
@@ -164,7 +175,7 @@ async function getAllCargosStats() {
     const cargos = await executeQuery(`
       SELECT 
         c.*,
-        COUNT(u.id) as total_empleados,
+        COUNT(DISTINCT u.id) as total_empleados,
         COUNT(CASE WHEN u.activo = 1 THEN 1 END) as empleados_activos,
         (SELECT COUNT(*) FROM courses WHERE role = c.nombre) as total_cursos,
         (SELECT COUNT(DISTINCT d.id) FROM documents d 
@@ -172,7 +183,21 @@ async function getAllCargosStats() {
          WHERE dt.target_type = 'role' AND dt.target_value = c.nombre) as total_documentos,
         (SELECT COUNT(*) FROM course_progress cp 
          JOIN usuarios u2 ON cp.user_id = u2.id 
-         WHERE u2.cargo_id = c.id AND cp.evaluation_status = 'aprobado') as cursos_aprobados
+         WHERE u2.cargo_id = c.id AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
+        (SELECT COUNT(*) FROM course_progress cp 
+         JOIN usuarios u2 ON cp.user_id = u2.id 
+         WHERE u2.cargo_id = c.id AND cp.video_completed = 1) as videos_completados,
+        (SELECT COALESCE(ROUND(AVG(
+          CASE 
+            WHEN cp.evaluation_score IS NOT NULL AND cp.evaluation_total > 0 
+            THEN (cp.evaluation_score / cp.evaluation_total) * 100
+            WHEN cp.video_completed = 1 AND (cp.evaluation_score IS NULL OR cp.evaluation_total = 0)
+            THEN 50
+            ELSE 0 
+          END
+        ), 2), 0) FROM course_progress cp 
+         JOIN usuarios u3 ON cp.user_id = u3.id 
+         WHERE u3.cargo_id = c.id) as promedio_progreso
       FROM cargos c
       LEFT JOIN usuarios u ON c.id = u.cargo_id
       GROUP BY c.id

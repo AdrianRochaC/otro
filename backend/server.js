@@ -2165,6 +2165,56 @@ app.get('/api/cargos/:id/metrics', verifyToken, async (req, res) => {
   }
 });
 
+// Obtener estadísticas generales del sistema
+app.get('/api/stats/general', verifyToken, async (req, res) => {
+  try {
+    // Verificar que el usuario sea admin
+    if (req.user.rol !== 'Admin') {
+      return res.status(403).json({
+        success: false,
+        message: 'Solo los administradores pueden acceder a las estadísticas generales'
+      });
+    }
+
+    const connection = await createConnection();
+    
+    // Estadísticas generales
+    const [stats] = await connection.execute(`
+      SELECT 
+        (SELECT COUNT(*) FROM usuarios WHERE activo = 1) as usuarios_activos,
+        (SELECT COUNT(*) FROM usuarios WHERE activo = 0) as usuarios_inactivos,
+        (SELECT COUNT(*) FROM courses) as total_cursos,
+        (SELECT COUNT(*) FROM cargos) as total_cargos,
+        (SELECT COUNT(*) FROM documents) as total_documentos,
+        (SELECT COUNT(*) FROM course_progress WHERE video_completed = 1) as videos_completados,
+        (SELECT COUNT(*) FROM course_progress WHERE evaluation_status = 'aprobado') as evaluaciones_aprobadas,
+        (SELECT COUNT(*) FROM course_progress WHERE evaluation_status = 'reprobado') as evaluaciones_reprobadas,
+        (SELECT COALESCE(ROUND(AVG(
+          CASE 
+            WHEN evaluation_score IS NOT NULL AND evaluation_total > 0 
+            THEN (evaluation_score / evaluation_total) * 100
+            WHEN video_completed = 1 AND (evaluation_score IS NULL OR evaluation_total = 0)
+            THEN 50
+            ELSE 0 
+          END
+        ), 2), 0) FROM course_progress) as progreso_promedio_general
+    `);
+    
+    await connection.end();
+    
+    res.json({
+      success: true,
+      stats: stats[0]
+    });
+    
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
 // Obtener cargos para el registro
 app.get('/api/cargos/activos', async (req, res) => {
   try {
