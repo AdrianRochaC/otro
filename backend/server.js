@@ -70,26 +70,35 @@ function verifyToken(req, res, next) {
 // Middleware CORS configurado para desarrollo y producción (compatible con versiones antiguas)
 var corsOptions = {
   origin: function (origin, callback) {
-    // Permitir requests sin origin (como mobile apps o curl)
-    if (!origin) return callback(null, true);
+    console.log('CORS: Origen solicitado:', origin);
     
-    // Permitir localhost para desarrollo
-    if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
+    // Permitir requests sin origin (como mobile apps o curl)
+    if (!origin) {
+      console.log('CORS: Permitiendo request sin origin');
       return callback(null, true);
     }
     
-    // Permitir Render
+    // Permitir localhost para desarrollo
+    if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
+      console.log('CORS: Permitiendo localhost');
+      return callback(null, true);
+    }
+    
+    // Permitir cualquier dominio de Render
     if (origin.indexOf('onrender.com') !== -1) {
+      console.log('CORS: Permitiendo dominio de Render:', origin);
       return callback(null, true);
     }
     
     // Permitir farmeoa.com
     if (origin.indexOf('farmeoa.com') !== -1) {
+      console.log('CORS: Permitiendo farmeoa.com');
       return callback(null, true);
     }
     
     // Para desarrollo, permitir cualquier origen
     if (process.env.NODE_ENV !== 'production') {
+      console.log('CORS: Modo desarrollo - permitiendo cualquier origen');
       return callback(null, true);
     }
     
@@ -98,6 +107,7 @@ var corsOptions = {
     
     // Verificar si el origen está en la lista exacta
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('CORS: Origen permitido (lista exacta):', origin);
       return callback(null, true);
     }
     
@@ -108,6 +118,7 @@ var corsOptions = {
         var pattern = allowedOrigin.replace(/\*/g, '.*');
         var regex = new RegExp('^' + pattern + '$');
         if (regex.test(origin)) {
+          console.log('CORS: Origen permitido (patrón):', origin);
           return callback(null, true);
         }
       }
@@ -118,8 +129,9 @@ var corsOptions = {
     callback(new Error('No permitido por CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
-  credentials: true
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  credentials: true,
+  optionsSuccessStatus: 200
 };
 
 app.use(cors(corsOptions));
@@ -131,24 +143,35 @@ app.use((req, res, next) => {
   console.log('Method:', req.method);
   console.log('Path:', req.path);
   
-  // Permitir orígenes específicos
-  const allowedOrigins = [
-    'https://otro-frontend.onrender.com',
-    'http://localhost:5173',
-    'http://localhost:3000'
-  ];
-  
   const origin = req.headers.origin;
-  if (allowedOrigins.includes(origin) || !origin) {
-    res.header('Access-Control-Allow-Origin', origin || '*');
+  
+  // Permitir cualquier dominio de Render
+  if (origin && origin.includes('onrender.com')) {
+    res.header('Access-Control-Allow-Origin', origin);
     res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
     res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
     res.header('Access-Control-Allow-Credentials', 'true');
+    console.log('CORS BACKUP: Permitiendo dominio de Render:', origin);
+  }
+  // Permitir localhost para desarrollo
+  else if (origin && (origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    console.log('CORS BACKUP: Permitiendo localhost:', origin);
+  }
+  // Permitir requests sin origin
+  else if (!origin) {
+    res.header('Access-Control-Allow-Origin', '*');
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With');
+    console.log('CORS BACKUP: Permitiendo request sin origin');
   }
   
   // Manejar peticiones OPTIONS
   if (req.method === 'OPTIONS') {
-    console.log('Respondiendo a OPTIONS');
+    console.log('CORS BACKUP: Respondiendo a OPTIONS');
     return res.sendStatus(200);
   }
   
@@ -1584,6 +1607,10 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
   const { courseId } = req.params;
   const userId = req.user.id;
 
+  console.log(`=== ENDPOINT PROGRESS/${courseId} LLAMADO ===`);
+  console.log('Usuario ID:', userId);
+  console.log('Course ID:', courseId);
+
   let connection;
   try {
     connection = await createConnection();
@@ -1595,8 +1622,11 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
 
     await connection.end();
 
+    console.log('Progreso encontrado:', progress.length);
+
     if (progress.length === 0) {
       // Devolver un objeto de progreso vacío en lugar de 404
+      console.log('Devolviendo progreso vacío para usuario nuevo');
       return res.json({ 
         success: true, 
         progress: {
@@ -1613,9 +1643,11 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
       });
     }
 
+    console.log('Devolviendo progreso existente');
     return res.json({ success: true, progress: progress[0] });
 
   } catch (error) {
+    console.error('Error en endpoint progress:', error);
     if (connection) await connection.end();
     return res.status(500).json({ success: false, message: 'Error interno del servidor.' });
   }
@@ -1624,6 +1656,7 @@ app.get('/api/progress/:courseId', verifyToken, async (req, res) => {
 // 📋 RUTAS DE BITÁCORA
 
 app.get('/api/bitacora', verifyToken, async (req, res) => {
+  console.log('=== ENDPOINT BITACORA LLAMADO ===');
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute(`
@@ -1633,8 +1666,10 @@ app.get('/api/bitacora', verifyToken, async (req, res) => {
     `);
     await connection.end();
 
+    console.log('Tareas de bitácora encontradas:', rows.length);
     res.json({ success: true, tareas: rows || [] });
   } catch (error) {
+    console.error('Error en endpoint bitácora:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor' });
   }
 });
@@ -1733,12 +1768,15 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
 
 // Obtener usuarios (para mostrar nombres)
 app.get('/api/usuarios', verifyToken, async (req, res) => {
+  console.log('=== ENDPOINT USUARIOS LLAMADO ===');
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute('SELECT id, nombre FROM usuarios');
     await connection.end();
+    console.log('Usuarios encontrados:', rows.length);
     res.json({ success: true, usuarios: rows });
   } catch (error) {
+    console.error('Error en endpoint usuarios:', error);
     res.status(500).json({ success: false, message: 'Error al obtener usuarios' });
   }
 });
