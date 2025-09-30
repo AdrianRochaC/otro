@@ -55,7 +55,7 @@ const DetailPage = () => {
 
   useEffect(() => {
     const loadCourse = async () => {
-      if (!id || !user?.rol || !token) {
+      if (!id || !user || !user.rol || !token) {
         console.log('Esperando datos del usuario...', { id, user: user?.rol, token: !!token });
         return;
       }
@@ -108,7 +108,7 @@ const DetailPage = () => {
   // Verificar si el archivo de video existe
   useEffect(() => {
     const checkVideoFile = async () => {
-      if (!course || !token) return;
+      if (!course || !token || !user) return;
       
       const videoUrl = course.videoUrl || course.video_url;
       if (!videoUrl || videoUrl.includes('youtube.com/embed/') || videoUrl.startsWith('http')) {
@@ -134,11 +134,11 @@ const DetailPage = () => {
     };
 
     checkVideoFile();
-  }, [course, token]);
+  }, [course, token, user]);
 
   // Nuevo useEffect: cargar progreso desde la base de datos
   useEffect(() => {
-    if (!course || user.rol === "Admin") return;
+    if (!course || !user || user.rol === "Admin") return;
 
     const progressURL = `${BACKEND_URL}/api/progress/${id}`;
     console.log('🔍 Cargando progreso del curso:', id);
@@ -277,7 +277,7 @@ const DetailPage = () => {
   };
 
   // Mostrar loading mientras se cargan los datos
-  if (loading) {
+  if (loading || !user || !token) {
     return (
       <div style={{ 
         display: 'flex', 
