@@ -75,8 +75,13 @@ const DetailPage = () => {
   useEffect(() => {
     if (!course || user.rol === "Admin") return;
 
+    const progressURL = `${BACKEND_URL}/api/progress/${id}`;
+    console.log('🔍 Cargando progreso del curso:', id);
+    console.log('🌐 URL del backend:', BACKEND_URL);
+    console.log('📡 URL completa de progreso:', progressURL);
+
     axios
-      .get(`${BACKEND_URL}/api/progress/${id}`, {
+      .get(progressURL, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
