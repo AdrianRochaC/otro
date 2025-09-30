@@ -21,6 +21,8 @@ const DetailPage = () => {
   const [user, setUser] = useState(null);
   const [token, setToken] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [videoExists, setVideoExists] = useState(null);
+  const [checkingVideo, setCheckingVideo] = useState(false);
 
   // Cargar datos del usuario de manera más robusta
   useEffect(() => {
@@ -102,6 +104,37 @@ const DetailPage = () => {
 
     loadCourse();
   }, [id, navigate, token, user]);
+
+  // Verificar si el archivo de video existe
+  useEffect(() => {
+    const checkVideoFile = async () => {
+      if (!course || !token) return;
+      
+      const videoUrl = course.videoUrl || course.video_url;
+      if (!videoUrl || videoUrl.includes('youtube.com/embed/') || videoUrl.startsWith('http')) {
+        setVideoExists(true); // YouTube o URL externa, asumir que existe
+        return;
+      }
+      
+      setCheckingVideo(true);
+      try {
+        const filename = videoUrl.replace('/uploads/videos/', '');
+        const response = await axios.get(`${BACKEND_URL}/api/check-video/${filename}`, {
+          headers: { Authorization: `Bearer ${token}` }
+        });
+        
+        console.log('📁 Verificación de archivo:', response.data);
+        setVideoExists(response.data.exists);
+      } catch (error) {
+        console.error('❌ Error verificando archivo:', error);
+        setVideoExists(false);
+      } finally {
+        setCheckingVideo(false);
+      }
+    };
+
+    checkVideoFile();
+  }, [course, token]);
 
   // Nuevo useEffect: cargar progreso desde la base de datos
   useEffect(() => {
@@ -308,9 +341,82 @@ const DetailPage = () => {
               originalUrl: videoUrl,
               isYouTube,
               finalUrl,
-              backendUrl: BACKEND_URL
+              backendUrl: BACKEND_URL,
+              videoExists,
+              checkingVideo,
+              courseData: {
+                id: course.id,
+                title: course.title,
+                videoUrl: course.videoUrl,
+                video_url: course.video_url
+              }
             });
             
+            // Mostrar loading mientras se verifica el archivo
+            if (checkingVideo) {
+              return (
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  background: 'var(--bg-secondary)',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <div style={{ fontSize: '1.2rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>
+                    Verificando archivo de video...
+                  </div>
+                  <div style={{ 
+                    width: '40px', 
+                    height: '40px', 
+                    border: '3px solid var(--border-color)',
+                    borderTop: '3px solid var(--primary-color)',
+                    borderRadius: '50%',
+                    animation: 'spin 1s linear infinite',
+                    margin: '0 auto'
+                  }}></div>
+                </div>
+              );
+            }
+            
+            // Mostrar error si el archivo no existe
+            if (videoExists === false) {
+              const filename = videoUrl ? videoUrl.replace('/uploads/videos/', '') : 'desconocido';
+              return (
+                <div style={{ 
+                  padding: '2rem', 
+                  textAlign: 'center', 
+                  background: 'var(--bg-secondary)',
+                  borderRadius: '8px',
+                  border: '1px solid var(--border-color)'
+                }}>
+                  <div style={{ fontSize: '1.2rem', color: 'var(--text-danger)', marginBottom: '1rem' }}>
+                    ❌ Video no encontrado
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)' }}>
+                    El archivo de video no está disponible en el servidor.
+                  </div>
+                  <div style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
+                    Archivo: {filename}
+                  </div>
+                  <button 
+                    onClick={() => window.location.reload()} 
+                    style={{
+                      marginTop: '1rem',
+                      padding: '0.5rem 1rem',
+                      background: 'var(--primary-color)',
+                      color: 'white',
+                      border: 'none',
+                      borderRadius: '4px',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    Recargar página
+                  </button>
+                </div>
+              );
+            }
+            
+            // Mostrar el reproductor de video
             return (
               <ReactPlayer
                 url={finalUrl}

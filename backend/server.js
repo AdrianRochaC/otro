@@ -197,6 +197,42 @@ if (!fs.existsSync(documentsDir)) {
 // Servir las carpetas como archivos estáticos (públicas)
 app.use('/uploads/videos', express.static(videosDir));
 
+// RUTA: Verificar si un archivo de video existe
+app.get('/api/check-video/:filename', verifyToken, async (req, res) => {
+  try {
+    const { filename } = req.params;
+    const videoPath = path.join(videosDir, filename);
+    
+    console.log('🔍 Verificando archivo de video:', {
+      filename,
+      videoPath,
+      exists: fs.existsSync(videoPath)
+    });
+    
+    if (fs.existsSync(videoPath)) {
+      const stats = fs.statSync(videoPath);
+      res.json({
+        success: true,
+        exists: true,
+        size: stats.size,
+        modified: stats.mtime
+      });
+    } else {
+      res.json({
+        success: true,
+        exists: false,
+        message: 'Archivo no encontrado'
+      });
+    }
+  } catch (error) {
+    console.error('Error verificando archivo:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error verificando archivo'
+    });
+  }
+});
+
 // Configuración de almacenamiento para videos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
