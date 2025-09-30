@@ -232,25 +232,39 @@ const DetailPage = () => {
         <p>{course.description}</p>
 
         <div className="detail-video">
-          {course.videoUrl && course.videoUrl.includes('youtube.com/embed/') ? (
-            <ReactPlayer
-              url={course.videoUrl}
-              controls
-              onProgress={handleProgress}
-              onEnded={() => setVideoEnded(true)}
-              className="react-player"
-            />
-          ) : (
-            <ReactPlayer
-              url={course.videoUrl && course.videoUrl.startsWith('http') 
-                ? course.videoUrl 
-                : `${BACKEND_URL}${course.videoUrl || course.video_url}`}
-              controls
-              onProgress={handleProgress}
-              onEnded={() => setVideoEnded(true)}
-              className="react-player"
-            />
-          )}
+          {(() => {
+            const videoUrl = course.videoUrl || course.video_url;
+            const isYouTube = videoUrl && videoUrl.includes('youtube.com/embed/');
+            const finalUrl = isYouTube 
+              ? videoUrl 
+              : (videoUrl && videoUrl.startsWith('http') 
+                ? videoUrl 
+                : `${BACKEND_URL}${videoUrl}`);
+            
+            console.log('🎬 Configurando video:', {
+              originalUrl: videoUrl,
+              isYouTube,
+              finalUrl,
+              backendUrl: BACKEND_URL
+            });
+            
+            return (
+              <ReactPlayer
+                url={finalUrl}
+                controls
+                onProgress={handleProgress}
+                onEnded={() => setVideoEnded(true)}
+                onError={(error) => {
+                  console.error('❌ Error en video:', error);
+                  console.error('❌ URL del video:', finalUrl);
+                }}
+                onReady={() => {
+                  console.log('✅ Video listo para reproducir:', finalUrl);
+                }}
+                className="react-player"
+              />
+            );
+          })()}
         </div>
 
         <div className="video-progress-bar">
