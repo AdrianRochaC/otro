@@ -76,7 +76,7 @@ const DetailPage = () => {
     if (!course || user.rol === "Admin") return;
 
     axios
-      .get(`/api/progress/${id}`, {
+      .get(`${BACKEND_URL}/api/progress/${id}`, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
