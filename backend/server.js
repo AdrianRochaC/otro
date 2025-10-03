@@ -1446,20 +1446,28 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     const finalTitle = title || current.title;
     const finalDescription = description || current.description;
     const finalVideoUrl = videoUrl || current.video_url;
-    const finalCargoId = cargoId || current.role;
+    
+    // Para cargoId, necesitamos obtener el ID numérico del cargo existente
+    let finalCargoId;
+    if (cargoId) {
+      finalCargoId = parseInt(cargoId);
+    } else {
+      // Si no se proporciona cargoId, buscar el ID del cargo actual por nombre
+      const [currentCargo] = await connection.execute(
+        'SELECT id FROM cargos WHERE nombre = ?',
+        [current.role]
+      );
+      finalCargoId = currentCargo.length > 0 ? currentCargo[0].id : null;
+    }
+    
     const finalAttempts = attempts || current.attempts;
     const finalTimeLimit = timeLimit || current.time_limit;
 
     // Verificar que el cargo existe y obtener su nombre
-    const cargoIdNumber = parseInt(finalCargoId);
-    console.log('🔍 Verificando cargo en backend:', { finalCargoId, cargoIdNumber });
-    
     const [cargoResult] = await connection.execute(
       'SELECT id, nombre FROM cargos WHERE id = ?',
-      [cargoIdNumber]
+      [finalCargoId]
     );
-    
-    console.log('📋 Resultado de búsqueda de cargo:', cargoResult);
 
     if (cargoResult.length === 0) {
       await connection.end();
