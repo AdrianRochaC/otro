@@ -113,7 +113,12 @@ const AdminCoursesPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!title || !description || (!videoUrl && !videoFile)) {
+    
+    // Para edición, no validar video si ya existe uno
+    const hasExistingVideo = editingCourse && (videoUrl || videoFile);
+    const hasNewVideo = !editingCourse && (videoUrl || videoFile);
+    
+    if (!title || !description || (!hasExistingVideo && !hasNewVideo)) {
       alert("Completa todos los campos y elige un link o archivo de video.");
       return;
     }
@@ -136,6 +141,15 @@ const AdminCoursesPage = () => {
         return;
       }
       formData.append("videoUrl", embed);
+    } else if (editingCourse) {
+      // Si estamos editando y no se proporciona video nuevo, mantener el existente
+      const existingCourse = courses.find(c => c.id === editingCourse);
+      if (existingCourse) {
+        const existingVideoUrl = existingCourse.videoUrl || existingCourse.video_url;
+        if (existingVideoUrl) {
+          formData.append("videoUrl", existingVideoUrl);
+        }
+      }
     }
 
     try {
