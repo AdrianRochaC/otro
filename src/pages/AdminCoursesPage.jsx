@@ -130,7 +130,20 @@ const AdminCoursesPage = () => {
     formData.append("attempts", attempts);
     formData.append("timeLimit", timeLimit);
     formData.append("evaluation", JSON.stringify(questions));
+    
+    // Debug: mostrar qué se está enviando
+    console.log('📤 Enviando datos:', {
+      title,
+      description,
+      cargoId,
+      attempts,
+      timeLimit,
+      videoUrl,
+      useFile,
+      editingCourse
+    });
 
+    // Manejar video - siempre enviar algo
     if (useFile && videoFile) {
       formData.append("videoFile", videoFile);
     } else if (videoUrl) {
@@ -150,6 +163,9 @@ const AdminCoursesPage = () => {
           formData.append("videoUrl", existingVideoUrl);
         }
       }
+    } else {
+      // Si no hay video, enviar string vacío
+      formData.append("videoUrl", "");
     }
 
     try {
