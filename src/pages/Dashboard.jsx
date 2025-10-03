@@ -11,57 +11,35 @@ const Dashboard = () => {
   const [loading, setLoading] = useState(true);
   const [cargoFiltro, setCargoFiltro] = useState('todos');
 
-  const loadDashboardData = async () => {
+  useEffect(() => {
     const token = localStorage.getItem("authToken");
     if (!token) {
       setLoading(false);
       return;
     }
-    
-    try {
-      // Obtener usuarios, progreso y estadísticas generales en paralelo
-      const [usersRes, progressRes, statsRes] = await Promise.all([
-        axios.get(`${BACKEND_URL}/api/users`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${BACKEND_URL}/api/progress/all`, { headers: { Authorization: `Bearer ${token}` } }),
-        axios.get(`${BACKEND_URL}/api/stats/general`, { headers: { Authorization: `Bearer ${token}` } })
-      ]);
-      
-      if (usersRes.data.success && progressRes.data.success) {
-        setUsers(usersRes.data.users);
-        setProgress(progressRes.data.progress);
-        console.log('✅ Datos del dashboard cargados correctamente');
-      } else {
-        alert("❌ Error al cargar usuarios o progreso");
-      }
-      
-      if (statsRes.data.success) {
-        setGeneralStats(statsRes.data.stats);
-      }
-    } catch (err) {
-      console.error("Error cargando datos:", err);
-      alert("❌ No se pudo cargar algunos datos del dashboard");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  useEffect(() => {
-    loadDashboardData();
-    
-    // Recargar datos cuando el usuario regresa a la página (por si completó un curso)
-    const handleVisibilityChange = () => {
-      if (!document.hidden) {
-        console.log('🔄 Usuario regresó a la página, recargando dashboard...');
-        setLoading(true);
-        loadDashboardData();
-      }
-    };
-    
-    document.addEventListener('visibilitychange', handleVisibilityChange);
-    
-    return () => {
-      document.removeEventListener('visibilitychange', handleVisibilityChange);
-    };
+    // Obtener usuarios, progreso y estadísticas generales en paralelo
+    Promise.all([
+      axios.get(`${BACKEND_URL}/api/users`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${BACKEND_URL}/api/progress/all`, { headers: { Authorization: `Bearer ${token}` } }),
+      axios.get(`${BACKEND_URL}/api/stats/general`, { headers: { Authorization: `Bearer ${token}` } })
+    ])
+      .then(([usersRes, progressRes, statsRes]) => {
+        if (usersRes.data.success && progressRes.data.success) {
+          setUsers(usersRes.data.users);
+          setProgress(progressRes.data.progress);
+        } else {
+          alert("❌ Error al cargar usuarios o progreso");
+        }
+        
+        if (statsRes.data.success) {
+          setGeneralStats(statsRes.data.stats);
+        }
+      })
+      .catch((err) => {
+        console.error("Error cargando datos:", err);
+        alert("❌ No se pudo cargar algunos datos del dashboard");
+      })
+      .finally(() => setLoading(false));
   }, []);
 
   // Agrupar progreso por usuario (nombre)
@@ -75,7 +53,7 @@ const Dashboard = () => {
   let nonAdminUsers = users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin');
   // Filtro por cargo
   if (cargoFiltro !== 'todos') {
-    nonAdminUsers = nonAdminUsers.filter(u => u.cargo_nombre === cargoFiltro);
+    nonAdminUsers = nonAdminUsers.filter(u => u.rol === cargoFiltro);
   }
 
   return (
@@ -130,8 +108,8 @@ const Dashboard = () => {
           <label style={{ fontWeight: 500, marginRight: 8 }}>Filtrar por cargo:</label>
           <select value={cargoFiltro} onChange={e => setCargoFiltro(e.target.value)} style={{ padding: '0.4rem 1rem', borderRadius: 8, border: '1.5px solid #bcd2f7', fontSize: '1rem' }}>
             <option value="todos">Todos</option>
-            {[...new Set(users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin' && u.cargo_nombre).map(u => u.cargo_nombre))].map(cargo => (
-              <option key={cargo} value={cargo}>{cargo}</option>
+            {[...new Set(users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin').map(u => u.rol))].map(rol => (
+              <option key={rol} value={rol}>{rol.charAt(0).toUpperCase() + rol.slice(1)}</option>
             ))}
           </select>
         </div>
