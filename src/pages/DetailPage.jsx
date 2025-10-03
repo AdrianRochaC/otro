@@ -101,9 +101,16 @@ const DetailPage = () => {
           const p = res.data.progress;
           console.log('📊 Progreso recibido:', p);
           
-          // Verificar si hay progreso real (usar id en lugar de created_at)
-          if (p.id) {
+          // Verificar si hay progreso real - usar múltiples campos para ser más robusto
+          if (p.id || p.video_completed || p.evaluation_score !== null || p.attempts_used > 0) {
             console.log('✅ Progreso encontrado, aplicando estado...');
+            console.log('🔍 Detalles del progreso:', {
+              id: p.id,
+              video_completed: p.video_completed,
+              evaluation_score: p.evaluation_score,
+              attempts_used: p.attempts_used
+            });
+            
             // Hay progreso registrado
             if (p.video_completed) {
               console.log('🎬 Video ya completado');
@@ -119,7 +126,7 @@ const DetailPage = () => {
               });
             }
           } else {
-            console.log('❌ No hay progreso registrado (id es null)');
+            console.log('❌ No hay progreso registrado - todos los campos están vacíos');
             // No hay progreso registrado, usar valores por defecto
             setAttemptsLeft(course.attempts);
             setVideoEnded(false);
