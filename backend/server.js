@@ -936,6 +936,42 @@ app.post('/api/register', async (req, res) => {
       });
     }
 
+    // Validar formato del nombre
+    const validateName = (name) => {
+      // Verificar que no sea solo números
+      if (/^\d+$/.test(name.trim())) {
+        return 'El nombre no puede ser solo números';
+      }
+      
+      // Verificar que tenga al menos 2 palabras (nombre y apellido)
+      const words = name.trim().split(/\s+/);
+      if (words.length < 2) {
+        return 'Debe incluir nombre y apellido';
+      }
+      
+      // Verificar que cada palabra tenga al menos 2 caracteres
+      for (const word of words) {
+        if (word.length < 2) {
+          return 'Cada nombre debe tener al menos 2 caracteres';
+        }
+      }
+      
+      // Verificar que contenga solo letras, espacios y algunos caracteres especiales
+      if (!/^[a-zA-ZáéíóúÁÉÍÓÚñÑüÜ\s'-]+$/.test(name.trim())) {
+        return 'El nombre solo puede contener letras, espacios, guiones y apostrofes';
+      }
+      
+      return null; // Válido
+    };
+
+    const nameError = validateName(nombre);
+    if (nameError) {
+      return res.status(400).json({
+        success: false,
+        message: nameError
+      });
+    }
+
     // Validar formato de email
     const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
     if (!emailRegex.test(email)) {
