@@ -189,9 +189,8 @@ class VideoProcessor {
         audio_url: uploadUrl,
         language_code: 'es', // Español
         speaker_labels: true, // Identificar diferentes hablantes
-        auto_highlights: true, // Resaltar puntos clave
-        sentiment_analysis: true, // Análisis de sentimientos
         entity_detection: true // Detectar entidades importantes
+        // Removido auto_highlights y sentiment_analysis porque no están disponibles para español
       });
       
       console.log('🔄 Transcripción creada, ID:', transcript.id);
@@ -232,9 +231,9 @@ class VideoProcessor {
         text: transcriptResult.text || '',
         confidence: transcriptResult.confidence || 0,
         words: transcriptResult.words || [],
-        highlights: transcriptResult.auto_highlights_result || [],
+        highlights: [], // No disponible para español
         entities: transcriptResult.entities || [],
-        sentiment: transcriptResult.sentiment_analysis_results || []
+        sentiment: [] // No disponible para español
       };
       
     } catch (error) {
