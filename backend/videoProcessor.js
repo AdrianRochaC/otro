@@ -197,17 +197,17 @@ class VideoProcessor {
       console.log('⏳ Esperando procesamiento...');
       
       // Esperar a que termine el procesamiento
-      let transcriptResult;
+      let transcriptResult = transcript;
       let attempts = 0;
       const maxAttempts = 60; // 60 segundos máximo
       
-      while (transcript.status !== 'completed' && attempts < maxAttempts) {
-        if (transcript.status === 'error') {
-          console.error('❌ Error en la transcripción:', transcript.error);
-          throw new Error(`Error en la transcripción: ${transcript.error}`);
+      while (transcriptResult.status !== 'completed' && attempts < maxAttempts) {
+        if (transcriptResult.status === 'error') {
+          console.error('❌ Error en la transcripción:', transcriptResult.error);
+          throw new Error(`Error en la transcripción: ${transcriptResult.error}`);
         }
         
-        console.log(`⏳ Estado: ${transcript.status} (intento ${attempts + 1}/${maxAttempts})`);
+        console.log(`⏳ Estado: ${transcriptResult.status} (intento ${attempts + 1}/${maxAttempts})`);
         await new Promise(resolve => setTimeout(resolve, 1000));
         transcriptResult = await this.assemblyClient.transcripts.get(transcript.id);
         attempts++;
@@ -218,8 +218,13 @@ class VideoProcessor {
       }
       
       console.log('✅ Transcripción completada');
-      console.log('📊 Confianza:', transcriptResult.confidence);
-      console.log('📝 Longitud del texto:', transcriptResult.text?.length || 0, 'caracteres');
+      console.log('📊 Resultado de transcripción:', {
+        id: transcriptResult?.id,
+        status: transcriptResult?.status,
+        confidence: transcriptResult?.confidence,
+        textLength: transcriptResult?.text?.length || 0,
+        hasText: !!transcriptResult?.text
+      });
       
       // Limpiar archivo temporal
       if (fs.existsSync(audioPath)) {
@@ -227,8 +232,17 @@ class VideoProcessor {
         console.log('🗑️ Archivo temporal eliminado');
       }
       
+      // Validar que tenemos un resultado válido
+      if (!transcriptResult) {
+        throw new Error('No se recibió resultado de transcripción');
+      }
+      
+      if (!transcriptResult.text) {
+        throw new Error('La transcripción no contiene texto');
+      }
+      
       return {
-        text: transcriptResult.text || '',
+        text: transcriptResult.text,
         confidence: transcriptResult.confidence || 0,
         words: transcriptResult.words || [],
         highlights: [], // No disponible para español
