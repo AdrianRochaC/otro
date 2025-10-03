@@ -1427,16 +1427,33 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     const { id } = req.params;
     const { title, description, videoUrl, cargoId, evaluation = [], attempts, timeLimit } = req.body;
 
-    if (!title || !description || !videoUrl || !cargoId) {
-      return res.status(400).json({ success: false, message: 'Todos los campos del curso son requeridos' });
+    const connection = await createConnection();
+
+    // Obtener el curso existente para usar valores por defecto
+    const [existingCourse] = await connection.execute(
+      'SELECT * FROM courses WHERE id = ?',
+      [id]
+    );
+
+    if (existingCourse.length === 0) {
+      await connection.end();
+      return res.status(404).json({ success: false, message: 'Curso no encontrado' });
     }
 
-    const connection = await createConnection();
+    const current = existingCourse[0];
+    
+    // Usar valores existentes como fallback si no se proporcionan
+    const finalTitle = title || current.title;
+    const finalDescription = description || current.description;
+    const finalVideoUrl = videoUrl || current.video_url;
+    const finalCargoId = cargoId || current.role;
+    const finalAttempts = attempts || current.attempts;
+    const finalTimeLimit = timeLimit || current.time_limit;
 
     // Verificar que el cargo existe y obtener su nombre
     const [cargoResult] = await connection.execute(
       'SELECT id, nombre FROM cargos WHERE id = ?',
-      [cargoId]
+      [finalCargoId]
     );
 
     if (cargoResult.length === 0) {
@@ -1452,7 +1469,7 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     // Actualizar curso
     const [updateResult] = await connection.execute(
       `UPDATE courses SET title = ?, description = ?, video_url = ?, role = ?, attempts = ?, time_limit = ? WHERE id = ?`,
-      [title, description, videoUrl, cargoNombre, attempts, timeLimit, id]
+      [finalTitle, finalDescription, finalVideoUrl, cargoNombre, finalAttempts, finalTimeLimit, id]
     );
 
     if (updateResult.affectedRows === 0) {
