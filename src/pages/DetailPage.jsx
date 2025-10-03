@@ -150,10 +150,14 @@ const DetailPage = () => {
 
   const handleProgress = (state) => {
     setPlayed(state.played);
+    
+    // Debug: mostrar progreso en consola
+    console.log('🎬 Progreso del video:', Math.round(state.played * 100) + '%');
 
     // Ya no usamos localStorage para saber si el curso fue iniciado
     // Guardar progreso en la DB solo cuando el video termina
     if (state.played >= 0.99 && !videoEnded) {
+      console.log('✅ Video completado, guardando progreso...');
       setVideoEnded(true);
       axios
         .post(
@@ -172,7 +176,12 @@ const DetailPage = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
-        .catch(console.error);
+        .then(() => {
+          console.log('✅ Progreso guardado exitosamente');
+        })
+        .catch((error) => {
+          console.error('❌ Error guardando progreso:', error);
+        });
     }
   };
 
