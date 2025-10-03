@@ -9,6 +9,20 @@ const Perfil = () => {
 
   useEffect(() => {
     loadUserData();
+    
+    // Recargar datos cuando el usuario regresa a la página (por si completó un curso)
+    const handleVisibilityChange = () => {
+      if (!document.hidden) {
+        console.log('🔄 Usuario regresó a la página, recargando progreso...');
+        loadUserData();
+      }
+    };
+    
+    document.addEventListener('visibilitychange', handleVisibilityChange);
+    
+    return () => {
+      document.removeEventListener('visibilitychange', handleVisibilityChange);
+    };
   }, []);
 
   const loadUserData = async () => {

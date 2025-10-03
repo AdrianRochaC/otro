@@ -1016,9 +1016,12 @@ app.get('/api/users', verifyToken, async (req, res) => {
   try {
     const connection = await createConnection();
 
-    // Obtener todos los usuarios sin las contraseñas
+    // Obtener todos los usuarios sin las contraseñas, incluyendo el nombre del cargo
     const [users] = await connection.execute(
-      `SELECT id, nombre, email, rol, activo FROM usuarios ORDER BY nombre`
+      `SELECT u.id, u.nombre, u.email, u.rol, u.cargo_id, u.activo, c.nombre as cargo_nombre 
+       FROM usuarios u 
+       LEFT JOIN cargos c ON u.cargo_id = c.id 
+       ORDER BY u.nombre`
     );
 
     await connection.end();

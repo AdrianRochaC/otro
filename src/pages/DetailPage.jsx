@@ -158,7 +158,7 @@ const DetailPage = () => {
       setVideoEnded(true);
       axios
         .post(
-          "/api/progress",
+          `${BACKEND_URL}/api/progress`,
           {
             courseId: +id,
             videoCompleted: true,
@@ -173,7 +173,12 @@ const DetailPage = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
-        .catch(console.error);
+        .then(() => {
+          console.log('✅ Progreso del video guardado correctamente');
+        })
+        .catch((error) => {
+          console.error('❌ Error guardando progreso del video:', error);
+        });
     }
   };
 
@@ -202,7 +207,7 @@ const DetailPage = () => {
 
     axios
       .post(
-        "/api/progress",
+        `${BACKEND_URL}/api/progress`,
         {
           courseId: +id,
           videoCompleted: true,
@@ -214,9 +219,12 @@ const DetailPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(() => {
+        console.log('✅ Progreso de evaluación guardado correctamente');
         setAttemptsLeft((prev) => prev - 1);
       })
-      .catch(console.error);
+      .catch((error) => {
+        console.error('❌ Error guardando progreso de evaluación:', error);
+      });
   };
 
   const handleSelect = (qIdx, optIdx) => {
@@ -255,7 +263,36 @@ const DetailPage = () => {
                 url={finalUrl}
                 controls
                 onProgress={handleProgress}
-                onEnded={() => setVideoEnded(true)}
+                onEnded={() => {
+                  console.log('🎬 Video terminado completamente');
+                  setVideoEnded(true);
+                  // También guardar progreso cuando el video termina completamente
+                  if (!videoEnded) {
+                    axios
+                      .post(
+                        `${BACKEND_URL}/api/progress`,
+                        {
+                          courseId: +id,
+                          videoCompleted: true,
+                          score: score?.score ?? null,
+                          total: score?.total ?? null,
+                          status: score
+                            ? score.score >= Math.ceil(score.total * 0.6)
+                              ? "aprobado"
+                              : "reprobado"
+                            : null,
+                          attemptsUsed: (course.attempts - attemptsLeft) ?? 0,
+                        },
+                        { headers: { Authorization: `Bearer ${token}` } }
+                      )
+                      .then(() => {
+                        console.log('✅ Progreso del video guardado al terminar');
+                      })
+                      .catch((error) => {
+                        console.error('❌ Error guardando progreso al terminar video:', error);
+                      });
+                  }
+                }}
                 onError={(error) => {
                   console.error('❌ Error en video:', error);
                   console.error('❌ URL del video:', finalUrl);
