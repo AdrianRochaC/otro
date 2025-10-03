@@ -2660,6 +2660,9 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     try {
       // Analizar contenido del archivo de video con transcripción real
       console.log('Iniciando análisis de video con IA...');
+      console.log('Ruta del archivo temporal:', tempFilePath);
+      console.log('Archivo existe:', require('fs').existsSync(tempFilePath));
+      
       const videoData = await aiService.processMP4WithTranscription(tempFilePath);
       console.log('Análisis completado:', videoData);
     
