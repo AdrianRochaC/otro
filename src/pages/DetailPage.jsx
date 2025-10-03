@@ -4,7 +4,6 @@ import ReactPlayer from "react-player";
 import axios from "axios";
 import "./DetailPage.css";
 import { BACKEND_URL } from '../utils/api';
-import { buildVideoUrl, isYouTubeVideo } from '../utils/videoUtils';
 
 const DetailPage = () => {
   const { id } = useParams();
@@ -158,7 +157,7 @@ const DetailPage = () => {
       setVideoEnded(true);
       axios
         .post(
-          `${BACKEND_URL}/api/progress`,
+          "/api/progress",
           {
             courseId: +id,
             videoCompleted: true,
@@ -173,12 +172,7 @@ const DetailPage = () => {
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
-        .then(() => {
-          console.log('✅ Progreso del video guardado correctamente');
-        })
-        .catch((error) => {
-          console.error('❌ Error guardando progreso del video:', error);
-        });
+        .catch(console.error);
     }
   };
 
@@ -207,7 +201,7 @@ const DetailPage = () => {
 
     axios
       .post(
-        `${BACKEND_URL}/api/progress`,
+        "/api/progress",
         {
           courseId: +id,
           videoCompleted: true,
@@ -219,12 +213,9 @@ const DetailPage = () => {
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(() => {
-        console.log('✅ Progreso de evaluación guardado correctamente');
         setAttemptsLeft((prev) => prev - 1);
       })
-      .catch((error) => {
-        console.error('❌ Error guardando progreso de evaluación:', error);
-      });
+      .catch(console.error);
   };
 
   const handleSelect = (qIdx, optIdx) => {
@@ -243,19 +234,29 @@ const DetailPage = () => {
         <div className="detail-video">
           {(() => {
             const videoUrl = course.videoUrl || course.video_url;
-            const finalUrl = buildVideoUrl(videoUrl);
-            const isYouTube = isYouTubeVideo(videoUrl);
+            const isYouTube = videoUrl && videoUrl.includes('youtube.com/embed/');
+            const finalUrl = isYouTube 
+              ? videoUrl 
+              : (videoUrl && videoUrl.startsWith('http') 
+                ? videoUrl 
+                : `${BACKEND_URL}${videoUrl}`);
             
-            console.log('🎥 URL del video:', finalUrl);
-            console.log('🎥 Es YouTube embed:', isYouTube);
-            console.log('🎥 Video URL original:', videoUrl);
-            
-            if (!finalUrl) {
-              return (
-                <div className="no-video">
-                  <p>⚠️ No hay video disponible</p>
-                </div>
-              );
+            // Verificar si el archivo existe (solo para archivos locales)
+            if (!isYouTube && videoUrl && !videoUrl.startsWith('http')) {
+              const filename = videoUrl.replace('/uploads/videos/', '');
+              
+              // Hacer una petición HEAD para verificar si el archivo existe
+              fetch(finalUrl, { method: 'HEAD' })
+                .then(response => {
+                  if (response.ok) {
+                    console.log('✅ Archivo de video existe');
+                  } else {
+                    console.error('❌ Archivo de video no encontrado:', response.status);
+                  }
+                })
+                .catch(error => {
+                  console.error('❌ Error verificando archivo:', error);
+                });
             }
             
             return (
@@ -263,40 +264,10 @@ const DetailPage = () => {
                 url={finalUrl}
                 controls
                 onProgress={handleProgress}
-                onEnded={() => {
-                  console.log('🎬 Video terminado completamente');
-                  setVideoEnded(true);
-                  // También guardar progreso cuando el video termina completamente
-                  if (!videoEnded) {
-                    axios
-                      .post(
-                        `${BACKEND_URL}/api/progress`,
-                        {
-                          courseId: +id,
-                          videoCompleted: true,
-                          score: score?.score ?? null,
-                          total: score?.total ?? null,
-                          status: score
-                            ? score.score >= Math.ceil(score.total * 0.6)
-                              ? "aprobado"
-                              : "reprobado"
-                            : null,
-                          attemptsUsed: (course.attempts - attemptsLeft) ?? 0,
-                        },
-                        { headers: { Authorization: `Bearer ${token}` } }
-                      )
-                      .then(() => {
-                        console.log('✅ Progreso del video guardado al terminar');
-                      })
-                      .catch((error) => {
-                        console.error('❌ Error guardando progreso al terminar video:', error);
-                      });
-                  }
-                }}
+                onEnded={() => setVideoEnded(true)}
                 onError={(error) => {
                   console.error('❌ Error en video:', error);
                   console.error('❌ URL del video:', finalUrl);
-                  console.error('❌ Video URL original:', videoUrl);
                 }}
                 className="react-player"
               />
