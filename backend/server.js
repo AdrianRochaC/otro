@@ -2537,11 +2537,18 @@ app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
     // Generar preguntas usando IA
     const questions = await aiService.generateQuestions(courseData, numQuestions);
     
-    res.json({
+    console.log('✅ Preguntas generadas exitosamente:', questions.length);
+    console.log('📋 Primera pregunta:', questions[0]);
+    
+    const response = {
       success: true,
       message: `Se generaron ${questions.length} preguntas personalizadas`,
       questions: questions
-    });
+    };
+    
+    console.log('📤 Enviando respuesta al frontend...');
+    res.json(response);
+    console.log('✅ Respuesta enviada exitosamente');
 
   } catch (error) {
     res.status(500).json({

@@ -365,8 +365,12 @@ const AdminCoursesPage = () => {
         })
       });
 
+      console.log('📥 Respuesta del servidor:', response.status, response.statusText);
+      
       if (response.ok) {
         const data = await response.json();
+        console.log('📊 Datos recibidos:', data);
+        
         // Convertir las preguntas al formato del formulario
         const formattedQuestions = data.questions.map(q => ({
           question: q.question,
@@ -374,11 +378,15 @@ const AdminCoursesPage = () => {
           correctIndex: q.correctIndex
         }));
         
+        console.log('📋 Preguntas formateadas:', formattedQuestions);
+        
         setQuestions(formattedQuestions);
         setShowEvaluation(true);
         alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el título y descripción`);
       } else {
+        console.error('❌ Error en respuesta:', response.status, response.statusText);
         const errorData = await response.json();
+        console.error('❌ Datos de error:', errorData);
         throw new Error(errorData.message || 'Error generando preguntas');
       }
       
