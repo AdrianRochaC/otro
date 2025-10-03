@@ -81,24 +81,52 @@ class VideoProcessor {
    */
   async extractAudioFromMP4(videoPath) {
     try {
+      console.log('🎬 Extrayendo audio de video:', videoPath);
+      
+      // Verificar que el archivo existe
+      if (!fs.existsSync(videoPath)) {
+        throw new Error(`El archivo de video no existe: ${videoPath}`);
+      }
+      
       const fileName = path.basename(videoPath, path.extname(videoPath));
       const audioPath = path.join(this.tempDir, `${fileName}_${Date.now()}.mp3`);
       
+      console.log('🎵 Archivo de audio temporal:', audioPath);
+      
       await new Promise((resolve, reject) => {
-        ffmpeg(videoPath)
+        const ffmpegProcess = ffmpeg(videoPath)
           .toFormat('mp3')
+          .audioCodec('mp3')
+          .audioBitrate(128)
+          .on('start', (commandLine) => {
+            console.log('🚀 FFmpeg iniciado:', commandLine);
+          })
+          .on('progress', (progress) => {
+            console.log('⏳ Progreso:', progress.percent + '%');
+          })
           .on('end', () => {
+            console.log('✅ Extracción de audio completada');
             resolve();
           })
           .on('error', (err) => {
-            reject(err);
+            console.error('❌ Error en FFmpeg:', err.message);
+            reject(new Error(`Error extrayendo audio: ${err.message}`));
           })
           .save(audioPath);
       });
       
+      // Verificar que el archivo de audio se creó correctamente
+      if (!fs.existsSync(audioPath)) {
+        throw new Error('El archivo de audio no se creó correctamente');
+      }
+      
+      const audioStats = fs.statSync(audioPath);
+      console.log('📊 Audio extraído:', (audioStats.size / (1024 * 1024)).toFixed(2), 'MB');
+      
       return audioPath;
       
     } catch (error) {
+      console.error('❌ Error extrayendo audio:', error.message);
       throw error;
     }
   }
@@ -108,10 +136,21 @@ class VideoProcessor {
    */
   async transcribeAudio(audioPath) {
     try {
+      console.log('🎤 Iniciando transcripción de audio:', audioPath);
+      console.log('📁 Tamaño del archivo:', (fs.statSync(audioPath).size / (1024 * 1024)).toFixed(2), 'MB');
+      
+      // Verificar que AssemblyAI esté configurado
+      if (!this.assemblyClient) {
+        throw new Error('AssemblyAI no está configurado. Verifica ASSEMBLYAI_API_KEY');
+      }
+      
       // Subir archivo a AssemblyAI
+      console.log('⬆️ Subiendo archivo a AssemblyAI...');
       const uploadUrl = await this.assemblyClient.files.upload(audioPath);
+      console.log('✅ Archivo subido exitosamente');
       
       // Crear transcripción
+      console.log('📝 Creando transcripción...');
       const transcript = await this.assemblyClient.transcripts.create({
         audio_url: uploadUrl,
         language_code: 'es', // Español
@@ -121,32 +160,60 @@ class VideoProcessor {
         entity_detection: true // Detectar entidades importantes
       });
       
+      console.log('🔄 Transcripción creada, ID:', transcript.id);
+      console.log('⏳ Esperando procesamiento...');
+      
       // Esperar a que termine el procesamiento
       let transcriptResult;
-      while (transcript.status !== 'completed') {
+      let attempts = 0;
+      const maxAttempts = 60; // 60 segundos máximo
+      
+      while (transcript.status !== 'completed' && attempts < maxAttempts) {
         if (transcript.status === 'error') {
-          throw new Error('Error en la transcripción');
+          console.error('❌ Error en la transcripción:', transcript.error);
+          throw new Error(`Error en la transcripción: ${transcript.error}`);
         }
+        
+        console.log(`⏳ Estado: ${transcript.status} (intento ${attempts + 1}/${maxAttempts})`);
         await new Promise(resolve => setTimeout(resolve, 1000));
         transcriptResult = await this.assemblyClient.transcripts.get(transcript.id);
+        attempts++;
       }
       
+      if (attempts >= maxAttempts) {
+        throw new Error('Timeout: La transcripción tardó demasiado en completarse');
+      }
+      
+      console.log('✅ Transcripción completada');
+      console.log('📊 Confianza:', transcriptResult.confidence);
+      console.log('📝 Longitud del texto:', transcriptResult.text?.length || 0, 'caracteres');
+      
       // Limpiar archivo temporal
-      fs.unlinkSync(audioPath);
+      if (fs.existsSync(audioPath)) {
+        fs.unlinkSync(audioPath);
+        console.log('🗑️ Archivo temporal eliminado');
+      }
       
       return {
-        text: transcriptResult.text,
-        confidence: transcriptResult.confidence,
-        words: transcriptResult.words,
-        highlights: transcriptResult.auto_highlights_result,
-        entities: transcriptResult.entities,
-        sentiment: transcriptResult.sentiment_analysis_results
+        text: transcriptResult.text || '',
+        confidence: transcriptResult.confidence || 0,
+        words: transcriptResult.words || [],
+        highlights: transcriptResult.auto_highlights_result || [],
+        entities: transcriptResult.entities || [],
+        sentiment: transcriptResult.sentiment_analysis_results || []
       };
       
     } catch (error) {
+      console.error('❌ Error en transcripción:', error.message);
+      
       // Limpiar archivo en caso de error
       if (fs.existsSync(audioPath)) {
-        fs.unlinkSync(audioPath);
+        try {
+          fs.unlinkSync(audioPath);
+          console.log('🗑️ Archivo temporal eliminado tras error');
+        } catch (cleanupError) {
+          console.warn('⚠️ Error limpiando archivo temporal:', cleanupError.message);
+        }
       }
       
       throw error;

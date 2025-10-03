@@ -27,21 +27,36 @@ class AIService {
    */
   async generateQuestions(courseData, numQuestions = 5) {
     try {
+      console.log('🤖 Iniciando generación de preguntas con IA...');
+      console.log('📊 Datos del curso:', {
+        title: courseData.title,
+        contentType: courseData.contentType,
+        contentLength: courseData.content?.length || 0
+      });
+      
       if (!process.env.OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY no configurada');
       }
 
       const { title, description, content, contentType } = courseData;
       
+      // Verificar que tenemos contenido suficiente
+      if (!content || content.trim().length < 50) {
+        console.warn('⚠️ Contenido insuficiente para generar preguntas efectivas');
+        // Generar preguntas básicas basadas en título y descripción
+        return this.generateBasicQuestions(title, description, numQuestions);
+      }
+      
       // Crear prompt contextual para OpenAI
       const prompt = this.createPrompt(title, description, content, contentType, numQuestions);
+      console.log('📝 Prompt creado, longitud:', prompt.length, 'caracteres');
       
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
         messages: [
           {
             role: "system",
-            content: "Eres un experto en crear evaluaciones educativas. Genera preguntas claras, relevantes y desafiantes basadas en el contenido proporcionado."
+            content: "Eres un experto en crear evaluaciones educativas. Genera preguntas claras, relevantes y desafiantes basadas EXCLUSIVAMENTE en el contenido proporcionado. Las preguntas deben evaluar la comprensión real del material presentado."
           },
           {
             role: "user",
@@ -53,13 +68,57 @@ class AIService {
       });
 
       const response = completion.choices[0].message.content;
+      console.log('✅ Respuesta de IA recibida, longitud:', response.length, 'caracteres');
+      
       const questions = this.parseAIResponse(response);
+      console.log('📋 Preguntas generadas:', questions.length);
       
       return questions;
       
     } catch (error) {
+      console.error('❌ Error generando preguntas:', error.message);
       throw error;
     }
+  }
+
+  /**
+   * Genera preguntas básicas cuando no hay suficiente contenido
+   */
+  generateBasicQuestions(title, description, numQuestions) {
+    console.log('📝 Generando preguntas básicas basadas en título y descripción');
+    
+    const questions = [];
+    const basicQuestions = [
+      {
+        question: `¿Cuál es el tema principal del curso "${title}"?`,
+        options: [
+          "El tema principal se explica en la descripción del curso",
+          "No se especifica un tema principal",
+          "El tema principal es evidente en el título",
+          "El tema principal se desarrolla a lo largo del curso"
+        ],
+        correctIndex: 0,
+        explanation: "El tema principal del curso se puede identificar en la descripción proporcionada."
+      },
+      {
+        question: `¿Qué tipo de contenido educativo se presenta en "${title}"?`,
+        options: [
+          "Contenido audiovisual educativo",
+          "Contenido teórico únicamente",
+          "Contenido práctico únicamente",
+          "Contenido mixto teórico-práctico"
+        ],
+        correctIndex: 0,
+        explanation: "El curso presenta contenido audiovisual educativo como se indica en el formato del material."
+      }
+    ];
+
+    // Agregar preguntas básicas hasta alcanzar el número solicitado
+    for (let i = 0; i < Math.min(numQuestions, basicQuestions.length); i++) {
+      questions.push(basicQuestions[i]);
+    }
+
+    return questions;
   }
 
   /**
@@ -79,14 +138,16 @@ INSTRUCCIONES ESPECÍFICAS PARA VIDEO DE YOUTUBE:
 - Considera la duración y categoría del video para ajustar el nivel de dificultad
 - Las preguntas deben ser relevantes para el contenido educativo del video`;
     } else if (contentType === 'video') {
-      contentContext = `CONTENIDO DEL ARCHIVO DE VIDEO:
+      contentContext = `CONTENIDO REAL DEL ARCHIVO DE VIDEO (TRANSCRIPCIÓN COMPLETA):
 ${content}`;
       specificInstructions = `
-INSTRUCCIONES ESPECÍFICAS PARA ARCHIVO DE VIDEO:
-- Basándote en el nombre del archivo y sus metadatos, infiere el contenido educativo
-- Genera preguntas que cubran los temas principales que se podrían tratar en el video
-- Considera el tipo de archivo (MP4, AVI, etc.) y su tamaño para evaluar la complejidad
-- Las preguntas deben ser apropiadas para contenido audiovisual educativo`;
+INSTRUCCIONES ESPECÍFICAS PARA ARCHIVO DE VIDEO CON TRANSCRIPCIÓN:
+- Analiza la transcripción real del audio del video para identificar los temas específicos tratados
+- Genera preguntas que evalúen la comprensión de los conceptos MENCIONADOS REALMENTE en el video
+- Usa los puntos clave, entidades y sentimientos identificados en la transcripción
+- Las preguntas deben ser específicas al contenido real del video, no genéricas
+- Considera la confianza de la transcripción para ajustar el nivel de detalle de las preguntas
+- Incluye preguntas sobre conceptos específicos, ejemplos mencionados, y conclusiones presentadas`;
     } else if (contentType === 'file') {
       contentContext = `CONTENIDO DEL DOCUMENTO:
 ${content}`;
