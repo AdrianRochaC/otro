@@ -141,6 +141,8 @@ class VideoProcessor {
           .save(audioPath);
       });
       
+      console.log('🔄 Continuando después de FFmpeg...');
+      
       // Verificar que el archivo de audio se creó correctamente
       if (!fs.existsSync(audioPath)) {
         throw new Error('El archivo de audio no se creó correctamente');
@@ -333,11 +335,17 @@ Se discuten diferentes aspectos del tema y se proporcionan conclusiones relevant
    */
   async processMP4Video(videoPath) {
     try {
+      console.log('🎬 Iniciando processMP4Video...');
+      
       // Paso 1: Extraer audio
+      console.log('🔊 Paso 1: Extrayendo audio...');
       const audioPath = await this.extractAudioFromMP4(videoPath);
+      console.log('✅ Paso 1 completado, audio en:', audioPath);
       
       // Paso 2: Transcribir audio
+      console.log('📝 Paso 2: Transcribiendo audio...');
       const transcription = await this.transcribeAudio(audioPath);
+      console.log('✅ Paso 2 completado, transcripción obtenida');
       
       // Obtener información del archivo
       const stats = fs.statSync(videoPath);

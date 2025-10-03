@@ -323,6 +323,11 @@ const AdminCoursesPage = () => {
             formData.append('description', description);
             formData.append('numQuestions', '5');
             
+            console.log('🚀 === INICIANDO ANÁLISIS DE VIDEO ===');
+            console.log('📁 Archivo:', videoFile.name);
+            console.log('📊 Tamaño:', (videoFile.size / (1024 * 1024)).toFixed(2), 'MB');
+            console.log('📤 Enviando petición al servidor...');
+            
             const response = await fetch(`${API_URL_INTERNAL}/api/ai/analyze-video-file`, {
               method: 'POST',
               headers: {
@@ -331,11 +336,18 @@ const AdminCoursesPage = () => {
               body: formData
             });
             
+            console.log('📥 === RESPUESTA RECIBIDA ===');
+            console.log('📊 Status:', response.status, response.statusText);
+            
             console.log('📥 Respuesta del análisis de video:', response.status, response.statusText);
             
             if (response.ok) {
+              console.log('✅ === ANÁLISIS EXITOSO ===');
               const data = await response.json();
-              console.log('📊 Datos del análisis de video:', data);
+              console.log('📊 === DATOS RECIBIDOS ===');
+              console.log('📋 Preguntas:', data.questions?.length || 0);
+              console.log('📝 Mensaje:', data.message);
+              console.log('🎬 Info del video:', data.videoInfo);
               
               const formattedQuestions = data.questions.map(q => ({
                 question: q.question,
@@ -343,10 +355,12 @@ const AdminCoursesPage = () => {
                 correctIndex: q.correctIndex
               }));
               
-              console.log('📋 Preguntas del video formateadas:', formattedQuestions);
+              console.log('🔄 === FORMATEANDO PREGUNTAS ===');
+              console.log('📋 Preguntas formateadas:', formattedQuestions);
               
               setQuestions(formattedQuestions);
               setShowEvaluation(true);
+              console.log('✅ === PREGUNTAS CARGADAS EN EL FORMULARIO ===');
               alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el contenido real del video`);
               return;
             } else {

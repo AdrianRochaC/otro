@@ -2666,9 +2666,17 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     
     try {
       // Analizar contenido del archivo de video con transcripción real
-      console.log('Iniciando análisis de video con IA...');
+      console.log('🎬 === INICIANDO ANÁLISIS DE VIDEO ===');
+      console.log('📁 Archivo temporal:', tempFilePath);
+      console.log('📊 Tamaño del archivo:', (fs.statSync(tempFilePath).size / (1024 * 1024)).toFixed(2), 'MB');
+      
       const videoData = await aiService.processMP4WithTranscription(tempFilePath);
-      console.log('Análisis completado:', videoData);
+      console.log('✅ === ANÁLISIS DE VIDEO COMPLETADO ===');
+      console.log('📋 Datos obtenidos:', {
+        title: videoData.title,
+        contentLength: videoData.content?.length || 0,
+        transcriptionLength: videoData.transcription?.length || 0
+      });
     
     // Combinar con datos personalizados si se proporcionan
     const courseData = {
@@ -2679,19 +2687,33 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     };
 
     // Generar preguntas usando IA
-    const questions = await aiService.generateQuestions(courseData, numQuestions);
+    console.log('🤖 === INICIANDO GENERACIÓN DE PREGUNTAS ===');
+    console.log('📊 Datos del curso para IA:', {
+      title: courseData.title,
+      contentType: courseData.contentType,
+      contentLength: courseData.content?.length || 0
+    });
     
-      res.json({
-        success: true,
-        message: `Se generaron ${questions.length} preguntas para el archivo de video`,
-        videoInfo: {
-          originalName: req.file.originalname,
-          size: req.file.size,
-          mimetype: req.file.mimetype,
-          ...videoData
-        },
-        questions: questions
-      });
+    const questions = await aiService.generateQuestions(courseData, numQuestions);
+    console.log('✅ === GENERACIÓN DE PREGUNTAS COMPLETADA ===');
+    console.log('📋 Preguntas generadas:', questions.length);
+    
+    const response = {
+      success: true,
+      message: `Se generaron ${questions.length} preguntas para el archivo de video`,
+      videoInfo: {
+        originalName: req.file.originalname,
+        size: req.file.size,
+        mimetype: req.file.mimetype,
+        ...videoData
+      },
+      questions: questions
+    };
+    
+    console.log('📤 === ENVIANDO RESPUESTA AL FRONTEND ===');
+    console.log('📊 Tamaño de la respuesta:', JSON.stringify(response).length, 'caracteres');
+    res.json(response);
+    console.log('✅ === RESPUESTA ENVIADA EXITOSAMENTE ===');
       
     } finally {
       // Limpiar archivo temporal
