@@ -1451,10 +1451,15 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     const finalTimeLimit = timeLimit || current.time_limit;
 
     // Verificar que el cargo existe y obtener su nombre
+    const cargoIdNumber = parseInt(finalCargoId);
+    console.log('🔍 Verificando cargo en backend:', { finalCargoId, cargoIdNumber });
+    
     const [cargoResult] = await connection.execute(
       'SELECT id, nombre FROM cargos WHERE id = ?',
-      [finalCargoId]
+      [cargoIdNumber]
     );
+    
+    console.log('📋 Resultado de búsqueda de cargo:', cargoResult);
 
     if (cargoResult.length === 0) {
       await connection.end();
