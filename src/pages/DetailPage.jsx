@@ -157,7 +157,7 @@ const DetailPage = () => {
       setVideoEnded(true);
       axios
         .post(
-          "/api/progress",
+          `${BACKEND_URL}/api/progress`,
           {
             courseId: +id,
             videoCompleted: true,
@@ -201,7 +201,7 @@ const DetailPage = () => {
 
     axios
       .post(
-        "/api/progress",
+        `${BACKEND_URL}/api/progress`,
         {
           courseId: +id,
           videoCompleted: true,
