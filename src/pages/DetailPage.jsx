@@ -4,6 +4,7 @@ import ReactPlayer from "react-player";
 import axios from "axios";
 import "./DetailPage.css";
 import { BACKEND_URL } from '../utils/api';
+import { buildVideoUrl, isYouTubeVideo } from '../utils/videoUtils';
 
 const DetailPage = () => {
   const { id } = useParams();
@@ -234,29 +235,19 @@ const DetailPage = () => {
         <div className="detail-video">
           {(() => {
             const videoUrl = course.videoUrl || course.video_url;
-            const isYouTube = videoUrl && videoUrl.includes('youtube.com/embed/');
-            const finalUrl = isYouTube 
-              ? videoUrl 
-              : (videoUrl && videoUrl.startsWith('http') 
-                ? videoUrl 
-                : `${BACKEND_URL}${videoUrl}`);
+            const finalUrl = buildVideoUrl(videoUrl);
+            const isYouTube = isYouTubeVideo(videoUrl);
             
-            // Verificar si el archivo existe (solo para archivos locales)
-            if (!isYouTube && videoUrl && !videoUrl.startsWith('http')) {
-              const filename = videoUrl.replace('/uploads/videos/', '');
-              
-              // Hacer una petición HEAD para verificar si el archivo existe
-              fetch(finalUrl, { method: 'HEAD' })
-                .then(response => {
-                  if (response.ok) {
-                    console.log('✅ Archivo de video existe');
-                  } else {
-                    console.error('❌ Archivo de video no encontrado:', response.status);
-                  }
-                })
-                .catch(error => {
-                  console.error('❌ Error verificando archivo:', error);
-                });
+            console.log('🎥 URL del video:', finalUrl);
+            console.log('🎥 Es YouTube embed:', isYouTube);
+            console.log('🎥 Video URL original:', videoUrl);
+            
+            if (!finalUrl) {
+              return (
+                <div className="no-video">
+                  <p>⚠️ No hay video disponible</p>
+                </div>
+              );
             }
             
             return (
@@ -268,6 +259,7 @@ const DetailPage = () => {
                 onError={(error) => {
                   console.error('❌ Error en video:', error);
                   console.error('❌ URL del video:', finalUrl);
+                  console.error('❌ Video URL original:', videoUrl);
                 }}
                 className="react-player"
               />

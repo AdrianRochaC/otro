@@ -3,6 +3,7 @@ import "./AdminCoursesPage.css";
 import { useNavigate } from "react-router-dom";
 import { BookOpenCheck, ClipboardList, Users2, BarChart3, User } from "lucide-react";
 import { BACKEND_URL } from '../utils/api';
+import { buildVideoUrl, isYouTubeVideo } from '../utils/videoUtils';
 
 // Constantes para la API
 const API_URL_INTERNAL = BACKEND_URL;
@@ -718,17 +719,36 @@ const AdminCoursesPage = () => {
                       allowFullScreen
                     />
                   ) : (
-                    <video
-                      src={(course.videoUrl || course.video_url) && (course.videoUrl || course.video_url).startsWith('http') 
-                        ? (course.videoUrl || course.video_url)
-                        : `${BACKEND_URL}${course.videoUrl || course.video_url}`}
-                      controls
-                      width="100%"
-                      height="315"
-                      style={{ background: '#000' }}
-                    >
-                      Tu navegador no soporta la reproducción de video.
-                    </video>
+                    (() => {
+                      const videoUrl = course.videoUrl || course.video_url;
+                      const finalUrl = buildVideoUrl(videoUrl);
+                      
+                      console.log('🎥 URL del video en AdminCoursesPage:', finalUrl);
+                      
+                      if (!finalUrl) {
+                        return (
+                          <div className="no-video">
+                            <p>⚠️ No hay video disponible</p>
+                          </div>
+                        );
+                      }
+                      
+                      return (
+                        <video
+                          src={finalUrl}
+                          controls
+                          width="100%"
+                          height="315"
+                          style={{ background: '#000' }}
+                          onError={(e) => {
+                            console.error('❌ Error cargando video en admin:', e);
+                            console.error('❌ URL del video:', finalUrl);
+                          }}
+                        >
+                          Tu navegador no soporta la reproducción de video.
+                        </video>
+                      );
+                    })()
                   )
                 ) : (
                   <div className="no-video">

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CoursesPage.css";
 import { BACKEND_URL } from '../utils/api';
+import { buildVideoUrl, isYouTubeVideo, convertToEmbedUrl } from '../utils/videoUtils';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -84,33 +85,51 @@ const CoursesPage = () => {
                 <p>{course.description}</p>
 
                 <div className="video-container">
-                  {(course.videoUrl || course.video_url) && (course.videoUrl || course.video_url).trim() !== "" ? (
-                    (course.videoUrl || course.video_url).includes('youtube.com/embed/') ? (
-                      <iframe
-                        src={ensureEmbedUrl(course.videoUrl || course.video_url)}
-                        title={course.title}
-                        width="100%"
-                        height="315"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    ) : (
+                  {(() => {
+                    const videoUrl = course.videoUrl || course.video_url;
+                    const finalUrl = buildVideoUrl(videoUrl);
+                    const isYouTube = isYouTubeVideo(videoUrl);
+                    
+                    if (!finalUrl) {
+                      return (
+                        <div className="no-video">
+                          <p>⚠️ No hay video disponible</p>
+                        </div>
+                      );
+                    }
+                    
+                    if (isYouTube) {
+                      return (
+                        <iframe
+                          src={convertToEmbedUrl(videoUrl)}
+                          title={course.title}
+                          width="100%"
+                          height="315"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    
+                    console.log('🎥 URL del video en CoursesPage:', finalUrl);
+                    
+                    return (
                       <video
-                        src={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
+                        src={finalUrl}
                         controls
                         width="100%"
                         height="315"
                         style={{ background: '#000' }}
+                        onError={(e) => {
+                          console.error('❌ Error cargando video:', e);
+                          console.error('❌ URL del video:', finalUrl);
+                        }}
                       >
                         Tu navegador no soporta la reproducción de video.
                       </video>
-                    )
-                  ) : (
-                    <div className="no-video">
-                      <p>⚠️ No hay video disponible</p>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
 
                 {/* ✅ Botón corregido con ruta correcta */}
