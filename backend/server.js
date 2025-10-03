@@ -1480,10 +1480,22 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     const cargoNombre = cargoResult[0].nombre;
 
     // Actualizar curso
+    console.log('🔄 Actualizando curso:', {
+      id,
+      finalTitle,
+      finalDescription,
+      finalVideoUrl,
+      cargoNombre,
+      finalAttempts,
+      finalTimeLimit
+    });
+    
     const [updateResult] = await connection.execute(
       `UPDATE courses SET title = ?, description = ?, video_url = ?, role = ?, attempts = ?, time_limit = ? WHERE id = ?`,
       [finalTitle, finalDescription, finalVideoUrl, cargoNombre, finalAttempts, finalTimeLimit, id]
     );
+    
+    console.log('✅ Resultado del UPDATE:', updateResult);
 
     if (updateResult.affectedRows === 0) {
       await connection.end();
