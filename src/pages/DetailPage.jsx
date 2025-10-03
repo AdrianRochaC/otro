@@ -96,28 +96,37 @@ const DetailPage = () => {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
+        console.log('📥 Respuesta del servidor:', res.data);
         if (res.data.success && res.data.progress) {
           const p = res.data.progress;
+          console.log('📊 Progreso recibido:', p);
           
           // Verificar si hay progreso real (no el objeto vacío)
           if (p.created_at) {
+            console.log('✅ Progreso encontrado, aplicando estado...');
             // Hay progreso registrado
-            if (p.video_completed) setVideoEnded(true);
+            if (p.video_completed) {
+              console.log('🎬 Video ya completado');
+              setVideoEnded(true);
+            }
             setAttemptsLeft(course.attempts - (p.attempts_used || 0));
 
             if (p.evaluation_score != null) {
+              console.log('📝 Evaluación encontrada:', p.evaluation_score, '/', p.evaluation_total);
               setScore({
                 score: p.evaluation_score,
                 total: p.evaluation_total,
               });
             }
           } else {
+            console.log('❌ No hay progreso registrado (created_at es null)');
             // No hay progreso registrado, usar valores por defecto
             setAttemptsLeft(course.attempts);
             setVideoEnded(false);
             setScore({ score: null, total: null });
           }
         } else {
+          console.log('❌ Respuesta inesperada del servidor');
           // Fallback en caso de respuesta inesperada
           setAttemptsLeft(course.attempts);
           setVideoEnded(false);
