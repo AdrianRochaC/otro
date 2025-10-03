@@ -1426,6 +1426,17 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
   try {
     const { id } = req.params;
     const { title, description, videoUrl, cargoId, evaluation = [], attempts, timeLimit } = req.body;
+    
+    console.log('📥 Datos recibidos en PUT /api/courses/:id:', {
+      id,
+      title,
+      description,
+      videoUrl,
+      cargoId,
+      attempts,
+      timeLimit,
+      evaluationLength: evaluation.length
+    });
 
     const connection = await createConnection();
 
