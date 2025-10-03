@@ -418,7 +418,23 @@ const AdminCoursesPage = () => {
 
     // Buscar el cargo por nombre para obtener su ID
     const cargo = cargos.find(c => c.nombre === course.role);
-    setCargoId(cargo ? cargo.id : 1);
+    console.log('🔍 Buscando cargo:', {
+      courseRole: course.role,
+      cargosDisponibles: cargos.map(c => ({ id: c.id, nombre: c.nombre })),
+      cargoEncontrado: cargo
+    });
+    
+    if (cargo) {
+      setCargoId(cargo.id);
+    } else if (cargos.length > 0) {
+      // Si no encuentra el cargo, usar el primero disponible
+      setCargoId(cargos[0].id);
+      console.log('⚠️ Cargo no encontrado, usando el primero disponible:', cargos[0].id);
+    } else {
+      console.error('❌ No hay cargos disponibles');
+      alert('Error: No hay cargos disponibles');
+      return;
+    }
     setAttempts(course.attempts || 1);
     setTimeLimit(course.timeLimit || course.time_limit || 30);
     setEditingCourse(course.id);
