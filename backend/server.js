@@ -1456,7 +1456,7 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     // Usar valores existentes como fallback si no se proporcionan
     const finalTitle = title || current.title;
     const finalDescription = description || current.description;
-    const finalVideoUrl = videoUrl || current.video_url;
+    const finalVideoUrl = videoUrl && videoUrl.trim() !== '' ? videoUrl : current.video_url;
     
     // Para cargoId, necesitamos obtener el ID numérico del cargo existente
     let finalCargoId;
