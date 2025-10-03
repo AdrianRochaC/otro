@@ -115,14 +115,14 @@ class VideoProcessor {
       }
       
       const fileName = path.basename(videoPath, path.extname(videoPath));
-      const audioPath = path.join(this.tempDir, `${fileName}_${Date.now()}.mp3`);
+      const audioPath = path.join(this.tempDir, `${fileName}_${Date.now()}.wav`);
       
       console.log('🎵 Archivo de audio temporal:', audioPath);
       
       await new Promise((resolve, reject) => {
         const ffmpegProcess = ffmpeg(videoPath)
-          .toFormat('mp3')
-          .audioCodec('mp3')
+          .toFormat('wav')
+          .audioCodec('pcm_s16le')
           .audioBitrate(128)
           .on('start', (commandLine) => {
             console.log('🚀 FFmpeg iniciado:', commandLine);
@@ -256,7 +256,7 @@ class VideoProcessor {
     console.log('🎭 Generando audio simulado...');
     
     const fileName = path.basename(videoPath, path.extname(videoPath));
-    const audioPath = path.join(this.tempDir, `${fileName}_simulated_${Date.now()}.mp3`);
+    const audioPath = path.join(this.tempDir, `${fileName}_simulated_${Date.now()}.wav`);
     
     // Crear un archivo de audio simulado (vacío pero válido)
     fs.writeFileSync(audioPath, Buffer.from(''));

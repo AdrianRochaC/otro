@@ -2727,13 +2727,17 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     }
 
   } catch (error) {
+    console.error('❌ === ERROR EN ANÁLISIS DE VIDEO ===');
+    console.error('💥 Error:', error.message);
+    
     // Limpiar archivo temporal en caso de error
     try {
-      if (fs.existsSync(tempFilePath)) {
+      if (tempFilePath && fs.existsSync(tempFilePath)) {
         fs.unlinkSync(tempFilePath);
+        console.log('🗑️ Archivo temporal eliminado tras error');
       }
     } catch (cleanupError) {
-      console.warn('Error limpiando archivo temporal:', cleanupError);
+      console.warn('⚠️ Error limpiando archivo temporal:', cleanupError.message);
     }
     
     res.status(500).json({
