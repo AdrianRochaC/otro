@@ -101,8 +101,8 @@ const DetailPage = () => {
           const p = res.data.progress;
           console.log('📊 Progreso recibido:', p);
           
-          // Verificar si hay progreso real (no el objeto vacío)
-          if (p.created_at) {
+          // Verificar si hay progreso real (usar id en lugar de created_at)
+          if (p.id) {
             console.log('✅ Progreso encontrado, aplicando estado...');
             // Hay progreso registrado
             if (p.video_completed) {
@@ -119,7 +119,7 @@ const DetailPage = () => {
               });
             }
           } else {
-            console.log('❌ No hay progreso registrado (created_at es null)');
+            console.log('❌ No hay progreso registrado (id es null)');
             // No hay progreso registrado, usar valores por defecto
             setAttemptsLeft(course.attempts);
             setVideoEnded(false);
