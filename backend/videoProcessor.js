@@ -184,18 +184,11 @@ class VideoProcessor {
    */
   async processMP4Video(videoPath) {
     try {
-      console.log('🎬 Iniciando procesamiento de video:', videoPath);
-      console.log('📁 Archivo existe:', require('fs').existsSync(videoPath));
-      
       // Paso 1: Extraer audio
-      console.log('🔊 Extrayendo audio...');
       const audioPath = await this.extractAudioFromMP4(videoPath);
-      console.log('✅ Audio extraído:', audioPath);
       
       // Paso 2: Transcribir audio
-      console.log('📝 Transcribiendo audio...');
       const transcription = await this.transcribeAudio(audioPath);
-      console.log('✅ Transcripción completada');
       
       // Obtener información del archivo
       const stats = fs.statSync(videoPath);
