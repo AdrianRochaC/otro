@@ -89,12 +89,6 @@ const Dashboard = () => {
               <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Cursos Totales</div>
             </div>
             <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--warning-color)' }}>
-                {generalStats.videos_completados || 0}
-              </div>
-              <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Videos Completados</div>
-            </div>
-            <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--info-color)' }}>
                 {generalStats.progreso_promedio_general ? Math.round(generalStats.progreso_promedio_general) : 0}%
               </div>
