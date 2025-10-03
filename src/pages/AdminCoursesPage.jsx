@@ -172,12 +172,32 @@ const AdminCoursesPage = () => {
       const url = editingCourse ? `${API_URL_INTERNAL}/api/courses/${editingCourse}` : `${API_URL_INTERNAL}/api/courses`;
       const method = editingCourse ? "PUT" : "POST";
 
+      let requestBody;
+      let headers = {
+        Authorization: `Bearer ${token}`,
+      };
+
+      if (editingCourse) {
+        // Para editar, enviar JSON
+        requestBody = JSON.stringify({
+          title,
+          description,
+          videoUrl: videoUrl || (editingCourse ? (courses.find(c => c.id === editingCourse)?.videoUrl || courses.find(c => c.id === editingCourse)?.video_url) : ""),
+          cargoId: parseInt(cargoId),
+          attempts: parseInt(attempts),
+          timeLimit: parseInt(timeLimit),
+          evaluation: questions
+        });
+        headers['Content-Type'] = 'application/json';
+      } else {
+        // Para crear, usar FormData
+        requestBody = formData;
+      }
+
       const res = await fetch(url, {
         method,
-        headers: {
-          Authorization: `Bearer ${token}`,
-        },
-        body: formData,
+        headers,
+        body: requestBody,
       });
 
       const data = await res.json();
