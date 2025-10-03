@@ -331,22 +331,36 @@ const AdminCoursesPage = () => {
               body: formData
             });
             
+            console.log('📥 Respuesta del análisis de video:', response.status, response.statusText);
+            
             if (response.ok) {
               const data = await response.json();
+              console.log('📊 Datos del análisis de video:', data);
+              
               const formattedQuestions = data.questions.map(q => ({
                 question: q.question,
                 options: q.options,
                 correctIndex: q.correctIndex
               }));
               
+              console.log('📋 Preguntas del video formateadas:', formattedQuestions);
+              
               setQuestions(formattedQuestions);
               setShowEvaluation(true);
-              alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el archivo de video`);
+              alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el contenido real del video`);
               return;
+            } else {
+              console.error('❌ Error en análisis de video:', response.status, response.statusText);
+              const errorData = await response.json();
+              console.error('❌ Datos de error del video:', errorData);
+              throw new Error(`Error analizando video: ${errorData.message || 'Error desconocido'}`);
             }
           }
         } catch (error) {
-          }
+          console.error('❌ Error en análisis de video:', error.message);
+          alert(`⚠️ Error analizando el video: ${error.message}. Usando análisis básico...`);
+          // Continuar con el análisis básico
+        }
       }
 
       // Si es archivo de documento o solo texto, usar el endpoint general
