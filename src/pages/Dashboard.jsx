@@ -65,7 +65,7 @@ const Dashboard = () => {
           <span className="dashboard-subtitle">Solo visible para administradores.</span>
         </div>
         {/* Estadísticas generales */}
-        {generalStats && (
+        {generalStats ? (
           <div style={{ 
             display: 'grid', 
             gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', 
@@ -78,27 +78,43 @@ const Dashboard = () => {
           }}>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--primary-color)' }}>
-                {generalStats.usuarios_activos}
+                {generalStats.usuarios_activos || 0}
               </div>
               <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Usuarios Activos</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--success-color)' }}>
-                {generalStats.total_cursos}
+                {generalStats.total_cursos || 0}
               </div>
               <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Cursos Totales</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--warning-color)' }}>
-                {generalStats.videos_completados}
+                {generalStats.videos_completados || 0}
               </div>
               <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Videos Completados</div>
             </div>
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2rem', fontWeight: 'bold', color: 'var(--info-color)' }}>
-                {Math.round(generalStats.progreso_promedio_general)}%
+                {generalStats.progreso_promedio_general ? Math.round(generalStats.progreso_promedio_general) : 0}%
               </div>
               <div style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>Progreso Promedio</div>
+            </div>
+          </div>
+        ) : (
+          <div style={{
+            padding: '2rem',
+            textAlign: 'center',
+            backgroundColor: 'var(--card-background)',
+            borderRadius: '12px',
+            border: '1px solid var(--border-color)',
+            marginBottom: '2rem'
+          }}>
+            <div style={{ fontSize: '1.2rem', color: 'var(--text-secondary)', marginBottom: '0.5rem' }}>
+              📊 Cargando estadísticas...
+            </div>
+            <div style={{ fontSize: '0.9rem', color: 'var(--text-muted)' }}>
+              Las métricas se actualizarán cuando haya datos disponibles
             </div>
           </div>
         )}
