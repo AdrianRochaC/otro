@@ -131,17 +131,6 @@ const AdminCoursesPage = () => {
     formData.append("timeLimit", timeLimit);
     formData.append("evaluation", JSON.stringify(questions));
     
-    // Debug: mostrar qué se está enviando
-    console.log('📤 Enviando datos:', {
-      title,
-      description,
-      cargoId,
-      attempts,
-      timeLimit,
-      videoUrl,
-      useFile,
-      editingCourse
-    });
 
     // Manejar video - siempre enviar algo
     if (useFile && videoFile) {
@@ -323,10 +312,6 @@ const AdminCoursesPage = () => {
             formData.append('description', description);
             formData.append('numQuestions', '5');
             
-            console.log('🚀 === INICIANDO ANÁLISIS DE VIDEO ===');
-            console.log('📁 Archivo:', videoFile.name);
-            console.log('📊 Tamaño:', (videoFile.size / (1024 * 1024)).toFixed(2), 'MB');
-            console.log('📤 Enviando petición al servidor...');
             
             const response = await fetch(`${API_URL_INTERNAL}/api/ai/analyze-video-file`, {
               method: 'POST',
@@ -336,18 +321,9 @@ const AdminCoursesPage = () => {
               body: formData
             });
             
-            console.log('📥 === RESPUESTA RECIBIDA ===');
-            console.log('📊 Status:', response.status, response.statusText);
-            
-            console.log('📥 Respuesta del análisis de video:', response.status, response.statusText);
             
             if (response.ok) {
-              console.log('✅ === ANÁLISIS EXITOSO ===');
               const data = await response.json();
-              console.log('📊 === DATOS RECIBIDOS ===');
-              console.log('📋 Preguntas:', data.questions?.length || 0);
-              console.log('📝 Mensaje:', data.message);
-              console.log('🎬 Info del video:', data.videoInfo);
               
               const formattedQuestions = data.questions.map(q => ({
                 question: q.question,
@@ -355,23 +331,16 @@ const AdminCoursesPage = () => {
                 correctIndex: q.correctIndex
               }));
               
-              console.log('🔄 === FORMATEANDO PREGUNTAS ===');
-              console.log('📋 Preguntas formateadas:', formattedQuestions);
-              
               setQuestions(formattedQuestions);
               setShowEvaluation(true);
-              console.log('✅ === PREGUNTAS CARGADAS EN EL FORMULARIO ===');
               alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el contenido real del video`);
               return;
             } else {
-              console.error('❌ Error en análisis de video:', response.status, response.statusText);
               const errorData = await response.json();
-              console.error('❌ Datos de error del video:', errorData);
               throw new Error(`Error analizando video: ${errorData.message || 'Error desconocido'}`);
             }
           }
         } catch (error) {
-          console.error('❌ Error en análisis de video:', error.message);
           alert(`⚠️ Error analizando el video: ${error.message}. Usando análisis básico...`);
           // Continuar con el análisis básico
         }
@@ -393,11 +362,8 @@ const AdminCoursesPage = () => {
         })
       });
 
-      console.log('📥 Respuesta del servidor:', response.status, response.statusText);
-      
       if (response.ok) {
         const data = await response.json();
-        console.log('📊 Datos recibidos:', data);
         
         // Convertir las preguntas al formato del formulario
         const formattedQuestions = data.questions.map(q => ({
@@ -406,15 +372,11 @@ const AdminCoursesPage = () => {
           correctIndex: q.correctIndex
         }));
         
-        console.log('📋 Preguntas formateadas:', formattedQuestions);
-        
         setQuestions(formattedQuestions);
         setShowEvaluation(true);
         alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el título y descripción`);
       } else {
-        console.error('❌ Error en respuesta:', response.status, response.statusText);
         const errorData = await response.json();
-        console.error('❌ Datos de error:', errorData);
         throw new Error(errorData.message || 'Error generando preguntas');
       }
       
@@ -474,20 +436,13 @@ const AdminCoursesPage = () => {
 
     // Buscar el cargo por nombre para obtener su ID
     const cargo = cargos.find(c => c.nombre === course.role);
-    console.log('🔍 Buscando cargo:', {
-      courseRole: course.role,
-      cargosDisponibles: cargos.map(c => ({ id: c.id, nombre: c.nombre })),
-      cargoEncontrado: cargo
-    });
     
     if (cargo) {
       setCargoId(cargo.id);
     } else if (cargos.length > 0) {
       // Si no encuentra el cargo, usar el primero disponible
       setCargoId(cargos[0].id);
-      console.log('⚠️ Cargo no encontrado, usando el primero disponible:', cargos[0].id);
     } else {
-      console.error('❌ No hay cargos disponibles');
       alert('Error: No hay cargos disponibles');
       return;
     }

@@ -242,7 +242,6 @@ export const initializePreferences = async () => {
 
     // Intentar cargar desde la base de datos
     const preferences = await getUserPreferences();
-    console.log('Preferencias cargadas desde DB:', preferences);
     
     // Sincronizar con localStorage
     syncPreferencesWithLocalStorage(preferences);
@@ -259,12 +258,10 @@ export const initializePreferences = async () => {
           const imageUrl = URL.createObjectURL(blob);
           preferences.background_type = 'image';
           preferences.background_image_url = imageUrl;
-          console.log('Imagen de fondo cargada desde DB:', imageUrl);
         } else if (res.status === 404) {
           // No hay imagen, continuar sin error
           preferences.background_type = 'color';
           preferences.background_image_url = '';
-          console.log('No se encontró imagen de fondo en DB, usando color');
         } else {
           console.warn('Error al cargar imagen de fondo:', res.status);
           preferences.background_type = 'color';
@@ -279,12 +276,10 @@ export const initializePreferences = async () => {
       // No hay imagen de fondo o se seleccionó color, usar color
       preferences.background_type = preferences.background_type || 'color';
       preferences.background_image_url = '';
-      console.log('Usando color de fondo:', preferences.background_color);
     }
     
     // Aplicar todas las preferencias al DOM
     applyPreferencesToDOM(preferences);
-    console.log('Preferencias aplicadas al DOM:', preferences);
     return preferences;
   } catch (error) {
     console.warn('Error al inicializar preferencias, usando localStorage:', error);

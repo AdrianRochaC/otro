@@ -27,12 +27,6 @@ class AIService {
    */
   async generateQuestions(courseData, numQuestions = 5) {
     try {
-      console.log('🤖 Iniciando generación de preguntas con IA...');
-      console.log('📊 Datos del curso:', {
-        title: courseData.title,
-        contentType: courseData.contentType,
-        contentLength: courseData.content?.length || 0
-      });
       
       if (!process.env.OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY no configurada');
@@ -49,7 +43,6 @@ class AIService {
       
       // Crear prompt contextual para OpenAI
       const prompt = this.createPrompt(title, description, content, contentType, numQuestions);
-      console.log('📝 Prompt creado, longitud:', prompt.length, 'caracteres');
       
       const completion = await openai.chat.completions.create({
         model: "gpt-3.5-turbo",
@@ -68,10 +61,8 @@ class AIService {
       });
 
       const response = completion.choices[0].message.content;
-      console.log('✅ Respuesta de IA recibida, longitud:', response.length, 'caracteres');
       
       const questions = this.parseAIResponse(response);
-      console.log('📋 Preguntas generadas:', questions.length);
       
       return questions;
       
@@ -85,7 +76,6 @@ class AIService {
    * Genera preguntas básicas cuando no hay suficiente contenido
    */
   generateBasicQuestions(title, description, numQuestions) {
-    console.log('📝 Generando preguntas básicas basadas en título y descripción');
     
     const questions = [];
     const basicQuestions = [

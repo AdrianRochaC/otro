@@ -70,35 +70,29 @@ function verifyToken(req, res, next) {
 // Middleware CORS configurado para desarrollo y producción (compatible con versiones antiguas)
 var corsOptions = {
   origin: function (origin, callback) {
-    console.log('CORS: Origen solicitado:', origin);
     
     // Permitir requests sin origin (como mobile apps o curl)
     if (!origin) {
-      console.log('CORS: Permitiendo request sin origin');
       return callback(null, true);
     }
     
     // Permitir localhost para desarrollo
     if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
-      console.log('CORS: Permitiendo localhost');
       return callback(null, true);
     }
     
     // Permitir cualquier dominio de Render
     if (origin.indexOf('onrender.com') !== -1) {
-      console.log('CORS: Permitiendo dominio de Render:', origin);
       return callback(null, true);
     }
     
     // Permitir farmeoa.com
     if (origin.indexOf('farmeoa.com') !== -1) {
-      console.log('CORS: Permitiendo farmeoa.com');
       return callback(null, true);
     }
     
     // Para desarrollo, permitir cualquier origen
     if (process.env.NODE_ENV !== 'production') {
-      console.log('CORS: Modo desarrollo - permitiendo cualquier origen');
       return callback(null, true);
     }
     
@@ -107,7 +101,6 @@ var corsOptions = {
     
     // Verificar si el origen está en la lista exacta
     if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log('CORS: Origen permitido (lista exacta):', origin);
       return callback(null, true);
     }
     
@@ -118,14 +111,11 @@ var corsOptions = {
         var pattern = allowedOrigin.replace(/\*/g, '.*');
         var regex = new RegExp('^' + pattern + '$');
         if (regex.test(origin)) {
-          console.log('CORS: Origen permitido (patrón):', origin);
           return callback(null, true);
         }
       }
     }
     
-    console.log('CORS: Origen no permitido:', origin);
-    console.log('CORS: Orígenes permitidos:', allowedOrigins);
     callback(new Error('No permitido por CORS'));
   },
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
@@ -1463,16 +1453,6 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     const { id } = req.params;
     const { title, description, videoUrl, cargoId, evaluation = [], attempts, timeLimit } = req.body;
     
-    console.log('📥 Datos recibidos en PUT /api/courses/:id:', {
-      id,
-      title,
-      description,
-      videoUrl,
-      cargoId,
-      attempts,
-      timeLimit,
-      evaluationLength: evaluation.length
-    });
 
     const connection = await createConnection();
 
@@ -1527,22 +1507,10 @@ app.put('/api/courses/:id', verifyToken, async (req, res) => {
     const cargoNombre = cargoResult[0].nombre;
 
     // Actualizar curso
-    console.log('🔄 Actualizando curso:', {
-      id,
-      finalTitle,
-      finalDescription,
-      finalVideoUrl,
-      cargoNombre,
-      finalAttempts,
-      finalTimeLimit
-    });
-    
     const [updateResult] = await connection.execute(
       `UPDATE courses SET title = ?, description = ?, video_url = ?, role = ?, attempts = ?, time_limit = ? WHERE id = ?`,
       [finalTitle, finalDescription, finalVideoUrl, cargoNombre, finalAttempts, finalTimeLimit, id]
     );
-    
-    console.log('✅ Resultado del UPDATE:', updateResult);
 
     if (updateResult.affectedRows === 0) {
       await connection.end();
@@ -2501,15 +2469,10 @@ app.post('/api/courses/:id/generate-questions', verifyToken, async (req, res) =>
 
 // RUTA: Generar preguntas personalizadas con IA
 app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
-  console.log('=== ENDPOINT GENERATE-QUESTIONS LLAMADO ===');
-  console.log('=== INICIO GENERACIÓN DE PREGUNTAS ===');
-  console.log('Usuario:', req.user);
-  console.log('Body:', req.body);
   
   try {
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
-      console.log('Error: Usuario no es admin');
       return res.status(403).json({
         success: false,
         message: 'Solo los administradores pueden usar el servicio de IA'
@@ -2517,7 +2480,6 @@ app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
     }
 
     const { title, description, content, contentType, numQuestions = 5 } = req.body;
-    console.log('Parámetros recibidos:', { title, description, content, contentType, numQuestions });
 
     if (!title || !description) {
       return res.status(400).json({
@@ -2537,18 +2499,13 @@ app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
     // Generar preguntas usando IA
     const questions = await aiService.generateQuestions(courseData, numQuestions);
     
-    console.log('✅ Preguntas generadas exitosamente:', questions.length);
-    console.log('📋 Primera pregunta:', questions[0]);
-    
     const response = {
       success: true,
       message: `Se generaron ${questions.length} preguntas personalizadas`,
       questions: questions
     };
     
-    console.log('📤 Enviando respuesta al frontend...');
     res.json(response);
-    console.log('✅ Respuesta enviada exitosamente');
 
   } catch (error) {
     res.status(500).json({
@@ -2609,20 +2566,10 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
 
 // RUTA: Analizar archivo de video MP4 y generar preguntas
 app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), verifyToken, async (req, res) => {
-  console.log('=== ENDPOINT ANALYZE-VIDEO-FILE LLAMADO ===');
-  console.log('=== INICIO ANÁLISIS DE VIDEO ===');
-  console.log('Usuario:', req.user);
-  console.log('Archivo recibido:', req.file ? {
-    originalname: req.file.originalname,
-    mimetype: req.file.mimetype,
-    size: req.file.size
-  } : 'No hay archivo');
-  console.log('Body:', req.body);
   
   try {
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
-      console.log('Error: Usuario no es admin');
       return res.status(403).json({
         success: false,
         message: 'Solo los administradores pueden analizar archivos de video'
@@ -2630,7 +2577,6 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     }
 
     if (!req.file) {
-      console.log('Error: No se envió archivo');
       return res.status(400).json({
         success: false,
         message: 'No se envió ningún archivo de video'
@@ -2638,7 +2584,6 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     }
 
     const { title, description, numQuestions = 5 } = req.body;
-    console.log('Parámetros recibidos:', { title, description, numQuestions });
     
     // Con multer.memoryStorage(), el archivo está en req.file.buffer
     // Necesitamos guardarlo temporalmente para procesarlo

@@ -11,19 +11,12 @@ class VideoProcessor {
     // Configurar AssemblyAI (necesitarás tu API key)
     const assemblyApiKey = process.env.ASSEMBLYAI_API_KEY;
     
-    console.log('🔑 Verificando AssemblyAI API Key...');
-    console.log('📋 API Key presente:', !!assemblyApiKey);
-    console.log('📋 API Key longitud:', assemblyApiKey ? assemblyApiKey.length : 0);
-    console.log('📋 API Key inicia con:', assemblyApiKey ? assemblyApiKey.substring(0, 8) + '...' : 'N/A');
-    
     if (!assemblyApiKey || assemblyApiKey === 'your_assemblyai_api_key') {
-      console.warn('⚠️ ASSEMBLYAI_API_KEY no configurada. La transcripción no funcionará.');
       this.assemblyClient = null;
     } else {
       this.assemblyClient = new AssemblyAI({
         apiKey: assemblyApiKey
       });
-      console.log('✅ AssemblyAI configurado correctamente');
     }
     
     // Directorio para videos temporales
@@ -94,7 +87,6 @@ class VideoProcessor {
    */
   async extractAudioFromMP4(videoPath) {
     try {
-      console.log('🎬 Extrayendo audio de video:', videoPath);
       
       // Verificar que el archivo existe
       if (!fs.existsSync(videoPath)) {
@@ -109,7 +101,6 @@ class VideoProcessor {
               console.warn('⚠️ FFmpeg no disponible:', err.message);
               reject(err);
             } else {
-              console.log('✅ FFmpeg disponible');
               resolve();
             }
           });
@@ -122,7 +113,6 @@ class VideoProcessor {
       const fileName = path.basename(videoPath, path.extname(videoPath));
       const audioPath = path.join(this.tempDir, `${fileName}_${Date.now()}.wav`);
       
-      console.log('🎵 Archivo de audio temporal:', audioPath);
       
       await new Promise((resolve, reject) => {
         const ffmpegProcess = ffmpeg(videoPath)
@@ -130,13 +120,10 @@ class VideoProcessor {
           .audioCodec('pcm_s16le')
           .audioBitrate(128)
           .on('start', (commandLine) => {
-            console.log('🚀 FFmpeg iniciado:', commandLine);
           })
           .on('progress', (progress) => {
-            console.log('⏳ Progreso:', progress.percent + '%');
           })
           .on('end', () => {
-            console.log('✅ Extracción de audio completada');
             resolve();
           })
           .on('error', (err) => {
@@ -146,7 +133,6 @@ class VideoProcessor {
           .save(audioPath);
       });
       
-      console.log('🔄 Continuando después de FFmpeg...');
       
       // Verificar que el archivo de audio se creó correctamente
       if (!fs.existsSync(audioPath)) {
@@ -154,7 +140,6 @@ class VideoProcessor {
       }
       
       const audioStats = fs.statSync(audioPath);
-      console.log('📊 Audio extraído:', (audioStats.size / (1024 * 1024)).toFixed(2), 'MB');
       
       return audioPath;
       
@@ -169,8 +154,6 @@ class VideoProcessor {
    */
   async transcribeAudio(audioPath) {
     try {
-      console.log('🎤 Iniciando transcripción de audio:', audioPath);
-      console.log('📁 Tamaño del archivo:', (fs.statSync(audioPath).size / (1024 * 1024)).toFixed(2), 'MB');
       
       // Verificar que AssemblyAI esté configurado
       if (!this.assemblyClient) {
@@ -179,12 +162,8 @@ class VideoProcessor {
       }
       
       // Subir archivo a AssemblyAI
-      console.log('⬆️ Subiendo archivo a AssemblyAI...');
       const uploadUrl = await this.assemblyClient.files.upload(audioPath);
-      console.log('✅ Archivo subido exitosamente');
-      
       // Crear transcripción
-      console.log('📝 Creando transcripción...');
       const transcript = await this.assemblyClient.transcripts.create({
         audio_url: uploadUrl,
         language_code: 'es', // Español
@@ -193,8 +172,6 @@ class VideoProcessor {
         // Removido auto_highlights y sentiment_analysis porque no están disponibles para español
       });
       
-      console.log('🔄 Transcripción creada, ID:', transcript.id);
-      console.log('⏳ Esperando procesamiento...');
       
       // Esperar a que termine el procesamiento
       let transcriptResult = transcript;
@@ -207,7 +184,6 @@ class VideoProcessor {
           throw new Error(`Error en la transcripción: ${transcriptResult.error}`);
         }
         
-        console.log(`⏳ Estado: ${transcriptResult.status} (intento ${attempts + 1}/${maxAttempts})`);
         await new Promise(resolve => setTimeout(resolve, 1000));
         transcriptResult = await this.assemblyClient.transcripts.get(transcript.id);
         attempts++;
@@ -217,19 +193,10 @@ class VideoProcessor {
         throw new Error('Timeout: La transcripción tardó demasiado en completarse');
       }
       
-      console.log('✅ Transcripción completada');
-      console.log('📊 Resultado de transcripción:', {
-        id: transcriptResult?.id,
-        status: transcriptResult?.status,
-        confidence: transcriptResult?.confidence,
-        textLength: transcriptResult?.text?.length || 0,
-        hasText: !!transcriptResult?.text
-      });
       
       // Limpiar archivo temporal
       if (fs.existsSync(audioPath)) {
         fs.unlinkSync(audioPath);
-        console.log('🗑️ Archivo temporal eliminado');
       }
       
       // Validar que tenemos un resultado válido
@@ -257,7 +224,6 @@ class VideoProcessor {
       if (fs.existsSync(audioPath)) {
         try {
           fs.unlinkSync(audioPath);
-          console.log('🗑️ Archivo temporal eliminado tras error');
         } catch (cleanupError) {
           console.warn('⚠️ Error limpiando archivo temporal:', cleanupError.message);
         }
@@ -271,7 +237,6 @@ class VideoProcessor {
    * Genera un archivo de audio simulado cuando FFmpeg no está disponible
    */
   generateSimulatedAudio(videoPath) {
-    console.log('🎭 Generando audio simulado...');
     
     const fileName = path.basename(videoPath, path.extname(videoPath));
     const audioPath = path.join(this.tempDir, `${fileName}_simulated_${Date.now()}.wav`);
@@ -279,7 +244,6 @@ class VideoProcessor {
     // Crear un archivo de audio simulado (vacío pero válido)
     fs.writeFileSync(audioPath, Buffer.from(''));
     
-    console.log('✅ Audio simulado creado:', audioPath);
     return audioPath;
   }
 
@@ -287,7 +251,6 @@ class VideoProcessor {
    * Genera una transcripción simulada cuando AssemblyAI no está disponible
    */
   generateSimulatedTranscription(audioPath) {
-    console.log('🎭 Generando transcripción simulada...');
     
     // Obtener información del archivo
     const stats = fs.statSync(audioPath);
@@ -375,17 +338,12 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
    */
   async processMP4Video(videoPath) {
     try {
-      console.log('🎬 Iniciando processMP4Video...');
       
       // Paso 1: Extraer audio
-      console.log('🔊 Paso 1: Extrayendo audio...');
       const audioPath = await this.extractAudioFromMP4(videoPath);
-      console.log('✅ Paso 1 completado, audio en:', audioPath);
       
       // Paso 2: Transcribir audio
-      console.log('📝 Paso 2: Transcribiendo audio...');
       const transcription = await this.transcribeAudio(audioPath);
-      console.log('✅ Paso 2 completado, transcripción obtenida');
       
       // Obtener información del archivo
       const stats = fs.statSync(videoPath);

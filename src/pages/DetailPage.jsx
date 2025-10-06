@@ -23,7 +23,6 @@ const DetailPage = () => {
   const user = userData ? JSON.parse(userData) : null;
   
   if (!token || !user || !user.rol) {
-    console.log('Datos de usuario incompletos, redirigiendo al login');
     navigate("/login");
     return null;
   }
@@ -32,19 +31,15 @@ const DetailPage = () => {
   useEffect(() => {
     const loadCourse = async () => {
       if (!user || !user.rol || !token) {
-        console.log('Esperando datos del usuario...', { id, user: user?.rol, token: !!token });
         return;
       }
 
       try {
-        console.log('Cargando curso con ID:', id);
-        console.log('Rol del usuario:', user.rol);
         
         const res = await axios.get(`${BACKEND_URL}/api/courses?rol=${user.rol}`, {
           headers: { Authorization: `Bearer ${token}` },
         });
         
-        console.log('Cursos recibidos:', res.data.courses);
         const found = res.data.courses.find((c) => c.id === +id);
         
         if (!found) {
@@ -53,7 +48,6 @@ const DetailPage = () => {
           return navigate("/courses");
         }
 
-        console.log('Curso encontrado:', found);
         
         // Cargar preguntas del curso
         try {
@@ -61,7 +55,6 @@ const DetailPage = () => {
             headers: { Authorization: `Bearer ${token}` },
           });
           
-          console.log('Preguntas cargadas:', questionsRes.data.questions);
           found.evaluation = questionsRes.data.questions || [];
         } catch (questionsError) {
           console.warn('Error cargando preguntas:', questionsError);
@@ -69,7 +62,6 @@ const DetailPage = () => {
         }
 
         setCourse(found);
-        console.log('Curso configurado:', found);
         
       } catch (err) {
         console.error('Error al cargar curso:', err);
@@ -87,53 +79,37 @@ const DetailPage = () => {
     if (!course || user.rol === "Admin") return;
 
     const progressURL = `${BACKEND_URL}/api/progress/${id}`;
-    console.log('🔍 Cargando progreso del curso:', id);
-    console.log('🌐 URL del backend:', BACKEND_URL);
-    console.log('📡 URL completa de progreso:', progressURL);
 
     axios
       .get(progressURL, {
         headers: { Authorization: `Bearer ${token}` },
       })
       .then((res) => {
-        console.log('📥 Respuesta del servidor:', res.data);
         if (res.data.success && res.data.progress) {
           const p = res.data.progress;
-          console.log('📊 Progreso recibido:', p);
           
           // Verificar si hay progreso real - usar múltiples campos para ser más robusto
           if (p.id || p.video_completed || p.evaluation_score !== null || p.attempts_used > 0) {
-            console.log('✅ Progreso encontrado, aplicando estado...');
-            console.log('🔍 Detalles del progreso:', {
-              id: p.id,
-              video_completed: p.video_completed,
-              evaluation_score: p.evaluation_score,
-              attempts_used: p.attempts_used
-            });
             
             // Hay progreso registrado
             if (p.video_completed) {
-              console.log('🎬 Video ya completado');
               setVideoEnded(true);
             }
             setAttemptsLeft(course.attempts - (p.attempts_used || 0));
 
             if (p.evaluation_score != null) {
-              console.log('📝 Evaluación encontrada:', p.evaluation_score, '/', p.evaluation_total);
               setScore({
                 score: p.evaluation_score,
                 total: p.evaluation_total,
               });
             }
           } else {
-            console.log('❌ No hay progreso registrado - todos los campos están vacíos');
             // No hay progreso registrado, usar valores por defecto
             setAttemptsLeft(course.attempts);
             setVideoEnded(false);
             setScore({ score: null, total: null });
           }
         } else {
-          console.log('❌ Respuesta inesperada del servidor');
           // Fallback en caso de respuesta inesperada
           setAttemptsLeft(course.attempts);
           setVideoEnded(false);
@@ -168,12 +144,10 @@ const DetailPage = () => {
     setPlayed(state.played);
     
     // Debug: mostrar progreso en consola
-    console.log('🎬 Progreso del video:', Math.round(state.played * 100) + '%');
 
     // Ya no usamos localStorage para saber si el curso fue iniciado
     // Guardar progreso en la DB solo cuando el video termina
     if (state.played >= 0.99 && !videoEnded) {
-      console.log('✅ Video completado, guardando progreso...');
       setVideoEnded(true);
       axios
         .post(
@@ -188,12 +162,11 @@ const DetailPage = () => {
                 ? "aprobado"
                 : "reprobado"
               : null,
-            attemptsUsed: (course.attempts - attemptsLeft) ?? 0,
+            attemptsUsed: course.attempts - attemptsLeft,
           },
           { headers: { Authorization: `Bearer ${token}` } }
         )
         .then(() => {
-          console.log('✅ Progreso guardado exitosamente');
         })
         .catch((error) => {
           console.error('❌ Error guardando progreso:', error);
@@ -209,6 +182,8 @@ const DetailPage = () => {
     setTimeLeft(course.timeLimit * 60);
     setTimerActive(true);
     setShowQuiz(true);
+    // Reducir intentos al iniciar el quiz
+    setAttemptsLeft(prev => prev - 1);
   };
 
   const submitQuiz = () => {
@@ -233,12 +208,12 @@ const DetailPage = () => {
           score: correct,
           total,
           status,
-          attemptsUsed: (course.attempts - (attemptsLeft - 1)) ?? 0,
+          attemptsUsed: course.attempts - attemptsLeft,
         },
         { headers: { Authorization: `Bearer ${token}` } }
       )
       .then(() => {
-        setAttemptsLeft((prev) => prev - 1);
+        // Los intentos ya se redujeron en startQuiz
       })
       .catch(console.error);
   };
@@ -274,7 +249,6 @@ const DetailPage = () => {
               fetch(finalUrl, { method: 'HEAD' })
                 .then(response => {
                   if (response.ok) {
-                    console.log('✅ Archivo de video existe');
                   } else {
                     console.error('❌ Archivo de video no encontrado:', response.status);
                   }

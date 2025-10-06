@@ -34,7 +34,6 @@ const Layout = ({ children }) => {
         if (data.success) setUnreadCount(data.count);
       })
       .catch(error => {
-        console.log('Error fetching notifications:', error);
       });
   }, [location.pathname]);
 

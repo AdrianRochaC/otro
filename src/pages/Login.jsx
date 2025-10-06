@@ -42,14 +42,12 @@ const Login = () => {
     setLoading(true);
 
     try {
-      console.log('🔐 Iniciando login...');
       const response = await apiFetch("/api/login", {
         method: "POST",
         body: JSON.stringify({ email, password })
       });
 
       const result = await response.json();
-      console.log('✅ Login exitoso:', result);
 
       if (result.success) {
         localStorage.setItem("authToken", result.token);

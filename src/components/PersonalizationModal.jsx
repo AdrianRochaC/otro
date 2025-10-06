@@ -92,7 +92,6 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
       setIsLoading(true);
       setError(null);
       const preferences = await getUserPreferences();
-      console.log('Preferencias cargadas en modal:', preferences);
       
       setCurrentTheme(preferences.theme);
       setSelectedTheme(preferences.theme);
@@ -115,11 +114,9 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
             const imageUrl = URL.createObjectURL(blob);
             setBackgroundImageUrl(imageUrl);
             applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'image', imageUrl, preferences.background_color);
-            console.log('Imagen de fondo cargada en modal:', imageUrl);
           } else {
             setBackgroundImageUrl('');
             applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'color', '', preferences.background_color);
-            console.log('No se pudo cargar imagen de fondo en modal, usando color');
           }
         } catch (imageError) {
           console.warn('Error al cargar imagen de fondo en modal:', imageError);
