@@ -195,15 +195,23 @@ const AdminBitacora = () => {
                         <div className="info-item">
                           <strong>📅 Límite:</strong>{" "}
                           {(() => {
+                            if (!t.deadline) return 'Sin fecha';
+                            
+                            // Crear fecha usando partes individuales para evitar problemas de zona horaria
+                            const dateParts = t.deadline.split('-');
+                            if (dateParts.length === 3) {
+                              const year = parseInt(dateParts[0]);
+                              const month = parseInt(dateParts[1]) - 1; // Los meses en JS van de 0-11
+                              const day = parseInt(dateParts[2]);
+                              const date = new Date(year, month, day);
+                              return date.toLocaleDateString("es-ES");
+                            }
+                            
+                            // Fallback: intentar parsear como fecha normal
                             try {
-                              // Si la fecha ya tiene formato ISO completo, usarla tal como está
-                              if (t.deadline.includes('T')) {
-                                return new Date(t.deadline).toLocaleDateString("es-ES");
-                              }
-                              // Si es solo fecha (YYYY-MM-DD), agregar hora para evitar problemas de zona horaria
-                              return new Date(t.deadline + 'T12:00:00').toLocaleDateString("es-ES");
+                              return new Date(t.deadline).toLocaleDateString("es-ES");
                             } catch (error) {
-                              return t.deadline; // Fallback a mostrar la fecha como string
+                              return t.deadline; // Mostrar la fecha como string si falla
                             }
                           })()}
                         </div>
