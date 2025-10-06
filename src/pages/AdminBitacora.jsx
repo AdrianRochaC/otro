@@ -194,7 +194,7 @@ const AdminBitacora = () => {
                       <div className="tarea-info">
                         <div className="info-item">
                           <strong>📅 Límite:</strong>{" "}
-                          {new Date(t.deadline).toLocaleDateString("es-ES")}
+                          {new Date(t.deadline + 'T00:00:00').toLocaleDateString("es-ES")}
                         </div>
                         <div className="info-item">
                           <strong>👥 Asignados:</strong>{" "}

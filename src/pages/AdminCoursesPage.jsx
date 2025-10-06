@@ -137,12 +137,17 @@ const AdminCoursesPage = () => {
       formData.append("videoFile", videoFile);
     } else if (videoUrl) {
       // Si es link de YouTube, convertir a embed
-      const embed = convertToEmbedUrl(videoUrl);
-      if (!embed) {
-        alert("Enlace YouTube inválido.");
-        return;
+      if (videoUrl.includes('youtube.com/watch') || videoUrl.includes('youtu.be/')) {
+        const embed = convertToEmbedUrl(videoUrl);
+        if (!embed) {
+          alert("Enlace YouTube inválido.");
+          return;
+        }
+        formData.append("videoUrl", embed);
+      } else {
+        // Para otros tipos de video (archivos locales, etc.), usar la URL tal como está
+        formData.append("videoUrl", videoUrl);
       }
-      formData.append("videoUrl", embed);
     } else if (editingCourse) {
       // Si estamos editando y no se proporciona video nuevo, mantener el existente
       const existingCourse = courses.find(c => c.id === editingCourse);
@@ -168,10 +173,22 @@ const AdminCoursesPage = () => {
 
       if (editingCourse) {
         // Para editar, enviar JSON
+        // Para edición, manejar la URL del video correctamente
+        let finalVideoUrl = videoUrl;
+        if (videoUrl && (videoUrl.includes('youtube.com/watch') || videoUrl.includes('youtu.be/'))) {
+          // Convertir YouTube watch a embed
+          const embed = convertToEmbedUrl(videoUrl);
+          finalVideoUrl = embed || videoUrl;
+        } else if (!videoUrl && editingCourse) {
+          // Si no se proporciona video nuevo, mantener el existente
+          const existingCourse = courses.find(c => c.id === editingCourse);
+          finalVideoUrl = existingCourse?.videoUrl || existingCourse?.video_url || "";
+        }
+        
         requestBody = JSON.stringify({
           title,
           description,
-          videoUrl: videoUrl || (editingCourse ? (courses.find(c => c.id === editingCourse)?.videoUrl || courses.find(c => c.id === editingCourse)?.video_url) : ""),
+          videoUrl: finalVideoUrl,
           cargoId: parseInt(cargoId),
           attempts: parseInt(attempts),
           timeLimit: parseInt(timeLimit),
@@ -431,8 +448,13 @@ const AdminCoursesPage = () => {
     setDescription(course.description);
 
     const videoUrl = course.videoUrl || course.video_url;
-    const watchUrl = convertToWatchUrl(videoUrl);
-    setVideoUrl(watchUrl);
+    // Solo convertir a watch si es un embed de YouTube, mantener otros tipos de video como están
+    if (videoUrl && videoUrl.includes('youtube.com/embed/')) {
+      const watchUrl = convertToWatchUrl(videoUrl);
+      setVideoUrl(watchUrl);
+    } else {
+      setVideoUrl(videoUrl || '');
+    }
 
     // Buscar el cargo por nombre para obtener su ID
     const cargo = cargos.find(c => c.nombre === course.role);
