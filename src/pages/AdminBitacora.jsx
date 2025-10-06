@@ -194,7 +194,18 @@ const AdminBitacora = () => {
                       <div className="tarea-info">
                         <div className="info-item">
                           <strong>📅 Límite:</strong>{" "}
-                          {new Date(t.deadline + 'T00:00:00').toLocaleDateString("es-ES")}
+                          {(() => {
+                            try {
+                              // Si la fecha ya tiene formato ISO completo, usarla tal como está
+                              if (t.deadline.includes('T')) {
+                                return new Date(t.deadline).toLocaleDateString("es-ES");
+                              }
+                              // Si es solo fecha (YYYY-MM-DD), agregar hora para evitar problemas de zona horaria
+                              return new Date(t.deadline + 'T12:00:00').toLocaleDateString("es-ES");
+                            } catch (error) {
+                              return t.deadline; // Fallback a mostrar la fecha como string
+                            }
+                          })()}
                         </div>
                         <div className="info-item">
                           <strong>👥 Asignados:</strong>{" "}
