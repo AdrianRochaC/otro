@@ -2598,7 +2598,16 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
       success: true,
       message: `Se generaron ${questions.length} preguntas para el video de YouTube`,
       videoInfo: videoData,
-      questions: questions
+      questions: questions,
+      debug: {
+        url: videoUrl,
+        title: courseData.title,
+        description: courseData.description?.substring(0, 200),
+        contentLength: courseData.content?.length || 0,
+        transcriptionLength: videoData.transcription?.length || 0,
+        confidence: videoData.confidence,
+        questionsGenerated: questions.length
+      }
     });
 
   } catch (error) {
@@ -2609,7 +2618,13 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
     
     res.status(500).json({
       success: false,
-      message: 'Error analizando video de YouTube: ' + error.message
+      message: 'Error analizando video de YouTube: ' + error.message,
+      debug: {
+        error: error.message,
+        stack: error.stack,
+        url: req.body?.videoUrl || 'No proporcionada',
+        timestamp: new Date().toISOString()
+      }
     });
   }
 });

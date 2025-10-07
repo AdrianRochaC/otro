@@ -282,6 +282,11 @@ const AdminCoursesPage = () => {
       // Si hay video de YouTube, analizarlo
       if (videoUrl && !useFile) {
         try {
+          console.log('🎬 === INICIANDO ANÁLISIS DE YOUTUBE ===');
+          console.log('📺 URL:', videoUrl);
+          console.log('📝 Título:', title);
+          console.log('📄 Descripción:', description);
+          
           const response = await fetch(`${API_URL_INTERNAL}/api/ai/analyze-youtube`, {
             method: 'POST',
             headers: {
@@ -296,8 +301,24 @@ const AdminCoursesPage = () => {
             })
           });
 
+          console.log('📡 Respuesta del servidor:', response.status, response.statusText);
+
           if (response.ok) {
             const data = await response.json();
+            console.log('✅ === DATOS RECIBIDOS DEL SERVIDOR ===');
+            console.log('📊 Respuesta completa:', data);
+            
+            if (data.debug) {
+              console.log('🔍 === INFORMACIÓN DE DEBUG ===');
+              console.log('📺 URL procesada:', data.debug.url);
+              console.log('📝 Título final:', data.debug.title);
+              console.log('📄 Descripción final:', data.debug.description);
+              console.log('📏 Longitud del contenido:', data.debug.contentLength, 'caracteres');
+              console.log('🎤 Longitud de transcripción:', data.debug.transcriptionLength, 'caracteres');
+              console.log('🎯 Confianza:', data.debug.confidence);
+              console.log('❓ Preguntas generadas:', data.debug.questionsGenerated);
+            }
+            
             // Convertir las preguntas al formato del formulario
             const formattedQuestions = data.questions.map(q => ({
               question: q.question,
@@ -305,13 +326,30 @@ const AdminCoursesPage = () => {
               correctIndex: q.correctIndex
             }));
             
+            console.log('📋 === PREGUNTAS FORMATEADAS ===');
+            formattedQuestions.forEach((q, i) => {
+              console.log(`${i + 1}. ${q.question}`);
+            });
+            
             setQuestions(formattedQuestions);
             setShowEvaluation(true);
             alert(`🎉 Se generaron ${data.questions.length} preguntas automáticamente basándose en el video de YouTube`);
             return;
+          } else {
+            const errorData = await response.json();
+            console.error('❌ === ERROR DEL SERVIDOR ===');
+            console.error('📊 Status:', response.status);
+            console.error('📝 Mensaje:', errorData.message);
+            if (errorData.debug) {
+              console.error('🔍 Debug info:', errorData.debug);
+            }
+            throw new Error(`Error del servidor: ${errorData.message}`);
           }
         } catch (error) {
-          }
+          console.error('❌ === ERROR EN EL FRONTEND ===');
+          console.error('📝 Error:', error.message);
+          alert(`⚠️ Error analizando video de YouTube: ${error.message}. Revisa la consola para más detalles.`);
+        }
       }
 
       // Si es archivo de video, usar análisis específico
