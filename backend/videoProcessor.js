@@ -317,8 +317,6 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
    */
   async getYouTubeTranscript(videoUrl) {
     try {
-      console.log('🎬 Intentando obtener transcripción directa de YouTube...');
-      
       // Extraer ID del video de la URL
       const videoId = this.extractVideoId(videoUrl);
       if (!videoId) {
@@ -360,7 +358,6 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
       };
       
     } catch (error) {
-      console.error('❌ Error obteniendo transcripción directa:', error.message);
       throw error;
     }
   }
@@ -370,14 +367,10 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
    */
   async downloadAndTranscribeWithYtDlp(videoUrl) {
     try {
-      console.log('🎬 === DESCARGANDO Y TRANSCRIBIENDO CON YT-DLP ===');
-      console.log('📺 URL del video:', videoUrl);
-      
       const videoId = this.extractVideoId(videoUrl);
       const outputPath = path.join(this.tempDir, `${videoId}_${Date.now()}.%(ext)s`);
       
       // Descargar solo audio usando yt-dlp
-      console.log('⬇️ Descargando audio...');
       const audioPath = await this.ytdlp.exec([
         videoUrl,
           '--extract-audio',
@@ -396,13 +389,11 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
       }
       
       const finalAudioPath = path.join(this.tempDir, downloadedFile);
-      console.log('✅ Audio descargado:', finalAudioPath);
       
       // Obtener información del video
       const videoInfo = await this.getYouTubeVideoInfo(videoUrl);
       
       // Transcribir usando AssemblyAI
-      console.log('🎤 Transcribiendo audio...');
       const transcription = await this.transcribeAudio(finalAudioPath);
       
       return {
@@ -420,7 +411,6 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
       };
       
     } catch (error) {
-      console.error('❌ Error en yt-dlp:', error.message);
       throw error;
     }
   }
@@ -448,7 +438,6 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
         viewCount: info.videoDetails.viewCount || '0'
       };
     } catch (error) {
-      console.warn('⚠️ No se pudo obtener información del video, usando valores por defecto');
       return {
         title: 'Video de YouTube',
         description: 'Descripción no disponible',

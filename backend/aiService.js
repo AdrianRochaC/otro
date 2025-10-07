@@ -225,34 +225,17 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
    */
   async extractYouTubeTranscript(videoUrl) {
     try {
-      console.log('🎬 === INICIANDO EXTRACCIÓN DE TRANSCRIPCIÓN DE YOUTUBE ===');
-      console.log('📺 URL del video:', videoUrl);
-      
       // Intentar múltiples métodos en orden de preferencia
       let videoData;
-      let methodUsed = '';
       
       try {
-        console.log('🔄 Intentando método de transcripción directa...');
         videoData = await videoProcessor.getYouTubeTranscript(videoUrl);
-        methodUsed = 'transcripción directa';
-        console.log('✅ Transcripción directa obtenida exitosamente');
       } catch (directError) {
-        console.warn('⚠️ Transcripción directa falló:', directError.message);
-        
         try {
-          console.log('🔄 Intentando método yt-dlp (más robusto)...');
           videoData = await videoProcessor.downloadAndTranscribeWithYtDlp(videoUrl);
-          methodUsed = 'yt-dlp + transcripción';
-          console.log('✅ Transcripción con yt-dlp obtenida exitosamente');
         } catch (ytdlpError) {
-          console.warn('⚠️ yt-dlp falló:', ytdlpError.message);
-          console.log('🔄 Intentando método original (ytdl-core)...');
-          
           // Último recurso: método original
           videoData = await videoProcessor.processYouTubeVideo(videoUrl);
-          methodUsed = 'ytdl-core + transcripción';
-          console.log('✅ Transcripción por método original obtenida exitosamente');
         }
       }
       
@@ -279,11 +262,6 @@ INSTRUCCIONES PARA LA IA:
 Basándote en la transcripción real del video de YouTube, genera preguntas de evaluación que evalúen la comprensión del contenido específico mencionado en el audio. Las preguntas deben ser relevantes para el material educativo real que se presenta en el video.
       `;
       
-      console.log('📊 === DATOS OBTENIDOS ===');
-      console.log('📋 Título:', videoData.title);
-      console.log('📏 Longitud de transcripción:', videoData.transcription?.length || 0, 'caracteres');
-      console.log('🎯 Confianza:', videoData.confidence);
-      console.log('🔧 Método usado:', methodUsed);
       
       return {
         title: videoData.title,
@@ -303,8 +281,6 @@ Basándote en la transcripción real del video de YouTube, genera preguntas de e
       };
       
     } catch (error) {
-      console.error('❌ === ERROR EN EXTRACCIÓN DE TRANSCRIPCIÓN ===');
-      console.error('🔍 Error:', error.message);
       throw error;
     }
   }
