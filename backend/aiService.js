@@ -225,19 +225,8 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
    */
   async extractYouTubeTranscript(videoUrl) {
     try {
-      // Intentar múltiples métodos en orden de preferencia
-      let videoData;
-      
-      try {
-        videoData = await videoProcessor.getYouTubeTranscript(videoUrl);
-      } catch (directError) {
-        try {
-          videoData = await videoProcessor.downloadAndTranscribeWithYtDlp(videoUrl);
-        } catch (ytdlpError) {
-          // Último recurso: método original
-          videoData = await videoProcessor.processYouTubeVideo(videoUrl);
-        }
-      }
+      // Usar el procesador de video para obtener transcripción real
+      const videoData = await videoProcessor.processYouTubeVideo(videoUrl);
       
       // Crear contenido enriquecido con la transcripción real
       const enrichedContent = `

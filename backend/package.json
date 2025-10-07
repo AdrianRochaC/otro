@@ -26,8 +26,7 @@
     "mysql2": "^3.6.5",
     "openai": "^4.20.1",
     "youtube-transcript": "^1.2.1",
-    "ytdl-core": "^4.11.5",
-    "yt-dlp-wrap": "^2.0.0"
+    "ytdl-core": "^4.11.5"
   },
   "devDependencies": {
     "nodemon": "^3.0.2"
