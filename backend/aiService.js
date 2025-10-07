@@ -28,6 +28,12 @@ class AIService {
    */
   async generateQuestions(courseData, numQuestions = 5) {
     try {
+      console.log('🤖 === GENERANDO PREGUNTAS CON IA ===');
+      console.log('📊 Datos del curso:');
+      console.log('  - Título:', courseData.title);
+      console.log('  - Tipo de contenido:', courseData.contentType);
+      console.log('  - Longitud del contenido:', courseData.content?.length || 0, 'caracteres');
+      console.log('  - Número de preguntas solicitadas:', numQuestions);
       
       if (!process.env.OPENAI_API_KEY) {
         throw new Error('OPENAI_API_KEY no configurada');
@@ -35,11 +41,15 @@ class AIService {
 
       const { title, description, content, contentType } = courseData;
       
-      // Verificar que tenemos contenido suficiente
-      if (!content || content.trim().length < 50) {
-        console.warn('⚠️ Contenido insuficiente para generar preguntas efectivas');
+      // Verificar que tenemos contenido suficiente (más tolerante)
+      if (!content || content.trim().length < 20) {
+        console.warn('⚠️ Contenido muy limitado, generando preguntas básicas...');
         // Generar preguntas básicas basadas en título y descripción
         return this.generateBasicQuestions(title, description, numQuestions);
+      }
+      
+      if (content.trim().length < 100) {
+        console.warn('⚠️ Contenido limitado, pero intentando generar preguntas...');
       }
       
       // Crear prompt contextual para OpenAI
@@ -62,8 +72,15 @@ class AIService {
       });
 
       const response = completion.choices[0].message.content;
+      console.log('📝 Respuesta de OpenAI recibida:', response.length, 'caracteres');
+      console.log('📋 Primeros 300 chars de la respuesta:', response.substring(0, 300));
       
       const questions = this.parseAIResponse(response);
+      console.log('✅ Preguntas generadas exitosamente:', questions.length);
+      console.log('📊 Resumen de preguntas:');
+      questions.forEach((q, i) => {
+        console.log(`  ${i + 1}. ${q.question.substring(0, 50)}...`);
+      });
       
       return questions;
       
@@ -77,6 +94,10 @@ class AIService {
    * Genera preguntas básicas cuando no hay suficiente contenido
    */
   generateBasicQuestions(title, description, numQuestions) {
+    console.log('🔧 === GENERANDO PREGUNTAS BÁSICAS ===');
+    console.log('📝 Título:', title);
+    console.log('📄 Descripción:', description?.substring(0, 200) || 'Sin descripción');
+    console.log('🔢 Número solicitado:', numQuestions);
     
     const questions = [];
     const basicQuestions = [
@@ -101,6 +122,39 @@ class AIService {
         ],
         correctIndex: 0,
         explanation: "El curso presenta contenido audiovisual educativo como se indica en el formato del material."
+      },
+      {
+        question: `¿Qué se puede esperar aprender de "${title}"?`,
+        options: [
+          "Conocimientos relacionados con el tema del curso",
+          "Información general sin aplicación práctica",
+          "Solo conceptos básicos",
+          "Información desactualizada"
+        ],
+        correctIndex: 0,
+        explanation: "El curso está diseñado para transmitir conocimientos relacionados con el tema presentado."
+      },
+      {
+        question: `¿Cuál es la mejor forma de aprovechar el contenido de "${title}"?`,
+        options: [
+          "Prestar atención completa al material presentado",
+          "Revisar solo las partes más importantes",
+          "Saltar las explicaciones detalladas",
+          "Ver el contenido de forma superficial"
+        ],
+        correctIndex: 0,
+        explanation: "Para aprovechar al máximo el contenido educativo, es importante prestar atención completa al material."
+      },
+      {
+        question: `¿Qué nivel de conocimiento se requiere para entender "${title}"?`,
+        options: [
+          "El nivel apropiado se indica en la descripción del curso",
+          "Se requiere conocimiento avanzado",
+          "Solo se necesita conocimiento básico",
+          "No se especifica el nivel requerido"
+        ],
+        correctIndex: 0,
+        explanation: "El nivel de conocimiento requerido se puede determinar revisando la descripción del curso."
       }
     ];
 
@@ -108,6 +162,12 @@ class AIService {
     for (let i = 0; i < Math.min(numQuestions, basicQuestions.length); i++) {
       questions.push(basicQuestions[i]);
     }
+
+    console.log('✅ Preguntas básicas generadas:', questions.length);
+    console.log('📊 Resumen de preguntas básicas:');
+    questions.forEach((q, i) => {
+      console.log(`  ${i + 1}. ${q.question.substring(0, 50)}...`);
+    });
 
     return questions;
   }
@@ -226,8 +286,17 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
    */
   async getYouTubeVideoInfo(videoUrl) {
     try {
+      console.log('🎬 === OBTENIENDO INFORMACIÓN DE YOUTUBE ===');
+      console.log('📺 URL:', videoUrl);
+      
       // Obtener información básica del video
       const info = await ytdl.getInfo(videoUrl);
+      console.log('📋 Información básica obtenida:');
+      console.log('  - Título:', info.videoDetails.title);
+      console.log('  - Duración:', info.videoDetails.lengthSeconds, 'segundos');
+      console.log('  - Categoría:', info.videoDetails.category);
+      console.log('  - Visualizaciones:', info.videoDetails.viewCount);
+      console.log('  - Descripción (primeros 200 chars):', (info.videoDetails.description || '').substring(0, 200));
       
       // Intentar obtener transcripción directa
       let transcriptText = '';
@@ -236,7 +305,10 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
       try {
         // Extraer ID del video
         const videoId = this.extractVideoId(videoUrl);
+        console.log('🆔 Video ID extraído:', videoId);
+        
         if (videoId) {
+          console.log('🎤 Intentando obtener transcripción...');
           const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
             lang: 'es',
             country: 'ES'
@@ -245,12 +317,18 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
           if (transcript && transcript.length > 0) {
             transcriptText = transcript.map(item => item.text).join(' ');
             confidence = 0.9; // Alta confianza para transcripciones oficiales
+            console.log('✅ Transcripción obtenida:', transcriptText.length, 'caracteres');
+            console.log('📝 Primeros 300 chars de transcripción:', transcriptText.substring(0, 300));
+          } else {
+            console.log('⚠️ Transcripción vacía o no disponible');
           }
         }
       } catch (transcriptError) {
+        console.log('❌ Error obteniendo transcripción:', transcriptError.message);
         // Si no hay transcripción, usar solo descripción
         transcriptText = info.videoDetails.description || '';
         confidence = 0.5;
+        console.log('🔄 Usando descripción como fallback:', transcriptText.length, 'caracteres');
       }
       
       // Crear contenido enriquecido
@@ -270,6 +348,13 @@ INSTRUCCIONES PARA LA IA:
 Basándote en la transcripción real del video de YouTube (si está disponible) o en el título y descripción, genera preguntas de evaluación que evalúen la comprensión del contenido específico mencionado en el video. Las preguntas deben ser relevantes para el material educativo real que se presenta.
       `;
       
+      console.log('📊 === RESUMEN DE INFORMACIÓN OBTENIDA ===');
+      console.log('📏 Longitud total del contenido:', enrichedContent.length, 'caracteres');
+      console.log('📝 Longitud de transcripción:', transcriptText.length, 'caracteres');
+      console.log('📄 Longitud de descripción:', (info.videoDetails.description || '').length, 'caracteres');
+      console.log('🎯 Confianza:', confidence);
+      console.log('📋 Contenido final (primeros 500 chars):', enrichedContent.substring(0, 500));
+      
       return {
         title: info.videoDetails.title,
         content: enrichedContent,
@@ -288,6 +373,7 @@ Basándote en la transcripción real del video de YouTube (si está disponible) 
       };
       
     } catch (error) {
+      console.error('❌ Error en getYouTubeVideoInfo:', error.message);
       throw error;
     }
   }
