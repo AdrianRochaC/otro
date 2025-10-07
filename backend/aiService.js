@@ -289,7 +289,7 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
       console.log('🎬 === OBTENIENDO INFORMACIÓN DE YOUTUBE ===');
       console.log('📺 URL:', videoUrl);
       
-      // PRIMERO: Intentar obtener transcripción directa (más confiable)
+      // PRIMERO: Intentar obtener transcripción directa
       let transcriptText = '';
       let confidence = 0.3;
       let videoTitle = 'Video de YouTube';
@@ -301,32 +301,52 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
         
         if (videoId) {
           console.log('🎤 Intentando obtener transcripción directa...');
-          const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
-            lang: 'es',
-            country: 'ES'
-          });
-          
-          if (transcript && transcript.length > 0) {
-            transcriptText = transcript.map(item => item.text).join(' ');
-            confidence = 0.9; // Alta confianza para transcripciones oficiales
-            console.log('✅ Transcripción obtenida:', transcriptText.length, 'caracteres');
-            console.log('📝 Primeros 300 chars:', transcriptText.substring(0, 300));
-          } else {
-            console.log('⚠️ Transcripción vacía, intentando sin idioma específico...');
-            // Intentar sin idioma específico
-            const transcriptDefault = await YoutubeTranscript.fetchTranscript(videoId);
-            if (transcriptDefault && transcriptDefault.length > 0) {
-              transcriptText = transcriptDefault.map(item => item.text).join(' ');
-              confidence = 0.8;
-              console.log('✅ Transcripción obtenida (idioma por defecto):', transcriptText.length, 'caracteres');
+          try {
+            const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
+              lang: 'es',
+              country: 'ES'
+            });
+            
+            if (transcript && transcript.length > 0) {
+              transcriptText = transcript.map(item => item.text).join(' ');
+              confidence = 0.9;
+              console.log('✅ Transcripción obtenida:', transcriptText.length, 'caracteres');
+              console.log('📝 Primeros 300 chars:', transcriptText.substring(0, 300));
+            } else {
+              console.log('⚠️ Transcripción vacía, intentando sin idioma específico...');
+              const transcriptDefault = await YoutubeTranscript.fetchTranscript(videoId);
+              if (transcriptDefault && transcriptDefault.length > 0) {
+                transcriptText = transcriptDefault.map(item => item.text).join(' ');
+                confidence = 0.8;
+                console.log('✅ Transcripción obtenida (idioma por defecto):', transcriptText.length, 'caracteres');
+              }
             }
+          } catch (transcriptError) {
+            console.log('❌ Error con youtube-transcript:', transcriptError.message);
           }
         }
       } catch (transcriptError) {
-        console.log('❌ Error obteniendo transcripción:', transcriptError.message);
+        console.log('❌ Error general obteniendo transcripción:', transcriptError.message);
       }
       
-      // SEGUNDO: Intentar obtener información básica con ytdl-core
+      // SEGUNDO: Si no hay transcripción, intentar descargar audio y transcribir
+      if (!transcriptText) {
+        console.log('🔄 No se obtuvo transcripción directa, intentando descargar audio...');
+        try {
+          // Usar el método existente de videoProcessor para descargar y transcribir
+          const videoData = await videoProcessor.processYouTubeVideo(videoUrl);
+          if (videoData && videoData.transcription) {
+            transcriptText = videoData.transcription;
+            confidence = 0.95; // Muy alta confianza para transcripción real
+            console.log('✅ Transcripción real obtenida descargando audio:', transcriptText.length, 'caracteres');
+            console.log('📝 Primeros 300 chars:', transcriptText.substring(0, 300));
+          }
+        } catch (downloadError) {
+          console.log('❌ Error descargando audio:', downloadError.message);
+        }
+      }
+      
+      // TERCERO: Intentar obtener información básica con ytdl-core
       try {
         console.log('🔄 Intentando obtener información básica...');
         const info = await ytdl.getInfo(videoUrl);
