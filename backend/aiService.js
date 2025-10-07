@@ -4,6 +4,7 @@ const ytdl = require('ytdl-core');
 const fs = require('fs');
 const path = require('path');
 const dotenv = require('dotenv');
+const { YoutubeTranscript } = require('youtube-transcript');
 const videoProcessor = require('./videoProcessor.js');
 
 dotenv.config();
@@ -218,6 +219,86 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
     } catch (error) {
       throw new Error('Respuesta de IA malformada');
     }
+  }
+
+  /**
+   * Obtiene información del video de YouTube con transcripción real
+   */
+  async getYouTubeVideoInfo(videoUrl) {
+    try {
+      // Obtener información básica del video
+      const info = await ytdl.getInfo(videoUrl);
+      
+      // Intentar obtener transcripción directa
+      let transcriptText = '';
+      let confidence = 0.7;
+      
+      try {
+        // Extraer ID del video
+        const videoId = this.extractVideoId(videoUrl);
+        if (videoId) {
+          const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
+            lang: 'es',
+            country: 'ES'
+          });
+          
+          if (transcript && transcript.length > 0) {
+            transcriptText = transcript.map(item => item.text).join(' ');
+            confidence = 0.9; // Alta confianza para transcripciones oficiales
+          }
+        }
+      } catch (transcriptError) {
+        // Si no hay transcripción, usar solo descripción
+        transcriptText = info.videoDetails.description || '';
+        confidence = 0.5;
+      }
+      
+      // Crear contenido enriquecido
+      const enrichedContent = `
+TÍTULO DEL VIDEO: ${info.videoDetails.title}
+DURACIÓN: ${Math.floor(info.videoDetails.lengthSeconds / 60)} minutos ${info.videoDetails.lengthSeconds % 60} segundos
+CATEGORÍA: ${info.videoDetails.category || 'Educación'}
+VISUALIZACIONES: ${info.videoDetails.viewCount || '0'}
+
+DESCRIPCIÓN DEL VIDEO:
+${info.videoDetails.description || 'No hay descripción disponible'}
+
+TRANSCRIPCIÓN DEL CONTENIDO:
+${transcriptText || 'No se pudo obtener transcripción del video'}
+
+INSTRUCCIONES PARA LA IA:
+Basándote en la transcripción real del video de YouTube (si está disponible) o en el título y descripción, genera preguntas de evaluación que evalúen la comprensión del contenido específico mencionado en el video. Las preguntas deben ser relevantes para el material educativo real que se presenta.
+      `;
+      
+      return {
+        title: info.videoDetails.title,
+        content: enrichedContent,
+        contentType: 'youtube',
+        duration: parseInt(info.videoDetails.lengthSeconds),
+        transcription: transcriptText,
+        confidence: confidence,
+        metadata: {
+          category: info.videoDetails.category,
+          viewCount: info.videoDetails.viewCount,
+          description: info.videoDetails.description,
+          highlights: [],
+          entities: [],
+          sentiment: []
+        }
+      };
+      
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  /**
+   * Extrae el ID del video de una URL de YouTube
+   */
+  extractVideoId(url) {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
   }
 
   /**

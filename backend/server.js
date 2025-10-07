@@ -2535,8 +2535,8 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
       });
     }
 
-    // Extraer información del video de YouTube
-    const videoData = await aiService.extractYouTubeTranscript(videoUrl);
+    // Obtener información básica del video de YouTube (sin descargar)
+    const videoData = await aiService.getYouTubeVideoInfo(videoUrl);
     
     // Combinar con datos personalizados si se proporcionan
     const courseData = {
