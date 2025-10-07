@@ -2535,8 +2535,18 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
       });
     }
 
+    console.log('🎬 === INICIANDO ANÁLISIS DE YOUTUBE ===');
+    console.log('📺 URL recibida:', videoUrl);
+    console.log('📝 Título personalizado:', title);
+    console.log('📄 Descripción personalizada:', description);
+    
     // Obtener información básica del video de YouTube (sin descargar)
     const videoData = await aiService.getYouTubeVideoInfo(videoUrl);
+    
+    console.log('📊 === DATOS OBTENIDOS DEL VIDEO ===');
+    console.log('📋 Título del video:', videoData.title);
+    console.log('📏 Longitud de transcripción:', videoData.transcription?.length || 0, 'caracteres');
+    console.log('🎯 Confianza:', videoData.confidence);
     
     // Combinar con datos personalizados si se proporcionan
     const courseData = {
@@ -2546,9 +2556,24 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
       contentType: 'youtube'
     };
 
+    console.log('📋 === DATOS FINALES PARA IA ===');
+    console.log('📝 Título final:', courseData.title);
+    console.log('📄 Descripción final:', courseData.description?.substring(0, 200) || 'Sin descripción');
+    console.log('📏 Contenido final:', courseData.content?.length || 0, 'caracteres');
+    console.log('🔢 Número de preguntas:', numQuestions);
+
     // Generar preguntas usando IA
+    console.log('🤖 === INICIANDO GENERACIÓN DE PREGUNTAS ===');
     const questions = await aiService.generateQuestions(courseData, numQuestions);
+    console.log('✅ === PREGUNTAS GENERADAS ===');
+    console.log('📊 Total de preguntas:', questions.length);
     
+    console.log('📤 === ENVIANDO RESPUESTA ===');
+    console.log('📊 Preguntas generadas:');
+    questions.forEach((q, i) => {
+      console.log(`  ${i + 1}. ${q.question}`);
+    });
+
     res.json({
       success: true,
       message: `Se generaron ${questions.length} preguntas para el video de YouTube`,
