@@ -3,6 +3,8 @@ const fs = require('fs');
 const path = require('path');
 const ffmpeg = require('fluent-ffmpeg');
 const { AssemblyAI } = require('assemblyai');
+const { YoutubeTranscript } = require('youtube-transcript');
+const YTDlpWrap = require('yt-dlp-wrap').default;
 
 // En CommonJS __dirname ya está disponible
 
@@ -18,6 +20,9 @@ class VideoProcessor {
         apiKey: assemblyApiKey
       });
     }
+    
+    // Configurar yt-dlp (más confiable que ytdl-core)
+    this.ytdlp = new YTDlpWrap();
     
     // Directorio para videos temporales
     this.tempDir = path.join(__dirname, '../temp/videos');
@@ -308,7 +313,154 @@ Al final se incluye un resumen de los puntos clave y ejercicios adicionales.
   }
 
   /**
-   * Procesa video completo (descarga + transcripción)
+   * Obtiene transcripción directa de YouTube (método alternativo)
+   */
+  async getYouTubeTranscript(videoUrl) {
+    try {
+      console.log('🎬 Intentando obtener transcripción directa de YouTube...');
+      
+      // Extraer ID del video de la URL
+      const videoId = this.extractVideoId(videoUrl);
+      if (!videoId) {
+        throw new Error('No se pudo extraer el ID del video de la URL');
+      }
+      
+      // Obtener transcripción usando youtube-transcript
+      const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
+        lang: 'es', // Español
+        country: 'ES'
+      });
+      
+      if (!transcript || transcript.length === 0) {
+        throw new Error('No se encontró transcripción disponible para este video');
+      }
+      
+      // Convertir transcripción a texto
+      const transcriptText = transcript.map(item => item.text).join(' ');
+      
+      // Obtener información básica del video
+      const videoInfo = await this.getYouTubeVideoInfo(videoUrl);
+      
+      return {
+        title: videoInfo.title,
+        description: videoInfo.description,
+        duration: videoInfo.duration,
+        category: videoInfo.category,
+        viewCount: videoInfo.viewCount,
+        transcription: transcriptText,
+        confidence: 0.9, // Alta confianza para transcripciones oficiales
+        highlights: [],
+        entities: [],
+        sentiment: [],
+        words: transcript.map(item => ({
+          text: item.text,
+          start: item.offset / 1000,
+          end: (item.offset + item.duration) / 1000
+        }))
+      };
+      
+    } catch (error) {
+      console.error('❌ Error obteniendo transcripción directa:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Descarga y transcribe video usando yt-dlp (método robusto para videos sin transcripción)
+   */
+  async downloadAndTranscribeWithYtDlp(videoUrl) {
+    try {
+      console.log('🎬 === DESCARGANDO Y TRANSCRIBIENDO CON YT-DLP ===');
+      console.log('📺 URL del video:', videoUrl);
+      
+      const videoId = this.extractVideoId(videoUrl);
+      const outputPath = path.join(this.tempDir, `${videoId}_${Date.now()}.%(ext)s`);
+      
+      // Descargar solo audio usando yt-dlp
+      console.log('⬇️ Descargando audio...');
+      const audioPath = await this.ytdlp.exec([
+        videoUrl,
+          '--extract-audio',
+          '--audio-format', 'mp3',
+          '--audio-quality', '0',
+          '--output', outputPath,
+          '--no-playlist'
+      ]);
+      
+      // Buscar el archivo descargado
+      const files = fs.readdirSync(this.tempDir);
+      const downloadedFile = files.find(file => file.startsWith(videoId));
+      
+      if (!downloadedFile) {
+        throw new Error('No se pudo encontrar el archivo descargado');
+      }
+      
+      const finalAudioPath = path.join(this.tempDir, downloadedFile);
+      console.log('✅ Audio descargado:', finalAudioPath);
+      
+      // Obtener información del video
+      const videoInfo = await this.getYouTubeVideoInfo(videoUrl);
+      
+      // Transcribir usando AssemblyAI
+      console.log('🎤 Transcribiendo audio...');
+      const transcription = await this.transcribeAudio(finalAudioPath);
+      
+      return {
+        title: videoInfo.title,
+        description: videoInfo.description,
+        duration: videoInfo.duration,
+        category: videoInfo.category,
+        viewCount: videoInfo.viewCount,
+        transcription: transcription.text,
+        confidence: transcription.confidence,
+        highlights: transcription.highlights,
+        entities: transcription.entities,
+        sentiment: transcription.sentiment,
+        words: transcription.words
+      };
+      
+    } catch (error) {
+      console.error('❌ Error en yt-dlp:', error.message);
+      throw error;
+    }
+  }
+
+  /**
+   * Extrae el ID del video de una URL de YouTube
+   */
+  extractVideoId(url) {
+    const regex = /(?:youtube\.com\/(?:[^\/]+\/.+\/|(?:v|e(?:mbed)?)\/|.*[?&]v=)|youtu\.be\/)([^"&?\/\s]{11})/;
+    const match = url.match(regex);
+    return match ? match[1] : null;
+  }
+
+  /**
+   * Obtiene información básica del video de YouTube
+   */
+  async getYouTubeVideoInfo(videoUrl) {
+    try {
+      const info = await ytdl.getInfo(videoUrl);
+      return {
+        title: info.videoDetails.title,
+        description: info.videoDetails.description || '',
+        duration: parseInt(info.videoDetails.lengthSeconds),
+        category: info.videoDetails.category || 'Educación',
+        viewCount: info.videoDetails.viewCount || '0'
+      };
+    } catch (error) {
+      console.warn('⚠️ No se pudo obtener información del video, usando valores por defecto');
+      return {
+        title: 'Video de YouTube',
+        description: 'Descripción no disponible',
+        duration: 0,
+        category: 'Educación',
+        viewCount: '0'
+      };
+    }
+  }
+
+  /**
+   * Procesa video completo (descarga + transcripción) - MÉTODO ORIGINAL
    */
   async processYouTubeVideo(videoUrl) {
     try {
