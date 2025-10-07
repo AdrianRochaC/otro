@@ -2518,8 +2518,13 @@ app.post('/api/ai/generate-questions', verifyToken, async (req, res) => {
 // RUTA: Analizar contenido de YouTube y generar preguntas
 app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
   try {
+    console.log('🎬 === INICIANDO RUTA ANALYZE-YOUTUBE ===');
+    console.log('👤 Usuario:', req.user?.email, 'Rol:', req.user?.rol);
+    console.log('📦 Body recibido:', JSON.stringify(req.body, null, 2));
+    
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
+      console.log('❌ Usuario no es admin');
       return res.status(403).json({
         success: false,
         message: 'Solo los administradores pueden analizar videos de YouTube'
@@ -2527,8 +2532,14 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
     }
 
     const { videoUrl, title, description, numQuestions = 5 } = req.body;
+    console.log('📋 Parámetros extraídos:');
+    console.log('  - videoUrl:', videoUrl);
+    console.log('  - title:', title);
+    console.log('  - description:', description);
+    console.log('  - numQuestions:', numQuestions);
 
     if (!videoUrl) {
+      console.log('❌ No se proporcionó videoUrl');
       return res.status(400).json({
         success: false,
         message: 'URL del video de YouTube es requerida'
@@ -2541,7 +2552,16 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
     console.log('📄 Descripción personalizada:', description);
     
     // Obtener información básica del video de YouTube (sin descargar)
-    const videoData = await aiService.getYouTubeVideoInfo(videoUrl);
+    console.log('🔄 Llamando a getYouTubeVideoInfo...');
+    let videoData;
+    try {
+      videoData = await aiService.getYouTubeVideoInfo(videoUrl);
+      console.log('✅ getYouTubeVideoInfo completado exitosamente');
+    } catch (videoError) {
+      console.error('❌ Error en getYouTubeVideoInfo:', videoError.message);
+      console.error('📚 Stack trace:', videoError.stack);
+      throw videoError;
+    }
     
     console.log('📊 === DATOS OBTENIDOS DEL VIDEO ===');
     console.log('📋 Título del video:', videoData.title);
@@ -2582,6 +2602,11 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
     });
 
   } catch (error) {
+    console.error('❌ === ERROR EN ANALYZE-YOUTUBE ===');
+    console.error('🔍 Error completo:', error);
+    console.error('📝 Mensaje:', error.message);
+    console.error('📚 Stack trace:', error.stack);
+    
     res.status(500).json({
       success: false,
       message: 'Error analizando video de YouTube: ' + error.message
