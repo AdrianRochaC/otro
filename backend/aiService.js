@@ -289,132 +289,93 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
       console.log('🎬 === OBTENIENDO INFORMACIÓN DE YOUTUBE ===');
       console.log('📺 URL:', videoUrl);
       
-      // Obtener información básica del video
-      let info;
-      try {
-        info = await ytdl.getInfo(videoUrl);
-        console.log('✅ ytdl.getInfo exitoso');
-      } catch (ytdlError) {
-        console.log('❌ Error con ytdl.getInfo:', ytdlError.message);
-        console.log('🔄 Intentando con método alternativo...');
-        
-        // Si ytdl falla, crear información básica con solo la URL
-        const videoId = this.extractVideoId(videoUrl);
-        if (!videoId) {
-          throw new Error('No se pudo extraer el ID del video de la URL');
-        }
-        
-        // Crear información básica sin ytdl
-        info = {
-          videoDetails: {
-            title: `Video de YouTube (ID: ${videoId})`,
-            lengthSeconds: 0,
-            category: 'Educación',
-            viewCount: '0',
-            description: 'Información no disponible debido a restricciones de YouTube'
-          }
-        };
-        console.log('⚠️ Usando información básica debido a restricciones de YouTube');
-      }
-      
-      console.log('📋 Información básica obtenida:');
-      console.log('  - Título:', info.videoDetails.title);
-      console.log('  - Duración:', info.videoDetails.lengthSeconds, 'segundos');
-      console.log('  - Categoría:', info.videoDetails.category);
-      console.log('  - Visualizaciones:', info.videoDetails.viewCount);
-      console.log('  - Descripción (primeros 200 chars):', (info.videoDetails.description || '').substring(0, 200));
-      
-      // Intentar obtener transcripción directa
+      // PRIMERO: Intentar obtener transcripción directa (más confiable)
       let transcriptText = '';
-      let confidence = 0.7;
+      let confidence = 0.3;
+      let videoTitle = 'Video de YouTube';
+      let videoDescription = '';
       
       try {
-        // Extraer ID del video
         const videoId = this.extractVideoId(videoUrl);
         console.log('🆔 Video ID extraído:', videoId);
         
         if (videoId) {
-          console.log('🎤 Intentando obtener transcripción...');
-          try {
-            const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
-              lang: 'es',
-              country: 'ES'
-            });
-            
-            if (transcript && transcript.length > 0) {
-              transcriptText = transcript.map(item => item.text).join(' ');
-              confidence = 0.9; // Alta confianza para transcripciones oficiales
-              console.log('✅ Transcripción obtenida:', transcriptText.length, 'caracteres');
-              console.log('📝 Primeros 300 chars de transcripción:', transcriptText.substring(0, 300));
-            } else {
-              console.log('⚠️ Transcripción vacía o no disponible');
-            }
-          } catch (transcriptError) {
-            console.log('❌ Error obteniendo transcripción:', transcriptError.message);
-            // Intentar con idioma por defecto
-            try {
-              console.log('🔄 Intentando transcripción sin idioma específico...');
-              const transcript = await YoutubeTranscript.fetchTranscript(videoId);
-              if (transcript && transcript.length > 0) {
-                transcriptText = transcript.map(item => item.text).join(' ');
-                confidence = 0.8;
-                console.log('✅ Transcripción obtenida (idioma por defecto):', transcriptText.length, 'caracteres');
-              }
-            } catch (fallbackError) {
-              console.log('❌ Error en transcripción de fallback:', fallbackError.message);
+          console.log('🎤 Intentando obtener transcripción directa...');
+          const transcript = await YoutubeTranscript.fetchTranscript(videoId, {
+            lang: 'es',
+            country: 'ES'
+          });
+          
+          if (transcript && transcript.length > 0) {
+            transcriptText = transcript.map(item => item.text).join(' ');
+            confidence = 0.9; // Alta confianza para transcripciones oficiales
+            console.log('✅ Transcripción obtenida:', transcriptText.length, 'caracteres');
+            console.log('📝 Primeros 300 chars:', transcriptText.substring(0, 300));
+          } else {
+            console.log('⚠️ Transcripción vacía, intentando sin idioma específico...');
+            // Intentar sin idioma específico
+            const transcriptDefault = await YoutubeTranscript.fetchTranscript(videoId);
+            if (transcriptDefault && transcriptDefault.length > 0) {
+              transcriptText = transcriptDefault.map(item => item.text).join(' ');
+              confidence = 0.8;
+              console.log('✅ Transcripción obtenida (idioma por defecto):', transcriptText.length, 'caracteres');
             }
           }
         }
       } catch (transcriptError) {
-        console.log('❌ Error general obteniendo transcripción:', transcriptError.message);
+        console.log('❌ Error obteniendo transcripción:', transcriptError.message);
       }
       
-      // Si no se obtuvo transcripción, usar descripción o crear contenido básico
-      if (!transcriptText) {
-        transcriptText = info.videoDetails.description || 'Contenido educativo de YouTube';
-        confidence = 0.3; // Baja confianza para contenido limitado
-        console.log('🔄 Usando descripción como fallback:', transcriptText.length, 'caracteres');
+      // SEGUNDO: Intentar obtener información básica con ytdl-core
+      try {
+        console.log('🔄 Intentando obtener información básica...');
+        const info = await ytdl.getInfo(videoUrl);
+        videoTitle = info.videoDetails.title;
+        videoDescription = info.videoDetails.description || '';
+        console.log('✅ Información básica obtenida:');
+        console.log('  - Título:', videoTitle);
+        console.log('  - Duración:', info.videoDetails.lengthSeconds, 'segundos');
+        console.log('  - Descripción:', videoDescription.substring(0, 200));
+      } catch (ytdlError) {
+        console.log('❌ Error con ytdl-core:', ytdlError.message);
+        // Usar información básica con el ID del video
+        const videoId = this.extractVideoId(videoUrl);
+        if (videoId) {
+          videoTitle = `Video de YouTube (ID: ${videoId})`;
+          videoDescription = 'Información no disponible debido a restricciones de YouTube';
+        }
       }
       
       // Crear contenido enriquecido
       const enrichedContent = `
-TÍTULO DEL VIDEO: ${info.videoDetails.title}
-DURACIÓN: ${Math.floor(info.videoDetails.lengthSeconds / 60)} minutos ${info.videoDetails.lengthSeconds % 60} segundos
-CATEGORÍA: ${info.videoDetails.category || 'Educación'}
-VISUALIZACIONES: ${info.videoDetails.viewCount || '0'}
-
+TÍTULO DEL VIDEO: ${videoTitle}
 DESCRIPCIÓN DEL VIDEO:
-${info.videoDetails.description || 'No hay descripción disponible'}
+${videoDescription}
 
-TRANSCRIPCIÓN DEL CONTENIDO:
+TRANSCRIPCIÓN DEL CONTENIDO REAL:
 ${transcriptText || 'No se pudo obtener transcripción del video'}
 
 INSTRUCCIONES PARA LA IA:
-${confidence >= 0.8 ? 
+${transcriptText ? 
   'Basándote en la transcripción real del video de YouTube, genera preguntas de evaluación que evalúen la comprensión del contenido específico mencionado en el video. Las preguntas deben ser relevantes para el material educativo real que se presenta.' :
-  confidence >= 0.5 ?
-  'Basándote en la información disponible del video de YouTube, genera preguntas de evaluación que evalúen la comprensión del tema general. Aunque no tienes acceso a la transcripción completa, crea preguntas relevantes basadas en el título y descripción del video.' :
   'Debido a limitaciones de acceso al contenido del video de YouTube, genera preguntas de evaluación generales sobre el tema educativo que se sugiere en el título. Las preguntas deben ser apropiadas para un curso educativo y evaluar conocimientos básicos del tema.'}
       `;
       
       console.log('📊 === RESUMEN DE INFORMACIÓN OBTENIDA ===');
       console.log('📏 Longitud total del contenido:', enrichedContent.length, 'caracteres');
       console.log('📝 Longitud de transcripción:', transcriptText.length, 'caracteres');
-      console.log('📄 Longitud de descripción:', (info.videoDetails.description || '').length, 'caracteres');
       console.log('🎯 Confianza:', confidence);
       console.log('📋 Contenido final (primeros 500 chars):', enrichedContent.substring(0, 500));
       
       return {
-        title: info.videoDetails.title,
+        title: videoTitle,
         content: enrichedContent,
         contentType: 'youtube',
-        duration: parseInt(info.videoDetails.lengthSeconds),
+        duration: 0,
         transcription: transcriptText,
         confidence: confidence,
         metadata: {
-          category: info.videoDetails.category,
-          viewCount: info.videoDetails.viewCount,
-          description: info.videoDetails.description,
+          description: videoDescription,
           highlights: [],
           entities: [],
           sentiment: []
@@ -426,6 +387,7 @@ ${confidence >= 0.8 ?
       throw error;
     }
   }
+
 
   /**
    * Extrae el ID del video de una URL de YouTube
