@@ -17,6 +17,7 @@ const DetailPage = () => {
   const [timerActive, setTimerActive] = useState(false);
   const [score, setScore] = useState(null);
   const [attemptsLeft, setAttemptsLeft] = useState(null);
+  const [hasCompletedEvaluation, setHasCompletedEvaluation] = useState(false);
 
   const token = localStorage.getItem("authToken");
   const userData = localStorage.getItem("user");
@@ -97,12 +98,8 @@ const DetailPage = () => {
             }
             setAttemptsLeft(course.attempts - (p.attempts_used || 0));
 
-            if (p.evaluation_score != null) {
-              setScore({
-                score: p.evaluation_score,
-                total: p.evaluation_total,
-              });
-            }
+            // NO cargar el puntaje automáticamente - solo cargar si el usuario ya completó la evaluación
+            // El puntaje se mostrará solo después de completar la evaluación en esta sesión
           } else {
             // No hay progreso registrado, usar valores por defecto
             setAttemptsLeft(course.attempts);
@@ -196,6 +193,7 @@ const DetailPage = () => {
       correct >= Math.ceil(total * 0.6) ? "aprobado" : "reprobado";
 
     setScore({ score: correct, total });
+    setHasCompletedEvaluation(true); // Marcar que se completó la evaluación
     setShowQuiz(false);
     setTimerActive(false);
 
@@ -324,8 +322,8 @@ const DetailPage = () => {
           )
         )}
 
-        {/* Mostrar puntaje solo si hay evaluación */}
-        {Array.isArray(course.evaluation) && course.evaluation.length > 0 && score && (
+        {/* Mostrar puntaje solo si hay evaluación Y se completó en esta sesión */}
+        {Array.isArray(course.evaluation) && course.evaluation.length > 0 && score && hasCompletedEvaluation && (
           <div className="quiz-score">
             ✅ Obtuviste {score.score} de {score.total} (
             {score.score >= Math.ceil(score.total * 0.6) ? "Aprobado" : "Reprobado"})
