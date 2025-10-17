@@ -11,10 +11,30 @@ const Register = () => {
   const [cargos, setCargos] = useState([]);
   const [selectedCargoId, setSelectedCargoId] = useState("");
   const [loading, setLoading] = useState(true);
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false
+  });
 
   useEffect(() => {
     fetchCargos();
   }, []);
+
+  // Validar contraseña en tiempo real
+  useEffect(() => {
+    const validatePassword = (password) => {
+      return {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /\d/.test(password)
+      };
+    };
+
+    setPasswordValidation(validatePassword(password));
+  }, [password]);
 
   const fetchCargos = async () => {
     try {
@@ -67,6 +87,13 @@ const Register = () => {
     const nameError = validateName(name);
     if (nameError) {
       alert(nameError);
+      return;
+    }
+
+    // Validar contraseña
+    const isPasswordValid = Object.values(passwordValidation).every(valid => valid);
+    if (!isPasswordValid) {
+      alert("❌ La contraseña no cumple con todos los requisitos");
       return;
     }
 
@@ -160,9 +187,39 @@ const Register = () => {
             type="password"
             value={password}
             onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 6 caracteres"
+            placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número"
             required
           />
+          
+          {/* Indicadores de validación de contraseña */}
+          {password && (
+            <div className="password-validation">
+              <div className={`validation-item ${passwordValidation.length ? 'valid' : 'invalid'}`}>
+                <span className="validation-icon">
+                  {passwordValidation.length ? '✅' : '❌'}
+                </span>
+                Mínimo 8 caracteres
+              </div>
+              <div className={`validation-item ${passwordValidation.uppercase ? 'valid' : 'invalid'}`}>
+                <span className="validation-icon">
+                  {passwordValidation.uppercase ? '✅' : '❌'}
+                </span>
+                Al menos una mayúscula
+              </div>
+              <div className={`validation-item ${passwordValidation.lowercase ? 'valid' : 'invalid'}`}>
+                <span className="validation-icon">
+                  {passwordValidation.lowercase ? '✅' : '❌'}
+                </span>
+                Al menos una minúscula
+              </div>
+              <div className={`validation-item ${passwordValidation.number ? 'valid' : 'invalid'}`}>
+                <span className="validation-icon">
+                  {passwordValidation.number ? '✅' : '❌'}
+                </span>
+                Al menos un número
+              </div>
+            </div>
+          )}
         </div>
 
         <div className="form-group">

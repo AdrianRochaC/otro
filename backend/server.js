@@ -971,11 +971,34 @@ app.post('/api/register', async (req, res) => {
       });
     }
 
-    // Validar longitud de contraseña
-    if (password.length < 6) {
+    // Validar contraseña con requisitos específicos
+    const validatePassword = (password) => {
+      const errors = [];
+      
+      if (password.length < 8) {
+        errors.push('mínimo 8 caracteres');
+      }
+      
+      if (!/[A-Z]/.test(password)) {
+        errors.push('al menos una mayúscula');
+      }
+      
+      if (!/[a-z]/.test(password)) {
+        errors.push('al menos una minúscula');
+      }
+      
+      if (!/\d/.test(password)) {
+        errors.push('al menos un número');
+      }
+      
+      return errors;
+    };
+
+    const passwordErrors = validatePassword(password);
+    if (passwordErrors.length > 0) {
       return res.status(400).json({
         success: false,
-        message: 'La contraseña debe tener al menos 6 caracteres'
+        message: `La contraseña debe tener: ${passwordErrors.join(', ')}`
       });
     }
 
