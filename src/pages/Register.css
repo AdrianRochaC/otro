@@ -195,7 +195,7 @@
 }
 
 /* Responsive para móviles */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .register-container {
     padding: 1rem;
     max-width: 100%;

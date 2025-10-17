@@ -115,7 +115,7 @@
 }
 
 /* Responsive para móviles */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .login-wrapper {
     padding: 1rem;
   }

@@ -16,7 +16,7 @@ const Layout = ({ children }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
-  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 900);
 
   useEffect(() => {
     // Obtener cantidad de notificaciones no leídas solo si hay usuario logueado
@@ -41,7 +41,9 @@ const Layout = ({ children }) => {
   // Hook para manejar el resize de la ventana
   useEffect(() => {
     const handleResize = () => {
-      const mobile = window.innerWidth <= 768;
+      const mobile = window.innerWidth <= 900;
+      const tablet = window.innerWidth <= 1200;
+      
       setIsMobile(mobile);
       
       // En móviles, cerrar el menú si está abierto
@@ -53,11 +55,16 @@ const Layout = ({ children }) => {
       if (!mobile && showMenu) {
         setShowMenu(false);
       }
+      
+      // En tablets, colapsar el menú automáticamente si está muy ancho
+      if (tablet && !mobile && !collapsed) {
+        setCollapsed(true);
+      }
     };
 
     window.addEventListener('resize', handleResize);
     return () => window.removeEventListener('resize', handleResize);
-  }, [showMenu]);
+  }, [showMenu, collapsed]);
 
   const handleLogout = () => {
     localStorage.removeItem('user');
@@ -66,8 +73,12 @@ const Layout = ({ children }) => {
   };
 
   return (
-    <div className="layout-container">
-      {/* En Home, menú desplegable; en otras páginas, menú fijo siempre visible */}
+    <div className="layout-container" style={{
+      display: 'flex',
+      minHeight: '100vh',
+      flexDirection: location.pathname === '/home' ? 'column' : 'row'
+    }}>
+      {/* En Home, menú desplegable; en otras páginas, menú lateral */}
       {location.pathname === '/home' ? (
         <>
           <div style={{display:'flex',justifyContent:'flex-start',alignItems:'center',padding:'1.2rem 2.5rem 0 2.5rem'}}>
@@ -264,14 +275,14 @@ const Layout = ({ children }) => {
             boxShadow: 'var(--shadow-card)',
             background: 'var(--bg-menu)',
             padding: 0,
-            position: 'fixed',
+            position: 'sticky',
             top: 0,
-            left: 0,
             zIndex: 1000,
             flexDirection: 'column',
             alignItems: 'flex-start',
             transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
-            borderRight: '1px solid var(--border-primary)'
+            borderRight: '1px solid var(--border-primary)',
+            flexShrink: 0
           }}>
             <div style={{width:'100%',display:'flex',justifyContent:'flex-end',alignItems:'center'}}>
               <button
@@ -319,20 +330,14 @@ const Layout = ({ children }) => {
           )}
         </>
       )}
-      <main className="main-content" style={
-        location.pathname !== '/home' 
-          ? {
-              marginLeft: isMobile ? '0' : (collapsed ? '56px' : '220px'), 
-              paddingTop: isMobile ? '4rem' : '2rem',
-              paddingLeft: isMobile ? '1rem' : '2rem',
-              paddingRight: isMobile ? '1rem' : '2rem',
-              transition:'margin-left 0.22s cubic-bezier(.4,0,.2,1)'
-            } 
-          : {
-              paddingLeft: isMobile ? '1rem' : '2rem',
-              paddingRight: isMobile ? '1rem' : '2rem'
-            }
-      }>
+      
+      <main className="main-content" style={{
+        flex: 1,
+        paddingTop: location.pathname === '/home' ? '0' : (isMobile ? '4rem' : '2rem'),
+        paddingLeft: isMobile ? '1rem' : '2rem',
+        paddingRight: isMobile ? '1rem' : '2rem',
+        minHeight: '100vh'
+      }}>
         {children}
       </main>
       

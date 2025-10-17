@@ -95,7 +95,7 @@
 }
 
 /* Responsive para móviles */
-@media (max-width: 768px) {
+@media (max-width: 900px) {
   .home-dashboard-bg {
     padding: 0;
   }
