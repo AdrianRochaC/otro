@@ -44,7 +44,6 @@ const DetailPage = () => {
         const found = res.data.courses.find((c) => c.id === +id);
         
         if (!found) {
-          console.error('Curso no encontrado con ID:', id);
           alert("Curso no encontrado");
           return navigate("/courses");
         }
@@ -58,14 +57,12 @@ const DetailPage = () => {
           
           found.evaluation = questionsRes.data.questions || [];
         } catch (questionsError) {
-          console.warn('Error cargando preguntas:', questionsError);
           found.evaluation = [];
         }
 
         setCourse(found);
         
       } catch (err) {
-        console.error('Error al cargar curso:', err);
         alert("Error al cargar curso: " + (err.response?.data?.message || err.message));
         navigate("/courses");
       }
@@ -114,7 +111,6 @@ const DetailPage = () => {
         }
       })
       .catch((err) => {
-        console.error('Error cargando progreso del curso:', err);
         // En caso de error, usar valores por defecto
         setAttemptsLeft(course.attempts);
         setVideoEnded(false);
@@ -166,7 +162,6 @@ const DetailPage = () => {
         .then(() => {
         })
         .catch((error) => {
-          console.error('❌ Error guardando progreso:', error);
         });
     }
   };
@@ -213,7 +208,7 @@ const DetailPage = () => {
       .then(() => {
         // Los intentos ya se redujeron en startQuiz
       })
-      .catch(console.error);
+      .catch(() => {});
   };
 
   const handleSelect = (qIdx, optIdx) => {
@@ -248,11 +243,9 @@ const DetailPage = () => {
                 .then(response => {
                   if (response.ok) {
                   } else {
-                    console.error('❌ Archivo de video no encontrado:', response.status);
                   }
                 })
                 .catch(error => {
-                  console.error('❌ Error verificando archivo:', error);
                 });
             }
             
@@ -263,8 +256,6 @@ const DetailPage = () => {
                 onProgress={handleProgress}
                 onEnded={() => setVideoEnded(true)}
                 onError={(error) => {
-                  console.error('❌ Error en video:', error);
-                  console.error('❌ URL del video:', finalUrl);
                 }}
                 className="react-player"
               />

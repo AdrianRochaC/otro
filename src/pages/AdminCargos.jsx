@@ -66,15 +66,12 @@ const AdminCargos = () => {
         if (data.success) {
           setCargoMetrics(data.metrics);
         } else {
-          console.error('Error en métricas:', data.message);
           setCargoMetrics(null);
         }
       } else {
-        console.error('Error HTTP:', response.status);
         setCargoMetrics(null);
       }
     } catch (error) {
-      console.error('Error cargando métricas:', error);
       setCargoMetrics(null);
     } finally {
       setLoadingMetrics(false);

@@ -60,13 +60,11 @@ export const apiFetch = async (path, options = {}) => {
     // Si la respuesta no es exitosa, lanzar error con detalles
     if (!response.ok) {
       const errorData = await response.json().catch(() => ({ message: 'Error desconocido' }));
-      console.error('❌ Error en respuesta:', errorData);
       throw new Error(`Error ${response.status}: ${errorData.message || response.statusText}`);
     }
 
     return response;
   } catch (error) {
-    console.error('💥 Error en fetch:', error);
     
     // Si es error de red (servidor no disponible)
     if (error.name === 'TypeError' && error.message.includes('fetch')) {

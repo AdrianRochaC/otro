@@ -263,12 +263,10 @@ export const initializePreferences = async () => {
           preferences.background_type = 'color';
           preferences.background_image_url = '';
         } else {
-          console.warn('Error al cargar imagen de fondo:', res.status);
           preferences.background_type = 'color';
           preferences.background_image_url = '';
         }
       } catch (imageError) {
-        console.warn('Error al cargar imagen de fondo:', imageError);
         preferences.background_type = 'color';
         preferences.background_image_url = '';
       }
@@ -282,7 +280,6 @@ export const initializePreferences = async () => {
     applyPreferencesToDOM(preferences);
     return preferences;
   } catch (error) {
-    console.warn('Error al inicializar preferencias, usando localStorage:', error);
     // Si falla, usar localStorage como respaldo
     const localPreferences = loadPreferencesFromLocalStorage();
     applyPreferencesToDOM(localPreferences);

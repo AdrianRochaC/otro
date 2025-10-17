@@ -36,7 +36,6 @@ const Dashboard = () => {
         }
       })
       .catch((err) => {
-        console.error("Error cargando datos:", err);
         alert("❌ No se pudo cargar algunos datos del dashboard");
       })
       .finally(() => setLoading(false));

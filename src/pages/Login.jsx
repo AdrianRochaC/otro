@@ -60,13 +60,9 @@ const Login = () => {
       }
 
     } catch (error) {
-      console.error('💥 Error en login:', error);
-      console.error('💥 Error message:', error.message);
-      console.error('💥 Error stack:', error.stack);
       
       // Mostrar error detallado en consola y alert
       const errorMessage = error.message || "Error de conexión. Verifica que el servidor esté funcionando.";
-      console.error('💥 Mostrando error al usuario:', errorMessage);
       alert("❌ " + errorMessage);
     } finally {
       setLoading(false);

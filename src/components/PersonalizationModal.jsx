@@ -119,7 +119,6 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
             applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'color', '', preferences.background_color);
           }
         } catch (imageError) {
-          console.warn('Error al cargar imagen de fondo en modal:', imageError);
           setBackgroundImageUrl('');
           applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, 'color', '', preferences.background_color);
         }
@@ -128,7 +127,6 @@ const PersonalizationModal = ({ isOpen, onClose }) => {
         applySettings(preferences.theme, preferences.color_scheme, preferences.font_size, preferences.font_family, preferences.spacing, preferences.animations, preferences.background_type || 'color', '', preferences.background_color);
       }
     } catch (error) {
-      console.error('Error al cargar preferencias en modal:', error);
       setError('No se pudieron cargar las preferencias. Usando configuración local.');
       setBackgroundImageUrl('');
     } finally {

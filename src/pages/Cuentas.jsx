@@ -160,8 +160,45 @@ const Cuentas = () => {
   };
 
   const handleResetPassword = async () => {
-    if (!newPassword || newPassword.length < 6) {
-      alert("❌ La contraseña debe tener al menos 6 caracteres");
+    // Validaciones de contraseña
+    if (!newPassword) {
+      alert("❌ La contraseña no puede estar vacía");
+      return;
+    }
+    
+    if (newPassword.length < 8) {
+      alert("❌ La contraseña debe tener al menos 8 caracteres");
+      return;
+    }
+    
+    if (newPassword.length > 50) {
+      alert("❌ La contraseña no puede tener más de 50 caracteres");
+      return;
+    }
+    
+    // Validar que tenga al menos una letra mayúscula, una minúscula y un número
+    const hasUpperCase = /[A-Z]/.test(newPassword);
+    const hasLowerCase = /[a-z]/.test(newPassword);
+    const hasNumbers = /\d/.test(newPassword);
+    
+    if (!hasUpperCase) {
+      alert("❌ La contraseña debe contener al menos una letra mayúscula");
+      return;
+    }
+    
+    if (!hasLowerCase) {
+      alert("❌ La contraseña debe contener al menos una letra minúscula");
+      return;
+    }
+    
+    if (!hasNumbers) {
+      alert("❌ La contraseña debe contener al menos un número");
+      return;
+    }
+    
+    // Validar que no contenga espacios
+    if (newPassword.includes(' ')) {
+      alert("❌ La contraseña no puede contener espacios");
       return;
     }
 
@@ -509,8 +546,8 @@ const Cuentas = () => {
                   type="password"
                   value={newPassword}
                   onChange={(e) => setNewPassword(e.target.value)}
-                  placeholder="Mínimo 6 caracteres"
-                  minLength="6"
+                  placeholder="Mínimo 8 caracteres, mayúscula, minúscula y número"
+                  minLength="8"
                 />
               </div>
             </div>
