@@ -16,6 +16,7 @@ const Layout = ({ children }) => {
   const [showMenu, setShowMenu] = useState(false);
   const [unreadCount, setUnreadCount] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
 
   useEffect(() => {
     // Obtener cantidad de notificaciones no leídas solo si hay usuario logueado
@@ -36,6 +37,22 @@ const Layout = ({ children }) => {
       .catch(error => {
       });
   }, [location.pathname]);
+
+  // Detectar cambios en el tamaño de pantalla
+  useEffect(() => {
+    const handleResize = () => {
+      const small = window.innerWidth <= 1024;
+      setIsSmallScreen(small);
+      
+      // En pantallas pequeñas, colapsar automáticamente el menú
+      if (small && !collapsed) {
+        setCollapsed(true);
+      }
+    };
+
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, [collapsed]);
 
 
   const handleLogout = () => {
@@ -133,9 +150,9 @@ const Layout = ({ children }) => {
       ) : (
         <>
           <div style={{
-            minWidth: collapsed ? '56px' : '220px',
-            maxWidth: collapsed ? '56px' : '270px',
-            width: collapsed ? '56px' : '220px',
+            minWidth: collapsed ? '56px' : (isSmallScreen ? '180px' : '220px'),
+            maxWidth: collapsed ? '56px' : (isSmallScreen ? '200px' : '270px'),
+            width: collapsed ? '56px' : (isSmallScreen ? '180px' : '220px'),
             height: '100vh',
             boxShadow: 'var(--shadow-card)',
             background: 'var(--bg-menu)',
@@ -195,7 +212,11 @@ const Layout = ({ children }) => {
           </div>
         </>
       )}
-      <main className="main-content" style={location.pathname !== '/home' ? {marginLeft: collapsed ? '56px' : '220px', paddingTop:'2rem', transition:'margin-left 0.22s cubic-bezier(.4,0,.2,1)'} : {}}>
+      <main className="main-content" style={location.pathname !== '/home' ? {
+        marginLeft: collapsed ? '56px' : (isSmallScreen ? '180px' : '220px'), 
+        paddingTop:'2rem', 
+        transition:'margin-left 0.22s cubic-bezier(.4,0,.2,1)'
+      } : {}}>
         {children}
       </main>
       

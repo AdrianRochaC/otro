@@ -104,7 +104,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
     <>
       <nav style={{
         padding:'1.5rem 0', 
-        minWidth:220, 
+        minWidth: window.innerWidth <= 1024 ? 180 : 220, 
         height:'100%', 
         display:'flex', 
         flexDirection:'column', 
@@ -120,7 +120,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
             padding:0,
             display:'flex',
             flexDirection:'column',
-            gap:'1.2rem',
+            gap: window.innerWidth <= 1024 ? '1rem' : '1.2rem',
             marginTop:'2.5rem'
           }}>
             {options.map(opt => (
@@ -131,13 +131,13 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                       style={{
                         display:'flex',
                         alignItems:'center',
-                        gap:'1rem',
+                        gap: window.innerWidth <= 1024 ? '0.8rem' : '1rem',
                         background:'none',
                         border:'none',
-                        fontSize:'1.08rem',
+                        fontSize: window.innerWidth <= 1024 ? '1rem' : '1.08rem',
                         color:'var(--text-primary)',
                         cursor:'pointer',
-                        padding:'0.5rem 1.2rem',
+                        padding: window.innerWidth <= 1024 ? '0.4rem 1rem' : '0.5rem 1.2rem',
                         width:'100%',
                         textAlign:'left',
                         borderRadius:'8px',
@@ -259,13 +259,13 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                     style={{
                       display:'flex',
                       alignItems:'center',
-                      gap:'1rem',
+                      gap: window.innerWidth <= 1024 ? '0.8rem' : '1rem',
                       background:'none',
                       border:'none',
-                      fontSize:'1.08rem',
+                      fontSize: window.innerWidth <= 1024 ? '1rem' : '1.08rem',
                       color:'var(--text-primary)',
                       cursor:'pointer',
-                      padding:'0.5rem 1.2rem',
+                      padding: window.innerWidth <= 1024 ? '0.4rem 1rem' : '0.5rem 1.2rem',
                       width:'100%',
                       textAlign:'left',
                       borderRadius:'8px',
@@ -289,13 +289,13 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                 style={{
                   display:'flex',
                   alignItems:'center',
-                  gap:'1rem',
+                  gap: window.innerWidth <= 1024 ? '0.8rem' : '1rem',
                   background:'none',
                   border:'none',
-                  fontSize:'1.08rem',
+                  fontSize: window.innerWidth <= 1024 ? '1rem' : '1.08rem',
                   color:'var(--text-primary)',
                   cursor:'pointer',
-                  padding:'0.5rem 1.2rem',
+                  padding: window.innerWidth <= 1024 ? '0.4rem 1rem' : '0.5rem 1.2rem',
                   width:'100%',
                   textAlign:'left',
                   borderRadius:'8px',
