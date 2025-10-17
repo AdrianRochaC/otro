@@ -324,9 +324,24 @@ const DetailPage = () => {
 
         {/* Mostrar puntaje solo si hay evaluación Y se completó en esta sesión */}
         {Array.isArray(course.evaluation) && course.evaluation.length > 0 && score && hasCompletedEvaluation && (
-          <div className="quiz-score">
-            ✅ Obtuviste {score.score} de {score.total} (
-            {score.score >= Math.ceil(score.total * 0.6) ? "Aprobado" : "Reprobado"})
+          <div className={`quiz-score ${score.score >= Math.ceil(score.total * 0.6) ? 'quiz-score-approved' : 'quiz-score-failed'}`}>
+            {score.score >= Math.ceil(score.total * 0.6) ? (
+              <>
+                <span className="quiz-result-icon">✅</span>
+                <span className="quiz-result-text">
+                  Obtuviste {score.score} de {score.total} 
+                  <span className="quiz-status-approved"> (Aprobado)</span>
+                </span>
+              </>
+            ) : (
+              <>
+                <span className="quiz-result-icon">❌</span>
+                <span className="quiz-result-text">
+                  Obtuviste {score.score} de {score.total} 
+                  <span className="quiz-status-failed"> (Reprobado)</span>
+                </span>
+              </>
+            )}
           </div>
         )}
       </div>
