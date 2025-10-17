@@ -1,9 +1,10 @@
 import React, { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { BookOpenCheck, ClipboardList, Users2, BarChart3, User, Settings, Home } from "lucide-react";
-import { FaGraduationCap, FaClipboardList, FaUser, FaBell, FaCog, FaHome, FaFileAlt, FaUsers } from "react-icons/fa";
+import { FaGraduationCap, FaClipboardList, FaUser, FaBell, FaCog, FaHome, FaFileAlt, FaUsers, FaSignOutAlt } from "react-icons/fa";
 import PersonalizationModal from '../PersonalizationModal';
 import { BACKEND_URL } from '../../utils/api';
+import './HomeMenuList.css';
 
 const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -102,84 +103,26 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
 
   return (
     <>
-      <nav style={{
-        padding:'1.5rem 0', 
-        minWidth:220, 
-        height:'100%', 
-        display:'flex', 
-        flexDirection:'column', 
-        justifyContent:'space-between',
-        background: 'var(--bg-menu)',
-        color: 'var(--text-primary)'
-      }}>
+      <nav className="home-menu-list">
 
         <div>
-          <ul style={{
-            listStyle:'none',
-            margin:0,
-            padding:0,
-            display:'flex',
-            flexDirection:'column',
-            gap:'1.2rem',
-            marginTop:'2.5rem'
-          }}>
+          <ul>
             {options.map(opt => (
-              <li key={opt.to} style={{position:'relative'}}>
+              <li key={opt.to} className="home-menu-item">
                 {opt.isNotif ? (
                   <>
                     <button
-                      style={{
-                        display:'flex',
-                        alignItems:'center',
-                        gap:'1rem',
-                        background:'none',
-                        border:'none',
-                        fontSize:'1.08rem',
-                        color:'var(--text-primary)',
-                        cursor:'pointer',
-                        padding:'0.5rem 1.2rem',
-                        width:'100%',
-                        textAlign:'left',
-                        borderRadius:'8px',
-                        transition:'all 0.3s ease',
-                        position:'relative'
-                      }}
+                      className="home-menu-button"
                       onClick={handleNotifClick}
-                      onMouseEnter={e => e.currentTarget.style.background='var(--bg-card-hover)'}
-                      onMouseLeave={e => e.currentTarget.style.background='none'}
                     >
                       {opt.icon}
                       {unreadCount > 0 && (
-                        <span style={{
-                          position:'absolute',
-                          left:10,
-                          top:7,
-                          width:10,
-                          height:10,
-                          background:'#e74c3c',
-                          borderRadius:'50%',
-                          display:'inline-block',
-                          border:'2px solid var(--bg-menu)',
-                          zIndex: 2
-                        }}></span>
+                        <span className="notification-badge"></span>
                       )}
                       <span>{opt.label}</span>
                     </button>
                     {showNotifDropdown && (
-                      <div style={{
-                        position:'absolute',
-                        left:'100%',
-                        top:0,
-                        minWidth:'260px',
-                        maxHeight:'340px',
-                        overflowY:'auto',
-                        background:'var(--bg-card)',
-                        boxShadow:'var(--shadow-card)',
-                        borderRadius:'12px',
-                        padding:'1.2rem 1.2rem',
-                        zIndex:9999,
-                        border:'1px solid var(--border-primary)'
-                      }}>
+                      <div className="notification-dropdown">
                         <h4 style={{
                           margin:'0 0 1rem 0',
                           fontSize:'1.1rem',
@@ -255,25 +198,8 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                   </>
                 ) : (
                   <button
-                    style={{
-                      display:'flex',
-                      alignItems:'center',
-                      gap:'1rem',
-                      background:'none',
-                      border:'none',
-                      fontSize:'1.08rem',
-                      color:'var(--text-primary)',
-                      cursor:'pointer',
-                      padding:'0.5rem 1.2rem',
-                      width:'100%',
-                      textAlign:'left',
-                      borderRadius:'8px',
-                      transition:'all 0.3s ease',
-                      position:'relative'
-                    }}
+                    className="home-menu-button"
                     onClick={() => { navigate(opt.to); if(onNavigate) onNavigate(); }}
-                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-card-hover)'}
-                    onMouseLeave={e => e.currentTarget.style.background='none'}
                   >
                     {opt.icon}
                     <span>{opt.label}</span>
@@ -283,27 +209,10 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
             ))}
             
             {/* Botón de Personalización */}
-            <li>
+            <li className="home-menu-item">
               <button
-                style={{
-                  display:'flex',
-                  alignItems:'center',
-                  gap:'1rem',
-                  background:'none',
-                  border:'none',
-                  fontSize:'1.08rem',
-                  color:'var(--text-primary)',
-                  cursor:'pointer',
-                  padding:'0.5rem 1.2rem',
-                  width:'100%',
-                  textAlign:'left',
-                  borderRadius:'8px',
-                  transition:'all 0.3s ease',
-                  position:'relative'
-                }}
+                className="home-menu-button"
                 onClick={() => setShowPersonalization(true)}
-                onMouseEnter={e => e.currentTarget.style.background='var(--bg-card-hover)'}
-                onMouseLeave={e => e.currentTarget.style.background='none'}
               >
                 <FaCog size={22} />
                 <span>Personalizar</span>
@@ -313,37 +222,12 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
         </div>
         
         {/* Botón cerrar sesión abajo */}
-        <div style={{
-          marginTop:'2.5rem',
-          padding:'1.2rem 0 0 0',
-          borderTop:'1.5px solid var(--border-primary)',
-          display:'flex',
-          justifyContent:'center'
-        }}>
+        <div className="logout-section">
           <button
-            className="logout-btn"
-            style={{
-              background:'var(--gradient-danger)',
-              color:'var(--text-white)',
-              padding:'0.6rem 1.5rem',
-              borderRadius:'8px',
-              fontWeight:600,
-              border:'none',
-              cursor:'pointer',
-              fontSize:'1rem',
-              transition:'all 0.3s ease',
-              boxShadow:'var(--shadow-light)'
-            }}
+            className="logout-button"
             onClick={handleLogout}
-            onMouseEnter={e => {
-              e.target.style.transform = 'scale(1.05)';
-              e.target.style.boxShadow = 'var(--shadow-medium)';
-            }}
-            onMouseLeave={e => {
-              e.target.style.transform = 'scale(1)';
-              e.target.style.boxShadow = 'var(--shadow-light)';
-            }}
           >
+            <FaSignOutAlt />
             Cerrar Sesión
           </button>
         </div>

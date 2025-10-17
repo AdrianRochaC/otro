@@ -81,16 +81,96 @@
   margin-bottom: 0.2rem;
   font-weight: 400;
 }
-@media (max-width: 900px) {
+/* Responsive para tablets */
+@media (max-width: 1024px) {
+  .home-dashboard-cards {
+    gap: 2rem 1.5rem;
+    max-width: 900px;
+  }
+  .home-dashboard-card {
+    min-width: 240px;
+    max-width: 300px;
+    padding: 2.2rem 1.8rem 1.8rem 1.8rem;
+  }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .home-dashboard-bg {
+    padding: 0;
+  }
+  
+  .home-dashboard-title {
+    padding-top: 2rem;
+    margin-bottom: 2rem;
+  }
+  
+  .home-dashboard-title h1 {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .home-dashboard-title p {
+    font-size: 1rem;
+  }
+  
   .home-dashboard-cards {
     flex-direction: column;
-    gap: 2rem 0;
+    gap: 1.5rem 0;
     padding: 0 1rem 2rem 1rem;
+    max-width: 100%;
   }
+  
   .home-dashboard-card {
     min-width: 0;
     max-width: 100%;
-    padding: 2rem 1.2rem 1.5rem 1.2rem;
+    width: 100%;
+    padding: 1.8rem 1.5rem 1.5rem 1.5rem;
+    min-height: 180px;
+  }
+  
+  .home-dashboard-icon {
+    font-size: 2rem;
+    margin-bottom: 0.5rem;
+  }
+  
+  .home-dashboard-title-card {
+    font-size: 1.2rem;
+    margin-bottom: 0.3rem;
+  }
+  
+  .home-dashboard-desc {
+    font-size: 1rem;
+    line-height: 1.4;
+  }
+}
+
+/* Responsive para móviles pequeños */
+@media (max-width: 480px) {
+  .home-dashboard-title h1 {
+    font-size: 1.75rem;
+  }
+  
+  .home-dashboard-cards {
+    padding: 0 0.75rem 1.5rem 0.75rem;
+    gap: 1.25rem 0;
+  }
+  
+  .home-dashboard-card {
+    padding: 1.5rem 1.25rem 1.25rem 1.25rem;
+    min-height: 160px;
+  }
+  
+  .home-dashboard-icon {
+    font-size: 1.8rem;
+  }
+  
+  .home-dashboard-title-card {
+    font-size: 1.1rem;
+  }
+  
+  .home-dashboard-desc {
+    font-size: 0.95rem;
   }
 }
 @keyframes fadeInCard {

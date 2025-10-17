@@ -182,10 +182,23 @@
   font-weight: 500;
 }
 
-/* Responsive */
+/* Responsive para tablets */
+@media (max-width: 1024px) {
+  .register-container {
+    padding: 1.5rem;
+    max-width: 500px;
+  }
+  
+  .register-form {
+    padding: 1.75rem;
+  }
+}
+
+/* Responsive para móviles */
 @media (max-width: 768px) {
   .register-container {
     padding: 1rem;
+    max-width: 100%;
   }
   
   .register-header h1 {
@@ -210,8 +223,17 @@
     padding: 0.875rem 1.5rem;
     font-size: 1rem;
   }
+  
+  .password-validation {
+    padding: 0.75rem;
+  }
+  
+  .validation-item {
+    font-size: 0.85rem;
+  }
 }
 
+/* Responsive para móviles pequeños */
 @media (max-width: 480px) {
   .register-container {
     padding: 0.5rem;
@@ -225,11 +247,39 @@
     font-size: 1.75rem;
   }
   
+  .register-header p {
+    font-size: 0.95rem;
+  }
+  
   .form-group {
     margin-bottom: 1.25rem;
   }
   
   .form-group label {
+    font-size: 0.9rem;
+  }
+  
+  .form-group input,
+  .form-group select {
+    padding: 0.7rem 0.75rem;
+    font-size: 0.9rem;
+  }
+  
+  .btn-primary {
+    padding: 0.8rem 1.25rem;
+    font-size: 0.95rem;
+  }
+  
+  .password-validation {
+    padding: 0.6rem;
+  }
+  
+  .validation-item {
+    font-size: 0.8rem;
+    margin-bottom: 0.4rem;
+  }
+  
+  .validation-icon {
     font-size: 0.9rem;
   }
 }
