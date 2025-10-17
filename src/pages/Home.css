@@ -81,7 +81,21 @@
   margin-bottom: 0.2rem;
   font-weight: 400;
 }
-@media (max-width: 900px) {
+/* Responsive para tablets grandes */
+@media (max-width: 1024px) {
+  .home-dashboard-cards {
+    gap: 2rem 1.5rem;
+    max-width: 900px;
+  }
+  .home-dashboard-card {
+    min-width: 240px;
+    max-width: 300px;
+    padding: 2.2rem 1.8rem 1.8rem 1.8rem;
+  }
+}
+
+/* Responsive para tablets */
+@media (max-width: 768px) {
   .home-dashboard-cards {
     flex-direction: column;
     gap: 2rem 0;

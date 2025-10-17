@@ -119,7 +119,23 @@
   box-shadow: var(--shadow-medium) !important;
 }
 
-/* Responsive */
+/* Responsive para tablets grandes */
+@media (max-width: 1024px) {
+  .main-menu {
+    padding: 1rem 1.5rem;
+  }
+  
+  .main-menu ul {
+    gap: 1.5rem;
+  }
+  
+  .main-menu a {
+    font-size: 0.95rem;
+    padding: 0.4rem 0.8rem;
+  }
+}
+
+/* Responsive para tablets */
 @media (max-width: 768px) {
   .main-menu {
     padding: 1rem;

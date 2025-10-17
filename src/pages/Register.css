@@ -182,7 +182,19 @@
   font-weight: 500;
 }
 
-/* Responsive */
+/* Responsive para tablets grandes */
+@media (max-width: 1024px) {
+  .register-container {
+    padding: 1.5rem;
+    max-width: 500px;
+  }
+  
+  .register-form {
+    padding: 1.75rem;
+  }
+}
+
+/* Responsive para tablets */
 @media (max-width: 768px) {
   .register-container {
     padding: 1rem;
