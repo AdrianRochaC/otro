@@ -12,6 +12,11 @@ const getBackendURL = () => {
     return "https://otro-k5x5.onrender.com";
   }
   
+  // Si estamos en Render - FRONTEND NUEVO
+  if (window.location.hostname === 'farmeoan.onrender.com') {
+    return "https://otro-k5x5.onrender.com";
+  }
+  
   // Si estamos en Render - BACKEND (por si acaso)
   if (window.location.hostname === 'otro-k5x5.onrender.com') {
     return "https://otro-k5x5.onrender.com";
