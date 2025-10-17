@@ -24,10 +24,32 @@ const Cuentas = () => {
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [passwordValidation, setPasswordValidation] = useState({
+    length: false,
+    uppercase: false,
+    lowercase: false,
+    number: false,
+    noSpaces: false
+  });
 
   useEffect(() => {
     loadUsers();
   }, []);
+
+  // Validar contraseña en tiempo real
+  useEffect(() => {
+    const validatePassword = (password) => {
+      return {
+        length: password.length >= 8,
+        uppercase: /[A-Z]/.test(password),
+        lowercase: /[a-z]/.test(password),
+        number: /\d/.test(password),
+        noSpaces: !password.includes(' ')
+      };
+    };
+
+    setPasswordValidation(validatePassword(newPassword));
+  }, [newPassword]);
 
   const getAuthToken = () => {
     return localStorage.getItem('authToken') || localStorage.getItem('token');
@@ -96,6 +118,13 @@ const Cuentas = () => {
     setIsEditing(false);
     setShowPasswordModal(false);
     setNewPassword("");
+    setPasswordValidation({
+      length: false,
+      uppercase: false,
+      lowercase: false,
+      number: false,
+      noSpaces: false
+    });
   };
 
   const handleEditToggle = () => {
@@ -160,45 +189,15 @@ const Cuentas = () => {
   };
 
   const handleResetPassword = async () => {
-    // Validaciones de contraseña
-    if (!newPassword) {
-      alert("❌ La contraseña no puede estar vacía");
-      return;
-    }
-    
-    if (newPassword.length < 8) {
-      alert("❌ La contraseña debe tener al menos 8 caracteres");
+    // Validar que la contraseña cumpla todos los requisitos
+    const isPasswordValid = Object.values(passwordValidation).every(valid => valid);
+    if (!isPasswordValid) {
+      alert("❌ La contraseña no cumple con todos los requisitos");
       return;
     }
     
     if (newPassword.length > 50) {
       alert("❌ La contraseña no puede tener más de 50 caracteres");
-      return;
-    }
-    
-    // Validar que tenga al menos una letra mayúscula, una minúscula y un número
-    const hasUpperCase = /[A-Z]/.test(newPassword);
-    const hasLowerCase = /[a-z]/.test(newPassword);
-    const hasNumbers = /\d/.test(newPassword);
-    
-    if (!hasUpperCase) {
-      alert("❌ La contraseña debe contener al menos una letra mayúscula");
-      return;
-    }
-    
-    if (!hasLowerCase) {
-      alert("❌ La contraseña debe contener al menos una letra minúscula");
-      return;
-    }
-    
-    if (!hasNumbers) {
-      alert("❌ La contraseña debe contener al menos un número");
-      return;
-    }
-    
-    // Validar que no contenga espacios
-    if (newPassword.includes(' ')) {
-      alert("❌ La contraseña no puede contener espacios");
       return;
     }
 
@@ -224,6 +223,13 @@ const Cuentas = () => {
       if (response.ok) {
         setShowPasswordModal(false);
         setNewPassword("");
+        setPasswordValidation({
+          length: false,
+          uppercase: false,
+          lowercase: false,
+          number: false,
+          noSpaces: false
+        });
         alert("✅ Contraseña actualizada correctamente");
       } else {
         const result = await response.json();
@@ -549,6 +555,42 @@ const Cuentas = () => {
                   placeholder="Mínimo 8 caracteres, mayúscula, minúscula y número"
                   minLength="8"
                 />
+                
+                {/* Indicadores de validación de contraseña */}
+                {newPassword && (
+                  <div className="password-validation">
+                    <div className={`validation-item ${passwordValidation.length ? 'valid' : 'invalid'}`}>
+                      <span className="validation-icon">
+                        {passwordValidation.length ? '✅' : '❌'}
+                      </span>
+                      Mínimo 8 caracteres
+                    </div>
+                    <div className={`validation-item ${passwordValidation.uppercase ? 'valid' : 'invalid'}`}>
+                      <span className="validation-icon">
+                        {passwordValidation.uppercase ? '✅' : '❌'}
+                      </span>
+                      Al menos una mayúscula
+                    </div>
+                    <div className={`validation-item ${passwordValidation.lowercase ? 'valid' : 'invalid'}`}>
+                      <span className="validation-icon">
+                        {passwordValidation.lowercase ? '✅' : '❌'}
+                      </span>
+                      Al menos una minúscula
+                    </div>
+                    <div className={`validation-item ${passwordValidation.number ? 'valid' : 'invalid'}`}>
+                      <span className="validation-icon">
+                        {passwordValidation.number ? '✅' : '❌'}
+                      </span>
+                      Al menos un número
+                    </div>
+                    <div className={`validation-item ${passwordValidation.noSpaces ? 'valid' : 'invalid'}`}>
+                      <span className="validation-icon">
+                        {passwordValidation.noSpaces ? '✅' : '❌'}
+                      </span>
+                      Sin espacios
+                    </div>
+                  </div>
+                )}
               </div>
             </div>
             <div className="modal-actions">

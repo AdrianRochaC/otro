@@ -372,3 +372,57 @@
     justify-content: center;
   }
 }
+
+/* Indicadores de validación de contraseña */
+.password-validation {
+  margin-top: 0.75rem;
+  padding: 1rem;
+  background: var(--bg-card);
+  border: 1px solid var(--border-primary);
+  border-radius: var(--radius-medium);
+  box-shadow: var(--shadow-light);
+}
+
+.validation-item {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  margin-bottom: 0.5rem;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.validation-item:last-child {
+  margin-bottom: 0;
+}
+
+.validation-item.valid {
+  color: var(--text-success);
+}
+
+.validation-item.invalid {
+  color: var(--text-danger);
+}
+
+.validation-icon {
+  font-size: 1rem;
+  min-width: 1.2rem;
+  text-align: center;
+}
+
+/* Animación para los indicadores */
+.validation-item {
+  animation: slideIn 0.3s ease-out;
+}
+
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(-10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
