@@ -1,4 +1,5 @@
 const ExcelJS = require('exceljs');
+const path = require('path');
 const { getCargoMetrics } = require('./cargosMetrics.js');
 
 class ExcelReportService {
@@ -51,23 +52,37 @@ class ExcelReportService {
   // Agregar logo de la empresa al reporte
   async addCompanyLogo(sheet) {
     try {
-      // Usar la imagen fija del proyecto
-      const logoPath = './public/image.jpg';
+      // Usar la imagen fija del proyecto (ruta correcta desde el backend)
+      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
+      
+      // También intentar ruta alternativa
+      const altLogoPath = './public/image.jpg';
       
       console.log('🖼️ Intentando agregar logo:', logoPath);
       
       // Verificar si el archivo existe
       const fs = require('fs');
-      const path = require('path');
       
+      // Intentar ambas rutas
+      let finalLogoPath = null;
       if (fs.existsSync(logoPath)) {
+        finalLogoPath = logoPath;
+        console.log('✅ Logo encontrado en ruta principal:', logoPath);
+      } else if (fs.existsSync(altLogoPath)) {
+        finalLogoPath = altLogoPath;
+        console.log('✅ Logo encontrado en ruta alternativa:', altLogoPath);
+      }
+      
+      if (finalLogoPath) {
         console.log('✅ Logo encontrado, agregando al reporte...');
         
         // Agregar imagen al workbook
         const imageId = this.workbook.addImage({
-          filename: logoPath,
+          filename: finalLogoPath,
           extension: 'jpeg'
         });
+        
+        console.log('🖼️ ImageId generado:', imageId);
         
         // Insertar imagen en la esquina superior izquierda
         sheet.addImage(imageId, {
@@ -76,10 +91,12 @@ class ExcelReportService {
           editAs: 'oneCell'
         });
         
-        console.log('🎉 Logo agregado exitosamente');
+        console.log('🎉 Logo agregado exitosamente en posición A1:C3');
         return true;
       } else {
-        console.log('⚠️ Logo no encontrado en:', logoPath);
+        console.log('⚠️ Logo no encontrado en ninguna ruta:');
+        console.log('⚠️ Ruta principal:', logoPath);
+        console.log('⚠️ Ruta alternativa:', altLogoPath);
         return false;
       }
     } catch (error) {
@@ -91,7 +108,8 @@ class ExcelReportService {
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
     // Intentar agregar logo de la empresa
-    await this.addCompanyLogo(sheet);
+    const logoAdded = await this.addCompanyLogo(sheet);
+    console.log('🖼️ Logo agregado en resumen:', logoAdded);
     
     // Título principal (ajustado para dejar espacio al logo)
     sheet.mergeCells('D1:H1');
@@ -171,7 +189,8 @@ class ExcelReportService {
   // Crear hoja de datos detallados
   async createDataSheet(sheet, cargosData) {
     // Intentar agregar logo de la empresa
-    await this.addCompanyLogo(sheet);
+    const logoAdded = await this.addCompanyLogo(sheet);
+    console.log('🖼️ Logo agregado en datos:', logoAdded);
     
     // Título (ajustado para dejar espacio al logo)
     sheet.mergeCells('D1:H1');
@@ -244,7 +263,8 @@ class ExcelReportService {
       console.log('📊 Datos recibidos:', cargosData?.length || 0, 'cargos');
       
       // Intentar agregar logo de la empresa
-      await this.addCompanyLogo(sheet);
+      const logoAdded = await this.addCompanyLogo(sheet);
+      console.log('🖼️ Logo agregado en gráficas:', logoAdded);
       
       // Título (ajustado para dejar espacio al logo)
       sheet.mergeCells('D1:H1');
