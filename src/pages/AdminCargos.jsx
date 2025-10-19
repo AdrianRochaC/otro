@@ -436,6 +436,9 @@ const AdminCargos = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="nombre">Nombre del Cargo *</label>
+              <small className="form-help">
+                💡 Haz clic en el campo para ver todos los cargos disponibles o escribe para filtrar
+              </small>
               <div className="dropdown-container">
                 <input
                   type="text"
@@ -463,9 +466,6 @@ const AdminCargos = () => {
                   </div>
                 )}
               </div>
-              <small className="form-help">
-                💡 Haz clic en el campo para ver todos los cargos disponibles o escribe para filtrar
-              </small>
             </div>
             
             <div className="form-group">
