@@ -238,72 +238,99 @@ class ExcelReportService {
         console.log(`📝 Fila ${row}: ${item.cargo} - ${item.progreso}%`);
       });
 
-      // CREAR VISUALIZACIÓN DE PROGRESO (sin gráficas)
-      console.log('🎨 Creando visualización de progreso...');
+      // CREAR GRÁFICA DE TORTA DE PROGRESO
+      console.log('🥧 Intentando crear gráfica de torta...');
       
       if (chartData.progresoData.length > 0) {
-        console.log('✅ Hay datos de progreso, creando visualización...');
-        
-        // Agregar columna de barras visuales
-        const visualStartRow = progresoTableStartRow;
-        const visualHeaders = ['Cargo', 'Progreso (%)', 'Barra Visual', 'Estado'];
-        
-        // Crear encabezados
-        visualHeaders.forEach((header, index) => {
-          const cell = sheet.getCell(visualStartRow, index + 1);
-          cell.value = header;
-          cell.font = { bold: true };
-          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-        });
-        
-        // Crear barras visuales para cada cargo
-        chartData.progresoData.forEach((item, index) => {
-          const row = visualStartRow + 1 + index;
-          const progreso = item.progreso;
+        try {
+          console.log('✅ Hay datos de progreso, creando gráfica de torta...');
           
-          // Crear barra visual con caracteres
-          const barLength = Math.round(progreso / 5); // Cada 5% = 1 carácter
-          const bar = '█'.repeat(barLength) + '░'.repeat(20 - barLength);
+          // Verificar métodos disponibles
+          console.log('📊 Métodos disponibles en sheet:', Object.getOwnPropertyNames(sheet));
+          console.log('📊 Tipo de sheet:', typeof sheet);
           
-          // Determinar color según progreso
-          let color = 'FF000000'; // Negro por defecto
-          if (progreso >= 80) color = 'FF00AA00'; // Verde
-          else if (progreso >= 60) color = 'FF0088FF'; // Azul
-          else if (progreso >= 40) color = 'FFFF8800'; // Naranja
-          else color = 'FFFF0000'; // Rojo
+          // Intentar crear gráfica con sintaxis diferente
+          if (sheet.addChart) {
+            console.log('✅ addChart está disponible');
+            
+            const chart = sheet.addChart({
+              type: 'pie',
+              name: 'Progreso por Cargo'
+            });
+            
+            chart.addSeries({
+              categories: `A${progresoTableStartRow + 1}:A${progresoTableStartRow + chartData.progresoData.length}`,
+              values: `B${progresoTableStartRow + 1}:B${progresoTableStartRow + chartData.progresoData.length}`
+            });
+            
+            // Posicionar gráfica
+            sheet.addChart(chart, 'D3');
+            
+            console.log('🎉 ¡GRÁFICA DE TORTA CREADA!');
+            
+          } else {
+            console.log('❌ addChart no está disponible, usando método alternativo...');
+            
+            // Método alternativo: crear gráfica con workbook
+            const chart = this.workbook.addChart({
+              type: 'pie',
+              name: 'Progreso por Cargo'
+            });
+            
+            chart.addSeries({
+              categories: `Gráficas!A${progresoTableStartRow + 1}:A${progresoTableStartRow + chartData.progresoData.length}`,
+              values: `Gráficas!B${progresoTableStartRow + 1}:B${progresoTableStartRow + chartData.progresoData.length}`
+            });
+            
+            sheet.addChart(chart, 'D3');
+            console.log('🎉 ¡GRÁFICA ALTERNATIVA CREADA!');
+          }
           
-          // Determinar estado
-          let estado = 'Excelente';
-          if (progreso < 80) estado = 'Bueno';
-          if (progreso < 60) estado = 'Regular';
-          if (progreso < 40) estado = 'Necesita Mejora';
+        } catch (chartError) {
+          console.error('❌ ERROR creando gráfica:', chartError);
+          console.error('❌ Stack trace:', chartError.stack);
           
-          // Llenar datos
-          sheet.getCell(row, 1).value = item.cargo;
-          sheet.getCell(row, 2).value = progreso;
-          sheet.getCell(row, 3).value = bar;
-          sheet.getCell(row, 4).value = estado;
+          // Fallback: crear tabla con barras visuales
+          console.log('🔄 Creando fallback con barras visuales...');
           
-          // Aplicar colores
-          sheet.getCell(row, 2).font = { bold: true, color: { argb: color } };
-          sheet.getCell(row, 3).font = { color: { argb: color } };
-          sheet.getCell(row, 4).font = { bold: true, color: { argb: color } };
+          const visualHeaders = ['Cargo', 'Progreso (%)', 'Barra Visual', 'Estado'];
+          visualHeaders.forEach((header, index) => {
+            const cell = sheet.getCell(progresoTableStartRow, index + 1);
+            cell.value = header;
+            cell.font = { bold: true };
+            cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+          });
           
-          console.log(`📊 ${item.cargo}: ${progreso}% - ${estado}`);
-        });
-        
-        // Ajustar ancho de columnas
-        sheet.columns = [
-          { width: 25 }, // Cargo
-          { width: 12 }, // Progreso
-          { width: 25 }, // Barra visual
-          { width: 18 }  // Estado
-        ];
-        
-        console.log('🎉 ¡VISUALIZACIÓN CREADA EXITOSAMENTE!');
-        
+          chartData.progresoData.forEach((item, index) => {
+            const row = progresoTableStartRow + 1 + index;
+            const progreso = item.progreso;
+            const barLength = Math.round(progreso / 5);
+            const bar = '█'.repeat(barLength) + '░'.repeat(20 - barLength);
+            
+            let color = 'FF000000';
+            if (progreso >= 80) color = 'FF00AA00';
+            else if (progreso >= 60) color = 'FF0088FF';
+            else if (progreso >= 40) color = 'FFFF8800';
+            else color = 'FFFF0000';
+            
+            let estado = progreso >= 80 ? 'Excelente' : progreso >= 60 ? 'Bueno' : progreso >= 40 ? 'Regular' : 'Necesita Mejora';
+            
+            sheet.getCell(row, 1).value = item.cargo;
+            sheet.getCell(row, 2).value = progreso;
+            sheet.getCell(row, 3).value = bar;
+            sheet.getCell(row, 4).value = estado;
+            
+            sheet.getCell(row, 2).font = { bold: true, color: { argb: color } };
+            sheet.getCell(row, 3).font = { color: { argb: color } };
+            sheet.getCell(row, 4).font = { bold: true, color: { argb: color } };
+          });
+          
+          sheet.columns = [
+            { width: 25 }, { width: 12 }, { width: 25 }, { width: 18 }
+          ];
+        }
       } else {
-        console.log('⚠️ No hay datos de progreso para crear visualización');
+        console.log('⚠️ No hay datos de progreso');
       }
 
       // Agregar bordes a la tabla
