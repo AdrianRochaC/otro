@@ -2,7 +2,6 @@
 import React from 'react';
 import HomeMenuList from './HomeMenuList';
 import Chatbot from '../Chatbot';
-import RoleBadge from '../RoleBadge';
 import { useLocation, useNavigate } from 'react-router-dom';
 import { useState, useEffect } from 'react';
 import { BACKEND_URL } from '../../utils/api';
@@ -223,13 +222,6 @@ const Layout = ({ children }) => {
       
       {/* Chatbot disponible en todas las páginas */}
       <Chatbot />
-      
-      {/* Badge de rol visible en todas las páginas */}
-      {user && (
-        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000 }}>
-          <RoleBadge />
-        </div>
-      )}
     </div>
   );
 };
