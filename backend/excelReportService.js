@@ -1,6 +1,4 @@
 const ExcelJS = require('exceljs');
-const path = require('path');
-const fs = require('fs');
 const { getCargoMetrics } = require('./cargosMetrics.js');
 
 class ExcelReportService {
@@ -53,35 +51,6 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo usando un enfoque más simple
-    try {
-      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
-      console.log('🖼️ Buscando logo en:', logoPath);
-      
-      if (fs.existsSync(logoPath)) {
-        console.log('✅ Logo encontrado, agregando...');
-        
-        // Usar el método más simple de ExcelJS
-        const imageId = this.workbook.addImage({
-          filename: logoPath,
-          extension: 'jpeg'
-        });
-        
-        console.log('🖼️ ImageId generado:', imageId);
-        
-        // Insertar imagen en la esquina superior izquierda con configuración mínima
-        sheet.addImage(imageId, 'A1:C3');
-        
-        console.log('🎉 Logo agregado exitosamente');
-      } else {
-        console.log('⚠️ Logo no encontrado en:', logoPath);
-      }
-    } catch (error) {
-      console.log('❌ Error agregando logo:', error.message);
-      console.log('❌ Continuando sin logo...');
-      // Continuar sin logo
-    }
-    
     // Título principal
     sheet.mergeCells('A1:H1');
     const titleCell = sheet.getCell('A1');
