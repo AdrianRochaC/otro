@@ -6,6 +6,25 @@ import { BACKEND_URL } from '../utils/api';
 
 const API_URL = BACKEND_URL;
 
+// Lista de cargos predefinidos para farmacia
+const CARGOS_PREDEFINIDOS = [
+  { nombre: 'Farmacéutico', descripcion: 'Responsable de la dispensación de medicamentos, asesoramiento farmacéutico y supervisión del inventario de medicamentos.' },
+  { nombre: 'Técnico Farmacéutico', descripcion: 'Auxiliar del farmacéutico en la preparación y dispensación de medicamentos, manejo de inventario y atención al cliente.' },
+  { nombre: 'Gerente de Farmacia', descripcion: 'Responsable de la administración general de la farmacia, gestión de personal, inventarios y cumplimiento normativo.' },
+  { nombre: 'Cajero', descripcion: 'Encargado del cobro de medicamentos y productos, manejo de caja registradora y atención al cliente en el punto de venta.' },
+  { nombre: 'Auxiliar de Farmacia', descripcion: 'Apoyo en tareas administrativas, organización de productos, limpieza y mantenimiento del área de ventas.' },
+  { nombre: 'Supervisor de Turno', descripcion: 'Responsable de supervisar las operaciones durante su turno, coordinar al personal y asegurar el cumplimiento de procedimientos.' },
+  { nombre: 'Especialista en Inventario', descripcion: 'Encargado del control de stock, recepción de mercancías, verificación de vencimientos y rotación de productos.' },
+  { nombre: 'Asesor Comercial', descripcion: 'Responsable de promoción de productos, asesoramiento a clientes sobre medicamentos y productos de salud.' },
+  { nombre: 'Contador', descripcion: 'Encargado de la contabilidad de la farmacia, manejo de facturación, reportes financieros y cumplimiento tributario.' },
+  { nombre: 'Administrador', descripcion: 'Responsable de la administración general, recursos humanos, políticas internas y coordinación con proveedores.' },
+  { nombre: 'Atención al Cliente', descripcion: 'Especialista en atención al cliente, resolución de consultas, quejas y sugerencias de los usuarios de la farmacia.' },
+  { nombre: 'Operativo', descripcion: 'Personal operativo encargado de tareas generales de apoyo, logística y mantenimiento de la farmacia.' },
+  { nombre: 'Compras', descripcion: 'Responsable de la gestión de compras, negociación con proveedores, evaluación de productos y gestión de contratos.' },
+  { nombre: 'Marketing', descripcion: 'Encargado de estrategias de marketing, promociones, publicidad y desarrollo de campañas para la farmacia.' },
+  { nombre: 'Sistemas', descripcion: 'Responsable del mantenimiento de sistemas informáticos, software de farmacia y soporte técnico.' }
+];
+
 const AdminCargos = () => {
   const [cargos, setCargos] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -21,6 +40,8 @@ const AdminCargos = () => {
   // Estados para el formulario de creación
   const [nombre, setNombre] = useState('');
   const [descripcion, setDescripcion] = useState('');
+  const [showDropdown, setShowDropdown] = useState(false);
+  const [filteredCargos, setFilteredCargos] = useState([]);
   
   // Estados para el formulario de edición
   const [editNombre, setEditNombre] = useState('');
@@ -200,6 +221,39 @@ const AdminCargos = () => {
   const resetForm = () => {
     setNombre('');
     setDescripcion('');
+    setShowDropdown(false);
+    setFilteredCargos([]);
+  };
+
+  // Función para filtrar cargos según el texto ingresado
+  const handleNombreChange = (value) => {
+    setNombre(value);
+    
+    if (value.length > 0) {
+      const filtered = CARGOS_PREDEFINIDOS.filter(cargo => 
+        cargo.nombre.toLowerCase().includes(value.toLowerCase())
+      );
+      setFilteredCargos(filtered);
+      setShowDropdown(true);
+    } else {
+      setShowDropdown(false);
+      setFilteredCargos([]);
+    }
+  };
+
+  // Función para seleccionar un cargo de la lista
+  const selectCargo = (cargo) => {
+    setNombre(cargo.nombre);
+    setDescripcion(cargo.descripcion);
+    setShowDropdown(false);
+    setFilteredCargos([]);
+  };
+
+  // Función para cerrar el dropdown
+  const closeDropdown = () => {
+    setTimeout(() => {
+      setShowDropdown(false);
+    }, 200);
   };
 
   const downloadCargoReport = async (cargo) => {
@@ -373,14 +427,35 @@ const AdminCargos = () => {
           <form onSubmit={handleSubmit}>
             <div className="form-group">
               <label htmlFor="nombre">Nombre del Cargo *</label>
-              <input
-                type="text"
-                id="nombre"
-                value={nombre}
-                onChange={(e) => setNombre(e.target.value)}
-                placeholder="Ej: Gerente de Ventas"
-                required
-              />
+              <div className="dropdown-container">
+                <input
+                  type="text"
+                  id="nombre"
+                  value={nombre}
+                  onChange={(e) => handleNombreChange(e.target.value)}
+                  onBlur={closeDropdown}
+                  placeholder="Escribe para buscar o selecciona un cargo"
+                  required
+                  autoComplete="off"
+                />
+                {showDropdown && filteredCargos.length > 0 && (
+                  <div className="dropdown-list">
+                    {filteredCargos.map((cargo, index) => (
+                      <div
+                        key={index}
+                        className="dropdown-item"
+                        onClick={() => selectCargo(cargo)}
+                      >
+                        <div className="cargo-name">{cargo.nombre}</div>
+                        <div className="cargo-description">{cargo.descripcion}</div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+              <small className="form-help">
+                💡 Escribe para buscar cargos predefinidos o crea uno personalizado
+              </small>
             </div>
             
             <div className="form-group">
