@@ -1960,17 +1960,27 @@ app.get('/api/cargos', verifyToken, async (req, res) => {
 // Generar reporte Excel de cargos
 app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
   try {
+    console.log('🎯 === INICIANDO GENERACIÓN DE REPORTE EXCEL ===');
+    console.log('👤 Usuario:', req.user);
+    console.log('🔑 Rol del usuario:', req.user.rol);
+    
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
+      console.log('❌ Usuario no es admin, rechazando...');
       return res.status(403).json({
         success: false,
         message: 'Solo los administradores pueden generar reportes'
       });
     }
+    
+    console.log('✅ Usuario es admin, continuando...');
 
+    console.log('🔌 Conectando a la base de datos...');
     const connection = await createConnection();
+    console.log('✅ Conexión a BD exitosa');
     
     // Obtener datos completos de cargos con estadísticas detalladas
+    console.log('📊 Ejecutando consulta SQL...');
     const [cargos] = await connection.execute(`
       SELECT 
         c.*,
@@ -2008,11 +2018,18 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
       ORDER BY c.nombre ASC
     `);
     
+    console.log('📋 Cargos obtenidos:', cargos.length);
+    console.log('📊 Primer cargo:', cargos[0]);
+    
     await connection.end();
+    console.log('🔌 Conexión cerrada');
 
     // Generar reporte Excel
+    console.log('📊 Iniciando generación de reporte Excel...');
     const workbook = await excelReportService.generateCargosReport(cargos);
+    console.log('📊 Reporte generado, creando buffer...');
     const buffer = await excelReportService.generateExcelBuffer(workbook);
+    console.log('📊 Buffer creado, tamaño:', buffer.length, 'bytes');
 
     // Configurar headers para descarga
     const fileName = `Reporte_Cargos_${new Date().toISOString().split('T')[0]}.xlsx`;
@@ -2024,7 +2041,9 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
     res.send(buffer);
 
   } catch (error) {
-    console.error('Error generando reporte Excel:', error);
+    console.error('❌ ERROR GENERANDO REPORTE EXCEL:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
     res.status(500).json({
       success: false,
       message: 'Error generando reporte Excel'
