@@ -1,28 +1,30 @@
 /* Badge de rol optimizado - CSS mínimo */
 .role-badge {
-  position: fixed;
-  top: 20px;
-  right: 20px;
+  position: fixed !important;
+  top: 15px !important;
+  right: 15px !important;
   display: flex;
   align-items: center;
-  gap: 6px;
-  background: rgba(0, 0, 0, 0.8);
-  border-radius: 20px;
-  padding: 6px 12px;
-  z-index: 1000;
-  font-size: 13px;
+  gap: 4px;
+  background: rgba(0, 0, 0, 0.9);
+  border-radius: 15px;
+  padding: 4px 8px;
+  z-index: 9999 !important;
+  font-size: 11px;
   font-weight: 500;
   color: white;
   backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.2);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
 }
 
 .role-icon {
-  font-size: 14px;
+  font-size: 12px;
 }
 
 .role-text {
-  font-size: 12px;
+  font-size: 10px;
+  white-space: nowrap;
 }
 
 /* Colores específicos */
@@ -37,18 +39,18 @@
 /* Responsive */
 @media (max-width: 768px) {
   .role-badge {
-    top: 15px;
-    right: 15px;
-    padding: 4px 8px;
-    gap: 4px;
-    font-size: 11px;
+    top: 10px !important;
+    right: 10px !important;
+    padding: 3px 6px;
+    gap: 3px;
+    font-size: 10px;
   }
   
   .role-icon {
-    font-size: 12px;
+    font-size: 10px;
   }
   
   .role-text {
-    font-size: 10px;
+    font-size: 9px;
   }
 }
