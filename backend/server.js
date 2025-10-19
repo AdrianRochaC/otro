@@ -2026,10 +2026,17 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
 
     // Generar reporte Excel
     console.log('📊 Iniciando generación de reporte Excel...');
-    const workbook = await excelReportService.generateCargosReport(cargos);
-    console.log('📊 Reporte generado, creando buffer...');
-    const buffer = await excelReportService.generateExcelBuffer(workbook);
-    console.log('📊 Buffer creado, tamaño:', buffer.length, 'bytes');
+    try {
+      const workbook = await excelReportService.generateCargosReport(cargos);
+      console.log('📊 Reporte generado, creando buffer...');
+      const buffer = await excelReportService.generateExcelBuffer(workbook);
+      console.log('📊 Buffer creado, tamaño:', buffer.length, 'bytes');
+    } catch (excelError) {
+      console.error('❌ ERROR EN GENERACIÓN DE EXCEL:', excelError);
+      console.error('❌ Error message:', excelError.message);
+      console.error('❌ Error stack:', excelError.stack);
+      throw excelError;
+    }
 
     // Configurar headers para descarga
     const fileName = `Reporte_Cargos_${new Date().toISOString().split('T')[0]}.xlsx`;

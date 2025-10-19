@@ -3,7 +3,14 @@ const { getCargoMetrics } = require('./cargosMetrics.js');
 
 class ExcelReportService {
   constructor() {
-    this.workbook = new xl.Workbook();
+    console.log('🔧 Inicializando ExcelReportService con excel4node...');
+    try {
+      this.workbook = new xl.Workbook();
+      console.log('✅ ExcelReportService inicializado correctamente');
+    } catch (error) {
+      console.error('❌ Error inicializando ExcelReportService:', error);
+      throw error;
+    }
   }
 
   // Crear reporte completo de cargos con gráficas
