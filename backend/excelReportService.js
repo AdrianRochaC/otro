@@ -53,7 +53,7 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo de manera más robusta
+    // Agregar logo usando un enfoque más simple
     try {
       const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
       console.log('🖼️ Buscando logo en:', logoPath);
@@ -61,23 +61,16 @@ class ExcelReportService {
       if (fs.existsSync(logoPath)) {
         console.log('✅ Logo encontrado, agregando...');
         
-        // Leer la imagen como buffer
-        const imageBuffer = fs.readFileSync(logoPath);
-        
-        // Agregar imagen al workbook usando buffer
+        // Usar el método más simple de ExcelJS
         const imageId = this.workbook.addImage({
-          buffer: imageBuffer,
+          filename: logoPath,
           extension: 'jpeg'
         });
         
         console.log('🖼️ ImageId generado:', imageId);
         
-        // Insertar imagen en la esquina superior izquierda
-        sheet.addImage(imageId, {
-          tl: { col: 0, row: 0 },
-          br: { col: 2, row: 3 },
-          editAs: 'oneCell'
-        });
+        // Insertar imagen en la esquina superior izquierda con configuración mínima
+        sheet.addImage(imageId, 'A1:C3');
         
         console.log('🎉 Logo agregado exitosamente');
       } else {
@@ -85,6 +78,7 @@ class ExcelReportService {
       }
     } catch (error) {
       console.log('❌ Error agregando logo:', error.message);
+      console.log('❌ Continuando sin logo...');
       // Continuar sin logo
     }
     
