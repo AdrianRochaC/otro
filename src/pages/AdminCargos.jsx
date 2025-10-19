@@ -225,20 +225,29 @@ const AdminCargos = () => {
     setFilteredCargos([]);
   };
 
-  // Función para filtrar cargos según el texto ingresado
+  // Función para manejar el input y mostrar la lista
   const handleNombreChange = (value) => {
     setNombre(value);
     
     if (value.length > 0) {
+      // Filtrar cargos según el texto ingresado
       const filtered = CARGOS_PREDEFINIDOS.filter(cargo => 
         cargo.nombre.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredCargos(filtered);
-      setShowDropdown(true);
     } else {
-      setShowDropdown(false);
-      setFilteredCargos([]);
+      // Si no hay texto, mostrar todos los cargos
+      setFilteredCargos(CARGOS_PREDEFINIDOS);
     }
+    setShowDropdown(true);
+  };
+
+  // Función para mostrar la lista cuando se hace focus en el input
+  const handleInputFocus = () => {
+    if (filteredCargos.length === 0) {
+      setFilteredCargos(CARGOS_PREDEFINIDOS);
+    }
+    setShowDropdown(true);
   };
 
   // Función para seleccionar un cargo de la lista
@@ -433,8 +442,9 @@ const AdminCargos = () => {
                   id="nombre"
                   value={nombre}
                   onChange={(e) => handleNombreChange(e.target.value)}
+                  onFocus={handleInputFocus}
                   onBlur={closeDropdown}
-                  placeholder="Escribe para buscar o selecciona un cargo"
+                  placeholder="Haz clic para ver la lista de cargos"
                   required
                   autoComplete="off"
                 />
@@ -454,7 +464,7 @@ const AdminCargos = () => {
                 )}
               </div>
               <small className="form-help">
-                💡 Escribe para buscar cargos predefinidos o crea uno personalizado
+                💡 Haz clic en el campo para ver todos los cargos disponibles o escribe para filtrar
               </small>
             </div>
             
