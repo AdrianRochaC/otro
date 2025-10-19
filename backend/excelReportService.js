@@ -201,43 +201,324 @@ class ExcelReportService {
     // Preparar datos para gráficas
     const chartData = this.prepareChartData(cargosData);
 
-    // Crear tabla de datos para gráfica de barras
-    const chartTableStartRow = 3;
-    const chartHeaders = ['Cargo', 'Usuarios Asignados'];
+    // Crear tabla de datos para gráfica de torta de usuarios
+    const usuariosTableStartRow = 3;
+    const usuariosHeaders = ['Cargo', 'Usuarios Asignados'];
     
-    chartHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(chartTableStartRow, index + 1);
+    usuariosHeaders.forEach((header, index) => {
+      const cell = sheet.getCell(usuariosTableStartRow, index + 1);
       cell.value = header;
       cell.font = { bold: true };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
     });
 
-    chartData.barChartData.forEach((item, index) => {
-      const row = chartTableStartRow + 1 + index;
+    chartData.pieChartData.forEach((item, index) => {
+      const row = usuariosTableStartRow + 1 + index;
       sheet.getCell(row, 1).value = item.cargo;
       sheet.getCell(row, 2).value = item.usuarios;
     });
 
-    // Crear tabla de datos para análisis de cursos
-    const analysisTableStartRow = chartTableStartRow + chartData.barChartData.length + 3;
-    const analysisHeaders = ['Cargo', 'Cursos Asignados'];
+    // Crear gráfica de torta de distribución de usuarios
+    const usuariosChart = sheet.addChart({
+      type: 'pie',
+      name: 'Distribución de Usuarios por Cargo',
+      title: {
+        name: 'Distribución de Usuarios por Cargo',
+        overlay: false,
+        layout: {
+          x: 0.1,
+          y: 0.1
+        }
+      },
+      legend: {
+        position: 'right',
+        overlay: false
+      },
+      plotArea: {
+        showBubbleSize: true,
+        showCatName: false,
+        showLeaderLines: false,
+        showPercent: true,
+        showSerName: false,
+        showVal: true
+      },
+      dataLabels: {
+        showBubbleSize: true,
+        showCatName: true,
+        showLeaderLines: true,
+        showLegendKey: true,
+        showPercent: true,
+        showSerName: true,
+        showVal: true
+      }
+    });
+
+    usuariosChart.addSeries({
+      categories: `A${usuariosTableStartRow + 1}:A${usuariosTableStartRow + chartData.pieChartData.length}`,
+      values: `B${usuariosTableStartRow + 1}:B${usuariosTableStartRow + chartData.pieChartData.length}`,
+      name: 'Usuarios por Cargo'
+    });
+
+    // Posicionar la gráfica
+    sheet.addChart(usuariosChart, {
+      tl: { col: 4, row: usuariosTableStartRow - 1 },
+      br: { col: 10, row: usuariosTableStartRow + 15 }
+    });
+
+    // Crear tabla de datos para gráfica de torta de progreso
+    const progresoTableStartRow = usuariosTableStartRow + chartData.pieChartData.length + 20;
+    const progresoHeaders = ['Cargo', 'Progreso Promedio (%)'];
     
-    analysisHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(analysisTableStartRow, index + 4);
+    progresoHeaders.forEach((header, index) => {
+      const cell = sheet.getCell(progresoTableStartRow, index + 1);
       cell.value = header;
       cell.font = { bold: true };
       cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
     });
 
-    // Mostrar top 5 cargos con más cursos
-    const topCursos = cargosData
-      .sort((a, b) => (b.cursos_count || 0) - (a.cursos_count || 0))
-      .slice(0, 5);
+    chartData.progresoData.forEach((item, index) => {
+      const row = progresoTableStartRow + 1 + index;
+      sheet.getCell(row, 1).value = item.cargo;
+      sheet.getCell(row, 2).value = item.progreso;
+    });
 
-    topCursos.forEach((cargo, index) => {
-      const row = analysisTableStartRow + 1 + index;
-      sheet.getCell(row, 4).value = cargo.nombre;
-      sheet.getCell(row, 5).value = cargo.cursos_count || 0;
+    // Crear gráfica de torta de progreso
+    const progresoChart = sheet.addChart({
+      type: 'pie',
+      name: 'Progreso Promedio por Cargo',
+      title: {
+        name: 'Progreso Promedio por Cargo',
+        overlay: false,
+        layout: {
+          x: 0.1,
+          y: 0.1
+        }
+      },
+      legend: {
+        position: 'right',
+        overlay: false
+      },
+      plotArea: {
+        showBubbleSize: true,
+        showCatName: false,
+        showLeaderLines: false,
+        showPercent: true,
+        showSerName: false,
+        showVal: true
+      },
+      dataLabels: {
+        showBubbleSize: true,
+        showCatName: true,
+        showLeaderLines: true,
+        showLegendKey: true,
+        showPercent: true,
+        showSerName: true,
+        showVal: true
+      }
+    });
+
+    progresoChart.addSeries({
+      categories: `A${progresoTableStartRow + 1}:A${progresoTableStartRow + chartData.progresoData.length}`,
+      values: `B${progresoTableStartRow + 1}:B${progresoTableStartRow + chartData.progresoData.length}`,
+      name: 'Progreso por Cargo'
+    });
+
+    // Posicionar la gráfica de progreso
+    sheet.addChart(progresoChart, {
+      tl: { col: 4, row: progresoTableStartRow - 1 },
+      br: { col: 10, row: progresoTableStartRow + 15 }
+    });
+
+    // Crear tabla de datos para gráfica de torta de cursos
+    const cursosTableStartRow = progresoTableStartRow + chartData.progresoData.length + 20;
+    const cursosHeaders = ['Cargo', 'Cursos Asignados'];
+    
+    cursosHeaders.forEach((header, index) => {
+      const cell = sheet.getCell(cursosTableStartRow, index + 1);
+      cell.value = header;
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    });
+
+    chartData.cursosData.forEach((item, index) => {
+      const row = cursosTableStartRow + 1 + index;
+      sheet.getCell(row, 1).value = item.cargo;
+      sheet.getCell(row, 2).value = item.cursos;
+    });
+
+    // Crear gráfica de torta de cursos
+    const cursosChart = sheet.addChart({
+      type: 'pie',
+      name: 'Distribución de Cursos por Cargo',
+      title: {
+        name: 'Distribución de Cursos por Cargo',
+        overlay: false,
+        layout: {
+          x: 0.1,
+          y: 0.1
+        }
+      },
+      legend: {
+        position: 'right',
+        overlay: false
+      },
+      plotArea: {
+        showBubbleSize: true,
+        showCatName: false,
+        showLeaderLines: false,
+        showPercent: true,
+        showSerName: false,
+        showVal: true
+      },
+      dataLabels: {
+        showBubbleSize: true,
+        showCatName: true,
+        showLeaderLines: true,
+        showLegendKey: true,
+        showPercent: true,
+        showSerName: true,
+        showVal: true
+      }
+    });
+
+    cursosChart.addSeries({
+      categories: `A${cursosTableStartRow + 1}:A${cursosTableStartRow + chartData.cursosData.length}`,
+      values: `B${cursosTableStartRow + 1}:B${cursosTableStartRow + chartData.cursosData.length}`,
+      name: 'Cursos por Cargo'
+    });
+
+    // Posicionar la gráfica de cursos
+    sheet.addChart(cursosChart, {
+      tl: { col: 4, row: cursosTableStartRow - 1 },
+      br: { col: 10, row: cursosTableStartRow + 15 }
+    });
+
+    // Crear tabla de datos para gráfica de torta de estado de usuarios
+    const estadoTableStartRow = cursosTableStartRow + chartData.cursosData.length + 20;
+    const estadoHeaders = ['Estado', 'Cantidad de Usuarios'];
+    
+    estadoHeaders.forEach((header, index) => {
+      const cell = sheet.getCell(estadoTableStartRow, index + 1);
+      cell.value = header;
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    });
+
+    chartData.estadoData.forEach((item, index) => {
+      const row = estadoTableStartRow + 1 + index;
+      sheet.getCell(row, 1).value = item.estado;
+      sheet.getCell(row, 2).value = item.cantidad;
+    });
+
+    // Crear gráfica de torta de estado de usuarios
+    const estadoChart = sheet.addChart({
+      type: 'pie',
+      name: 'Estado de Usuarios por Cargo',
+      title: {
+        name: 'Estado de Usuarios por Cargo',
+        overlay: false,
+        layout: {
+          x: 0.1,
+          y: 0.1
+        }
+      },
+      legend: {
+        position: 'right',
+        overlay: false
+      },
+      plotArea: {
+        showBubbleSize: true,
+        showCatName: false,
+        showLeaderLines: false,
+        showPercent: true,
+        showSerName: false,
+        showVal: true
+      },
+      dataLabels: {
+        showBubbleSize: true,
+        showCatName: true,
+        showLeaderLines: true,
+        showLegendKey: true,
+        showPercent: true,
+        showSerName: true,
+        showVal: true
+      }
+    });
+
+    estadoChart.addSeries({
+      categories: `A${estadoTableStartRow + 1}:A${estadoTableStartRow + chartData.estadoData.length}`,
+      values: `B${estadoTableStartRow + 1}:B${estadoTableStartRow + chartData.estadoData.length}`,
+      name: 'Estado de Usuarios'
+    });
+
+    // Posicionar la gráfica de estado
+    sheet.addChart(estadoChart, {
+      tl: { col: 4, row: estadoTableStartRow - 1 },
+      br: { col: 10, row: estadoTableStartRow + 15 }
+    });
+
+    // Crear tabla de datos para gráfica de torta de documentos
+    const documentosTableStartRow = estadoTableStartRow + chartData.estadoData.length + 20;
+    const documentosHeaders = ['Cargo', 'Documentos Asignados'];
+    
+    documentosHeaders.forEach((header, index) => {
+      const cell = sheet.getCell(documentosTableStartRow, index + 1);
+      cell.value = header;
+      cell.font = { bold: true };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+    });
+
+    chartData.documentosData.forEach((item, index) => {
+      const row = documentosTableStartRow + 1 + index;
+      sheet.getCell(row, 1).value = item.cargo;
+      sheet.getCell(row, 2).value = item.documentos;
+    });
+
+    // Crear gráfica de torta de documentos
+    const documentosChart = sheet.addChart({
+      type: 'pie',
+      name: 'Distribución de Documentos por Cargo',
+      title: {
+        name: 'Distribución de Documentos por Cargo',
+        overlay: false,
+        layout: {
+          x: 0.1,
+          y: 0.1
+        }
+      },
+      legend: {
+        position: 'right',
+        overlay: false
+      },
+      plotArea: {
+        showBubbleSize: true,
+        showCatName: false,
+        showLeaderLines: false,
+        showPercent: true,
+        showSerName: false,
+        showVal: true
+      },
+      dataLabels: {
+        showBubbleSize: true,
+        showCatName: true,
+        showLeaderLines: true,
+        showLegendKey: true,
+        showPercent: true,
+        showSerName: true,
+        showVal: true
+      }
+    });
+
+    documentosChart.addSeries({
+      categories: `A${documentosTableStartRow + 1}:A${documentosTableStartRow + chartData.documentosData.length}`,
+      values: `B${documentosTableStartRow + 1}:B${documentosTableStartRow + chartData.documentosData.length}`,
+      name: 'Documentos por Cargo'
+    });
+
+    // Posicionar la gráfica de documentos
+    sheet.addChart(documentosChart, {
+      tl: { col: 4, row: documentosTableStartRow - 1 },
+      br: { col: 10, row: documentosTableStartRow + 15 }
     });
 
     // Ajustar ancho de columnas
@@ -249,16 +530,28 @@ class ExcelReportService {
       { width: 12 }
     ];
 
-    // Agregar bordes
-    this.addBorders(sheet, `A${chartTableStartRow}:B${chartTableStartRow + chartData.barChartData.length}`);
-    this.addBorders(sheet, `D${analysisTableStartRow}:E${analysisTableStartRow + topCursos.length}`);
+    // Agregar bordes a las tablas
+    this.addBorders(sheet, `A${usuariosTableStartRow}:B${usuariosTableStartRow + chartData.pieChartData.length}`);
+    this.addBorders(sheet, `A${progresoTableStartRow}:B${progresoTableStartRow + chartData.progresoData.length}`);
+    this.addBorders(sheet, `A${cursosTableStartRow}:B${cursosTableStartRow + chartData.cursosData.length}`);
+    this.addBorders(sheet, `A${estadoTableStartRow}:B${estadoTableStartRow + chartData.estadoData.length}`);
+    this.addBorders(sheet, `A${documentosTableStartRow}:B${documentosTableStartRow + chartData.documentosData.length}`);
 
     // Agregar títulos de gráficas
-    sheet.getCell(chartTableStartRow - 1, 1).value = 'Distribución de Usuarios por Cargo';
-    sheet.getCell(chartTableStartRow - 1, 1).font = { bold: true, size: 14 };
+    sheet.getCell(usuariosTableStartRow - 1, 1).value = 'Distribución de Usuarios por Cargo';
+    sheet.getCell(usuariosTableStartRow - 1, 1).font = { bold: true, size: 14 };
     
-    sheet.getCell(analysisTableStartRow - 1, 4).value = 'Top 5 Cargos con Más Cursos';
-    sheet.getCell(analysisTableStartRow - 1, 4).font = { bold: true, size: 14 };
+    sheet.getCell(progresoTableStartRow - 1, 1).value = 'Progreso Promedio por Cargo';
+    sheet.getCell(progresoTableStartRow - 1, 1).font = { bold: true, size: 14 };
+    
+    sheet.getCell(cursosTableStartRow - 1, 1).value = 'Distribución de Cursos por Cargo';
+    sheet.getCell(cursosTableStartRow - 1, 1).font = { bold: true, size: 14 };
+    
+    sheet.getCell(estadoTableStartRow - 1, 1).value = 'Estado de Usuarios (Activos vs Inactivos)';
+    sheet.getCell(estadoTableStartRow - 1, 1).font = { bold: true, size: 14 };
+    
+    sheet.getCell(documentosTableStartRow - 1, 1).value = 'Distribución de Documentos por Cargo';
+    sheet.getCell(documentosTableStartRow - 1, 1).font = { bold: true, size: 14 };
   }
 
   // Calcular estadísticas
@@ -281,15 +574,61 @@ class ExcelReportService {
 
   // Preparar datos para gráficas
   prepareChartData(cargosData) {
-    const barChartData = cargosData
+    // Datos para gráfica de torta de usuarios
+    const pieChartData = cargosData
+      .filter(cargo => (cargo.usuarios_count || 0) > 0) // Solo cargos con usuarios
       .sort((a, b) => (b.usuarios_count || 0) - (a.usuarios_count || 0))
-      .slice(0, 10) // Top 10 cargos
       .map(cargo => ({
         cargo: cargo.nombre,
         usuarios: cargo.usuarios_count || 0
       }));
 
-    return { barChartData };
+    // Datos para gráfica de torta de progreso
+    const progresoData = cargosData
+      .filter(cargo => (cargo.promedio_progreso || 0) > 0) // Solo cargos con progreso
+      .sort((a, b) => (b.promedio_progreso || 0) - (a.promedio_progreso || 0))
+      .map(cargo => ({
+        cargo: cargo.nombre,
+        progreso: Math.round(cargo.promedio_progreso || 0)
+      }));
+
+    // Datos para gráfica de torta de cursos
+    const cursosData = cargosData
+      .filter(cargo => (cargo.cursos_count || 0) > 0) // Solo cargos con cursos
+      .sort((a, b) => (b.cursos_count || 0) - (a.cursos_count || 0))
+      .map(cargo => ({
+        cargo: cargo.nombre,
+        cursos: cargo.cursos_count || 0
+      }));
+
+    // Datos para gráfica de torta de estado de usuarios
+    const totalActivos = cargosData.reduce((sum, cargo) => sum + (cargo.usuarios_activos || 0), 0);
+    const totalInactivos = cargosData.reduce((sum, cargo) => sum + (cargo.usuarios_count || 0) - (cargo.usuarios_activos || 0), 0);
+    
+    const estadoData = [];
+    if (totalActivos > 0) {
+      estadoData.push({ estado: 'Usuarios Activos', cantidad: totalActivos });
+    }
+    if (totalInactivos > 0) {
+      estadoData.push({ estado: 'Usuarios Inactivos', cantidad: totalInactivos });
+    }
+
+    // Datos para gráfica de torta de documentos
+    const documentosData = cargosData
+      .filter(cargo => (cargo.documentos_count || 0) > 0) // Solo cargos con documentos
+      .sort((a, b) => (b.documentos_count || 0) - (a.documentos_count || 0))
+      .map(cargo => ({
+        cargo: cargo.nombre,
+        documentos: cargo.documentos_count || 0
+      }));
+
+    return { 
+      pieChartData,
+      progresoData,
+      cursosData,
+      estadoData,
+      documentosData
+    };
   }
 
   // Agregar bordes a un rango
