@@ -53,7 +53,7 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo real de la empresa
+    // Agregar logo real usando el método con cellName
     try {
       const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
       console.log('🖼️ Buscando logo en:', logoPath);
@@ -61,7 +61,7 @@ class ExcelReportService {
       if (fs.existsSync(logoPath)) {
         console.log('✅ Logo encontrado, agregando...');
         
-        // Añadir imagen al workbook usando filename
+        // Añadir imagen al workbook
         const imageId = this.workbook.addImage({
           filename: logoPath,
           extension: 'jpeg'
@@ -69,13 +69,11 @@ class ExcelReportService {
         
         console.log('🖼️ ImageId generado:', imageId);
         
-        // Insertar imagen en la hoja usando la sintaxis correcta
-        sheet.addImage(imageId, {
-          tl: { col: 0, row: 0 },   // Top-left corner (columna 0, fila 0)
-          ext: { width: 200, height: 100 } // Tamaño en píxeles
-        });
+        // Insertar imagen usando cellName (método alternativo)
+        const cellName = 'A1:C3';
+        sheet.addImage(imageId, cellName);
         
-        console.log('🎉 Logo agregado exitosamente');
+        console.log('🎉 Logo agregado exitosamente con cellName');
       } else {
         console.log('⚠️ Logo no encontrado en:', logoPath);
       }
