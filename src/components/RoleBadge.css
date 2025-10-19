@@ -5,35 +5,77 @@
   right: 15px !important;
   display: flex;
   align-items: center;
-  gap: 4px;
-  background: rgba(0, 0, 0, 0.9);
-  border-radius: 15px;
-  padding: 4px 8px;
+  gap: 6px;
+  background: rgba(0, 0, 0, 0.95);
+  border-radius: 20px;
+  padding: 8px 14px;
   z-index: 9999 !important;
-  font-size: 11px;
-  font-weight: 500;
+  font-size: 13px;
+  font-weight: 600;
   color: white;
-  backdrop-filter: blur(4px);
-  border: 1px solid rgba(255, 255, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  backdrop-filter: blur(8px);
+  border: 1px solid rgba(255, 255, 255, 0.3);
+  box-shadow: 0 4px 15px rgba(0, 0, 0, 0.4), 0 2px 8px rgba(0, 0, 0, 0.2);
+  transition: all 0.3s ease;
 }
 
 .role-icon {
-  font-size: 12px;
+  font-size: 16px;
+  filter: drop-shadow(0 1px 2px rgba(0, 0, 0, 0.5));
 }
 
 .role-text {
-  font-size: 10px;
+  font-size: 12px;
   white-space: nowrap;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
 }
 
-/* Colores específicos */
+/* Efecto hover */
+.role-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.5), 0 3px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilos específicos para ADMIN */
+.role-badge.admin {
+  background: linear-gradient(135deg, rgba(255, 215, 0, 0.2), rgba(255, 165, 0, 0.1));
+  border: 1px solid rgba(255, 215, 0, 0.4);
+  box-shadow: 0 4px 15px rgba(255, 215, 0, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
+}
+
 .role-badge.admin .role-text {
   color: #FFD700;
+  text-shadow: 0 0 8px rgba(255, 215, 0, 0.5);
+  font-weight: 700;
+}
+
+.role-badge.admin .role-icon {
+  filter: drop-shadow(0 0 6px rgba(255, 215, 0, 0.6));
+}
+
+.role-badge.admin:hover {
+  box-shadow: 0 6px 20px rgba(255, 215, 0, 0.4), 0 3px 12px rgba(0, 0, 0, 0.3);
+}
+
+/* Estilos específicos para EMPLEADO */
+.role-badge.employee {
+  background: linear-gradient(135deg, rgba(76, 175, 80, 0.2), rgba(56, 142, 60, 0.1));
+  border: 1px solid rgba(76, 175, 80, 0.4);
+  box-shadow: 0 4px 15px rgba(76, 175, 80, 0.3), 0 2px 8px rgba(0, 0, 0, 0.2);
 }
 
 .role-badge.employee .role-text {
   color: #4CAF50;
+  text-shadow: 0 0 8px rgba(76, 175, 80, 0.5);
+  font-weight: 600;
+}
+
+.role-badge.employee .role-icon {
+  filter: drop-shadow(0 0 6px rgba(76, 175, 80, 0.6));
+}
+
+.role-badge.employee:hover {
+  box-shadow: 0 6px 20px rgba(76, 175, 80, 0.4), 0 3px 12px rgba(0, 0, 0, 0.3);
 }
 
 /* Responsive */
@@ -41,16 +83,16 @@
   .role-badge {
     top: 10px !important;
     right: 10px !important;
-    padding: 3px 6px;
-    gap: 3px;
-    font-size: 10px;
+    padding: 6px 10px;
+    gap: 4px;
+    font-size: 11px;
   }
   
   .role-icon {
-    font-size: 10px;
+    font-size: 14px;
   }
   
   .role-text {
-    font-size: 9px;
+    font-size: 10px;
   }
 }
