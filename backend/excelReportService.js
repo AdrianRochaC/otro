@@ -53,20 +53,40 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo como texto/emblema
+    // Agregar logo real de la empresa
     try {
-      const logoCell = sheet.getCell('A1');
-      logoCell.value = '🏢';
-      logoCell.font = { size: 24, bold: true, color: { argb: 'FF2F5597' } };
-      logoCell.alignment = { horizontal: 'center', vertical: 'middle' };
-      console.log('✅ Logo agregado como emblema');
+      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
+      console.log('🖼️ Buscando logo en:', logoPath);
+      
+      if (fs.existsSync(logoPath)) {
+        console.log('✅ Logo encontrado, agregando...');
+        
+        // Añadir imagen al workbook usando filename
+        const imageId = this.workbook.addImage({
+          filename: logoPath,
+          extension: 'jpeg'
+        });
+        
+        console.log('🖼️ ImageId generado:', imageId);
+        
+        // Insertar imagen en la hoja usando la sintaxis correcta
+        sheet.addImage(imageId, {
+          tl: { col: 0, row: 0 },   // Top-left corner (columna 0, fila 0)
+          ext: { width: 200, height: 100 } // Tamaño en píxeles
+        });
+        
+        console.log('🎉 Logo agregado exitosamente');
+      } else {
+        console.log('⚠️ Logo no encontrado en:', logoPath);
+      }
     } catch (error) {
-      console.log('⚠️ Logo no agregado:', error.message);
+      console.log('❌ Error agregando logo:', error.message);
+      // Continuar sin logo si hay error
     }
     
     // Título principal
-    sheet.mergeCells('B1:H1');
-    const titleCell = sheet.getCell('B1');
+    sheet.mergeCells('A1:H1');
+    const titleCell = sheet.getCell('A1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
