@@ -21,9 +21,7 @@ const {
 const { getCargoMetrics } = require('./cargosMetrics.js');
 
 // Importar servicio de reportes Excel
-console.log('📦 Cargando servicio de reportes Excel...');
-const excelReportService = require('./excelReportServiceNew.js');
-console.log('✅ Servicio de reportes Excel cargado:', excelReportService.constructor.name);
+const excelReportService = require('./excelReportService.js');
 
 // Importar servicio de video y OpenAI
 const videoProcessor = require('./videoProcessor.js');

@@ -53,25 +53,20 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo de manera muy simple
+    // Agregar logo como texto/emblema
     try {
-      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
-      if (fs.existsSync(logoPath)) {
-        console.log('🖼️ Agregando logo...');
-        const imageId = this.workbook.addImage({
-          filename: logoPath,
-          extension: 'jpeg'
-        });
-        sheet.addImage(imageId, 'A1:C3');
-        console.log('✅ Logo agregado');
-      }
+      const logoCell = sheet.getCell('A1');
+      logoCell.value = '🏢';
+      logoCell.font = { size: 24, bold: true, color: { argb: 'FF2F5597' } };
+      logoCell.alignment = { horizontal: 'center', vertical: 'middle' };
+      console.log('✅ Logo agregado como emblema');
     } catch (error) {
       console.log('⚠️ Logo no agregado:', error.message);
     }
     
     // Título principal
-    sheet.mergeCells('A1:H1');
-    const titleCell = sheet.getCell('A1');
+    sheet.mergeCells('B1:H1');
+    const titleCell = sheet.getCell('B1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
