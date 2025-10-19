@@ -191,6 +191,9 @@ class ExcelReportService {
   // Crear hoja de gráficas
   async createChartsSheet(sheet, cargosData) {
     try {
+      console.log('🎯 INICIANDO CREACIÓN DE GRÁFICAS...');
+      console.log('📊 Datos recibidos:', cargosData?.length || 0, 'cargos');
+      
       // Título
       sheet.mergeCells('A1:H1');
       const titleCell = sheet.getCell('A1');
@@ -201,232 +204,102 @@ class ExcelReportService {
 
       // Verificar que hay datos
       if (!cargosData || cargosData.length === 0) {
+        console.log('❌ No hay datos de cargos');
         sheet.getCell('A3').value = 'No hay datos disponibles para generar gráficas';
         sheet.getCell('A3').font = { size: 14, italic: true };
         return;
       }
 
       // Preparar datos para gráficas
+      console.log('📈 Preparando datos para gráficas...');
       const chartData = this.prepareChartData(cargosData);
+      console.log('📊 Datos preparados:', chartData);
 
-    // Crear tabla de datos para gráfica de torta de usuarios
-    const usuariosTableStartRow = 3;
-    const usuariosHeaders = ['Cargo', 'Usuarios Asignados'];
-    
-    usuariosHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(usuariosTableStartRow, index + 1);
-      cell.value = header;
-      cell.font = { bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-    });
+      // SOLO UNA GRÁFICA: Progreso por cargo
+      console.log('🥧 Creando SOLO la gráfica de progreso...');
+      
+      // Crear tabla de datos para gráfica de torta de progreso
+      const progresoTableStartRow = 3;
+      const progresoHeaders = ['Cargo', 'Progreso Promedio (%)'];
+      
+      console.log('📋 Creando tabla de progreso...');
+      progresoHeaders.forEach((header, index) => {
+        const cell = sheet.getCell(progresoTableStartRow, index + 1);
+        cell.value = header;
+        cell.font = { bold: true };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+      });
 
-    chartData.pieChartData.forEach((item, index) => {
-      const row = usuariosTableStartRow + 1 + index;
-      sheet.getCell(row, 1).value = item.cargo;
-      sheet.getCell(row, 2).value = item.usuarios;
-    });
+      console.log('📊 Datos de progreso:', chartData.progresoData);
+      chartData.progresoData.forEach((item, index) => {
+        const row = progresoTableStartRow + 1 + index;
+        sheet.getCell(row, 1).value = item.cargo;
+        sheet.getCell(row, 2).value = item.progreso;
+        console.log(`📝 Fila ${row}: ${item.cargo} - ${item.progreso}%`);
+      });
 
-    // Crear gráfica de torta de distribución de usuarios (solo si hay datos)
-    if (chartData.pieChartData.length > 0) {
-      try {
-        const usuariosChart = sheet.addChart({
-          type: 'pie',
-          name: 'Distribución de Usuarios por Cargo'
-        });
-
-        usuariosChart.addSeries({
-          categories: `A${usuariosTableStartRow + 1}:A${usuariosTableStartRow + chartData.pieChartData.length}`,
-          values: `B${usuariosTableStartRow + 1}:B${usuariosTableStartRow + chartData.pieChartData.length}`,
-          name: 'Usuarios por Cargo'
-        });
-
-        // Posicionar la gráfica
-        sheet.addChart(usuariosChart, {
-          tl: { col: 4, row: usuariosTableStartRow - 1 },
-          br: { col: 10, row: usuariosTableStartRow + 15 }
-        });
-      } catch (chartError) {
-        console.log('Error creando gráfica de usuarios:', chartError.message);
-        // Continuar sin la gráfica
+      // CREAR LA GRÁFICA DE TORTA DE PROGRESO
+      console.log('🎨 Intentando crear gráfica de torta...');
+      
+      if (chartData.progresoData.length > 0) {
+        try {
+          console.log('✅ Hay datos de progreso, creando gráfica...');
+          
+          const progresoChart = sheet.addChart({
+            type: 'pie',
+            name: 'Progreso Promedio por Cargo'
+          });
+          
+          console.log('📊 Gráfica creada, agregando series...');
+          
+          progresoChart.addSeries({
+            categories: `A${progresoTableStartRow + 1}:A${progresoTableStartRow + chartData.progresoData.length}`,
+            values: `B${progresoTableStartRow + 1}:B${progresoTableStartRow + chartData.progresoData.length}`,
+            name: 'Progreso por Cargo'
+          });
+          
+          console.log('📍 Posicionando gráfica...');
+          
+          // Posicionar la gráfica de progreso
+          sheet.addChart(progresoChart, {
+            tl: { col: 4, row: progresoTableStartRow - 1 },
+            br: { col: 10, row: progresoTableStartRow + 15 }
+          });
+          
+          console.log('🎉 ¡GRÁFICA CREADA EXITOSAMENTE!');
+          
+        } catch (chartError) {
+          console.error('❌ ERROR creando gráfica:', chartError);
+          console.error('❌ Stack trace:', chartError.stack);
+          throw chartError; // Re-lanzar para que se vea en el catch principal
+        }
+      } else {
+        console.log('⚠️ No hay datos de progreso para crear gráfica');
       }
-    }
 
-    // Crear tabla de datos para gráfica de torta de progreso
-    const progresoTableStartRow = usuariosTableStartRow + chartData.pieChartData.length + 20;
-    const progresoHeaders = ['Cargo', 'Progreso Promedio (%)'];
-    
-    progresoHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(progresoTableStartRow, index + 1);
-      cell.value = header;
-      cell.font = { bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-    });
+      // Ajustar ancho de columnas
+      sheet.columns = [
+        { width: 25 },
+        { width: 18 }
+      ];
 
-    chartData.progresoData.forEach((item, index) => {
-      const row = progresoTableStartRow + 1 + index;
-      sheet.getCell(row, 1).value = item.cargo;
-      sheet.getCell(row, 2).value = item.progreso;
-    });
+      // Agregar bordes a la tabla
+      this.addBorders(sheet, `A${progresoTableStartRow}:B${progresoTableStartRow + chartData.progresoData.length}`);
 
-    // Crear gráfica de torta de progreso
-    const progresoChart = sheet.addChart({
-      type: 'pie',
-      name: 'Progreso Promedio por Cargo'
-    });
-
-    progresoChart.addSeries({
-      categories: `A${progresoTableStartRow + 1}:A${progresoTableStartRow + chartData.progresoData.length}`,
-      values: `B${progresoTableStartRow + 1}:B${progresoTableStartRow + chartData.progresoData.length}`,
-      name: 'Progreso por Cargo'
-    });
-
-    // Posicionar la gráfica de progreso
-    sheet.addChart(progresoChart, {
-      tl: { col: 4, row: progresoTableStartRow - 1 },
-      br: { col: 10, row: progresoTableStartRow + 15 }
-    });
-
-    // Crear tabla de datos para gráfica de torta de cursos
-    const cursosTableStartRow = progresoTableStartRow + chartData.progresoData.length + 20;
-    const cursosHeaders = ['Cargo', 'Cursos Asignados'];
-    
-    cursosHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(cursosTableStartRow, index + 1);
-      cell.value = header;
-      cell.font = { bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-    });
-
-    chartData.cursosData.forEach((item, index) => {
-      const row = cursosTableStartRow + 1 + index;
-      sheet.getCell(row, 1).value = item.cargo;
-      sheet.getCell(row, 2).value = item.cursos;
-    });
-
-    // Crear gráfica de torta de cursos
-    const cursosChart = sheet.addChart({
-      type: 'pie',
-      name: 'Distribución de Cursos por Cargo'
-    });
-
-    cursosChart.addSeries({
-      categories: `A${cursosTableStartRow + 1}:A${cursosTableStartRow + chartData.cursosData.length}`,
-      values: `B${cursosTableStartRow + 1}:B${cursosTableStartRow + chartData.cursosData.length}`,
-      name: 'Cursos por Cargo'
-    });
-
-    // Posicionar la gráfica de cursos
-    sheet.addChart(cursosChart, {
-      tl: { col: 4, row: cursosTableStartRow - 1 },
-      br: { col: 10, row: cursosTableStartRow + 15 }
-    });
-
-    // Crear tabla de datos para gráfica de torta de estado de usuarios
-    const estadoTableStartRow = cursosTableStartRow + chartData.cursosData.length + 20;
-    const estadoHeaders = ['Estado', 'Cantidad de Usuarios'];
-    
-    estadoHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(estadoTableStartRow, index + 1);
-      cell.value = header;
-      cell.font = { bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-    });
-
-    chartData.estadoData.forEach((item, index) => {
-      const row = estadoTableStartRow + 1 + index;
-      sheet.getCell(row, 1).value = item.estado;
-      sheet.getCell(row, 2).value = item.cantidad;
-    });
-
-    // Crear gráfica de torta de estado de usuarios
-    const estadoChart = sheet.addChart({
-      type: 'pie',
-      name: 'Estado de Usuarios por Cargo'
-    });
-
-    estadoChart.addSeries({
-      categories: `A${estadoTableStartRow + 1}:A${estadoTableStartRow + chartData.estadoData.length}`,
-      values: `B${estadoTableStartRow + 1}:B${estadoTableStartRow + chartData.estadoData.length}`,
-      name: 'Estado de Usuarios'
-    });
-
-    // Posicionar la gráfica de estado
-    sheet.addChart(estadoChart, {
-      tl: { col: 4, row: estadoTableStartRow - 1 },
-      br: { col: 10, row: estadoTableStartRow + 15 }
-    });
-
-    // Crear tabla de datos para gráfica de torta de documentos
-    const documentosTableStartRow = estadoTableStartRow + chartData.estadoData.length + 20;
-    const documentosHeaders = ['Cargo', 'Documentos Asignados'];
-    
-    documentosHeaders.forEach((header, index) => {
-      const cell = sheet.getCell(documentosTableStartRow, index + 1);
-      cell.value = header;
-      cell.font = { bold: true };
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
-    });
-
-    chartData.documentosData.forEach((item, index) => {
-      const row = documentosTableStartRow + 1 + index;
-      sheet.getCell(row, 1).value = item.cargo;
-      sheet.getCell(row, 2).value = item.documentos;
-    });
-
-    // Crear gráfica de torta de documentos
-    const documentosChart = sheet.addChart({
-      type: 'pie',
-      name: 'Distribución de Documentos por Cargo'
-    });
-
-    documentosChart.addSeries({
-      categories: `A${documentosTableStartRow + 1}:A${documentosTableStartRow + chartData.documentosData.length}`,
-      values: `B${documentosTableStartRow + 1}:B${documentosTableStartRow + chartData.documentosData.length}`,
-      name: 'Documentos por Cargo'
-    });
-
-    // Posicionar la gráfica de documentos
-    sheet.addChart(documentosChart, {
-      tl: { col: 4, row: documentosTableStartRow - 1 },
-      br: { col: 10, row: documentosTableStartRow + 15 }
-    });
-
-    // Ajustar ancho de columnas
-    sheet.columns = [
-      { width: 25 },
-      { width: 18 },
-      { width: 5 },
-      { width: 15 },
-      { width: 12 }
-    ];
-
-    // Agregar bordes a las tablas
-    this.addBorders(sheet, `A${usuariosTableStartRow}:B${usuariosTableStartRow + chartData.pieChartData.length}`);
-    this.addBorders(sheet, `A${progresoTableStartRow}:B${progresoTableStartRow + chartData.progresoData.length}`);
-    this.addBorders(sheet, `A${cursosTableStartRow}:B${cursosTableStartRow + chartData.cursosData.length}`);
-    this.addBorders(sheet, `A${estadoTableStartRow}:B${estadoTableStartRow + chartData.estadoData.length}`);
-    this.addBorders(sheet, `A${documentosTableStartRow}:B${documentosTableStartRow + chartData.documentosData.length}`);
-
-    // Agregar títulos de gráficas
-    sheet.getCell(usuariosTableStartRow - 1, 1).value = 'Distribución de Usuarios por Cargo';
-    sheet.getCell(usuariosTableStartRow - 1, 1).font = { bold: true, size: 14 };
-    
-    sheet.getCell(progresoTableStartRow - 1, 1).value = 'Progreso Promedio por Cargo';
-    sheet.getCell(progresoTableStartRow - 1, 1).font = { bold: true, size: 14 };
-    
-    sheet.getCell(cursosTableStartRow - 1, 1).value = 'Distribución de Cursos por Cargo';
-    sheet.getCell(cursosTableStartRow - 1, 1).font = { bold: true, size: 14 };
-    
-    sheet.getCell(estadoTableStartRow - 1, 1).value = 'Estado de Usuarios (Activos vs Inactivos)';
-    sheet.getCell(estadoTableStartRow - 1, 1).font = { bold: true, size: 14 };
-    
-    sheet.getCell(documentosTableStartRow - 1, 1).value = 'Distribución de Documentos por Cargo';
-    sheet.getCell(documentosTableStartRow - 1, 1).font = { bold: true, size: 14 };
+      // Agregar título de la gráfica
+      sheet.getCell(progresoTableStartRow - 1, 1).value = '📊 Progreso Promedio por Cargo';
+      sheet.getCell(progresoTableStartRow - 1, 1).font = { bold: true, size: 14 };
+      
+      console.log('✅ Hoja de gráficas completada exitosamente');
 
     } catch (error) {
-      console.error('Error creando hoja de gráficas:', error);
+      console.error('❌ ERROR GENERAL en createChartsSheet:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      console.error('❌ Error name:', error.name);
+      
       // Si hay error, crear una hoja simple con solo tablas
-      sheet.getCell('A3').value = 'Error generando gráficas. Mostrando solo datos tabulares.';
+      sheet.getCell('A3').value = `Error generando gráficas: ${error.message}`;
       sheet.getCell('A3').font = { size: 12, italic: true, color: { argb: 'FFFF0000' } };
     }
   }
