@@ -1,0 +1,123 @@
+.role-badge {
+  position: fixed;
+  top: 20px;
+  right: 20px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  background: rgba(26, 26, 26, 0.95);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 25px;
+  padding: 8px 16px;
+  z-index: 1000;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+  transition: all 0.3s ease;
+  animation: slideIn 0.5s ease-out;
+}
+
+.role-badge:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.4);
+}
+
+.role-icon {
+  font-size: 18px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(255, 255, 255, 0.1);
+  animation: pulse 2s infinite;
+}
+
+.role-text {
+  color: #ffffff;
+  font-size: 14px;
+  font-weight: 600;
+  letter-spacing: 0.5px;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.5);
+}
+
+/* Animaciones */
+@keyframes slideIn {
+  from {
+    opacity: 0;
+    transform: translateX(100px);
+  }
+  to {
+    opacity: 1;
+    transform: translateX(0);
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    transform: scale(1);
+  }
+  50% {
+    transform: scale(1.1);
+  }
+}
+
+/* Responsive para móviles */
+@media (max-width: 768px) {
+  .role-badge {
+    top: 15px;
+    right: 15px;
+    padding: 6px 12px;
+    gap: 6px;
+  }
+  
+  .role-icon {
+    font-size: 16px;
+    width: 20px;
+    height: 20px;
+  }
+  
+  .role-text {
+    font-size: 12px;
+  }
+}
+
+/* Tema claro */
+@media (prefers-color-scheme: light) {
+  .role-badge {
+    background: rgba(255, 255, 255, 0.95);
+    border: 1px solid rgba(0, 0, 0, 0.1);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+  }
+  
+  .role-text {
+    color: #333333;
+    text-shadow: none;
+  }
+  
+  .role-icon {
+    background: rgba(0, 0, 0, 0.05);
+  }
+}
+
+/* Efectos especiales para Admin */
+.role-badge[data-role="Admin"] .role-icon {
+  background: linear-gradient(45deg, #FFD700, #FFA500);
+  box-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+.role-badge[data-role="Admin"] .role-text {
+  color: #FFD700;
+  text-shadow: 0 0 5px rgba(255, 215, 0, 0.3);
+}
+
+/* Efectos especiales para Empleado */
+.role-badge[data-role="Empleado"] .role-icon {
+  background: linear-gradient(45deg, #4CAF50, #45a049);
+  box-shadow: 0 0 10px rgba(76, 175, 80, 0.3);
+}
+
+.role-badge[data-role="Empleado"] .role-text {
+  color: #4CAF50;
+  text-shadow: 0 0 5px rgba(76, 175, 80, 0.3);
+}
