@@ -1,21 +1,14 @@
-const xl = require('excel4node');
+const ExcelJS = require('exceljs');
 const { getCargoMetrics } = require('./cargosMetrics.js');
 
 class ExcelReportService {
   constructor() {
-    console.log('🔧 Inicializando ExcelReportService con excel4node...');
-    try {
-      this.workbook = new xl.Workbook();
-      console.log('✅ ExcelReportService inicializado correctamente');
-    } catch (error) {
-      console.error('❌ Error inicializando ExcelReportService:', error);
-      throw error;
-    }
+    this.workbook = new ExcelJS.Workbook();
   }
 
   // Crear reporte completo de cargos con gráficas
   async generateCargosReport(cargosData) {
-    const workbook = new xl.Workbook();
+    const workbook = new ExcelJS.Workbook();
     
     // Configurar propiedades del workbook
     workbook.creator = 'Sistema de Gestión Educativa';
@@ -25,17 +18,25 @@ class ExcelReportService {
     workbook.lastPrinted = new Date();
 
     // Crear hoja principal de resumen
-    const summarySheet = workbook.addWorksheet('Resumen Ejecutivo');
+    const summarySheet = workbook.addWorksheet('Resumen Ejecutivo', {
+      properties: { tabColor: { argb: 'FF4472C4' } }
+    });
 
     // Crear hoja de datos detallados
-    const dataSheet = workbook.addWorksheet('Datos Detallados');
+    const dataSheet = workbook.addWorksheet('Datos Detallados', {
+      properties: { tabColor: { argb: 'FF70AD47' } }
+    });
 
     // Crear hoja de gráficas
-    const chartsSheet = workbook.addWorksheet('Gráficas');
+    const chartsSheet = workbook.addWorksheet('Gráficas', {
+      properties: { tabColor: { argb: 'FFE74C3C' } }
+    });
 
     // Crear hoja individual para cada cargo
     for (const cargo of cargosData) {
-      const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`);
+      const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
+        properties: { tabColor: { argb: 'FF9B59B6' } }
+      });
       await this.createIndividualCargoSheet(cargoSheet, cargo);
     }
 
@@ -190,22 +191,22 @@ class ExcelReportService {
   // Crear hoja de gráficas
   async createChartsSheet(sheet, cargosData) {
     try {
-      console.log('🎯 INICIANDO CREACIÓN DE GRÁFICAS CON EXCEL4NODE...');
+      console.log('🎯 INICIANDO CREACIÓN DE BARRAS VISUALES...');
       console.log('📊 Datos recibidos:', cargosData?.length || 0, 'cargos');
       
       // Título
-      sheet.cell(1, 1, 1, 8, true).string('ANÁLISIS GRÁFICO DE CARGOS')
-        .style({
-          font: { size: 16, bold: true, color: 'FFFFFF' },
-          fill: { type: 'pattern', patternType: 'solid', fgColor: 'E74C3C' },
-          alignment: { horizontal: 'center', vertical: 'center' }
-        });
+      sheet.mergeCells('A1:H1');
+      const titleCell = sheet.getCell('A1');
+      titleCell.value = 'ANÁLISIS GRÁFICO DE CARGOS';
+      titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE74C3C' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
       // Verificar que hay datos
       if (!cargosData || cargosData.length === 0) {
         console.log('❌ No hay datos de cargos');
-        sheet.cell(3, 1).string('No hay datos disponibles para generar gráficas')
-          .style({ font: { size: 14, italic: true } });
+        sheet.getCell('A3').value = 'No hay datos disponibles para generar gráficas';
+        sheet.getCell('A3').font = { size: 14, italic: true };
         return;
       }
 
@@ -220,91 +221,93 @@ class ExcelReportService {
       
       console.log('📋 Creando tabla de progreso...');
       progresoHeaders.forEach((header, index) => {
-        sheet.cell(progresoTableStartRow, index + 1).string(header)
-          .style({
-            font: { bold: true },
-            fill: { type: 'pattern', patternType: 'solid', fgColor: 'F2F2F2' }
-          });
+        const cell = sheet.getCell(progresoTableStartRow, index + 1);
+        cell.value = header;
+        cell.font = { bold: true };
+        cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
       });
 
       console.log('📊 Datos de progreso:', chartData.progresoData);
       chartData.progresoData.forEach((item, index) => {
         const row = progresoTableStartRow + 1 + index;
-        sheet.cell(row, 1).string(item.cargo);
-        sheet.cell(row, 2).number(item.progreso);
+        sheet.getCell(row, 1).value = item.cargo;
+        sheet.getCell(row, 2).value = item.progreso;
         console.log(`📝 Fila ${row}: ${item.cargo} - ${item.progreso}%`);
       });
 
-      // CREAR GRÁFICA DE TORTA DE PROGRESO
-      console.log('🥧 Creando gráfica de torta con excel4node...');
+      // CREAR BARRAS VISUALES
+      console.log('📊 Creando barras visuales...');
       
       if (chartData.progresoData.length > 0) {
-        try {
-          console.log('✅ Hay datos de progreso, creando gráfica de torta...');
+        console.log('✅ Hay datos de progreso, creando barras visuales...');
+        
+        // Agregar columnas adicionales para barras visuales
+        const visualHeaders = ['Cargo', 'Progreso (%)', 'Barra Visual', 'Estado'];
+        
+        // Recrear encabezados con más columnas
+        visualHeaders.forEach((header, index) => {
+          const cell = sheet.getCell(progresoTableStartRow, index + 1);
+          cell.value = header;
+          cell.font = { bold: true };
+          cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
+        });
+        
+        // Crear barras visuales para cada cargo
+        chartData.progresoData.forEach((item, index) => {
+          const row = progresoTableStartRow + 1 + index;
+          const progreso = item.progreso;
           
-          // Crear gráfica de torta
-          const chart = sheet.chart({
-            type: 'pie',
-            title: 'Progreso Promedio por Cargo',
-            data: {
-              categories: chartData.progresoData.map(item => item.cargo),
-              values: chartData.progresoData.map(item => item.progreso)
-            },
-            position: {
-              x: 4, // Columna D
-              y: 2  // Fila 2
-            },
-            size: {
-              width: 400,
-              height: 300
-            }
-          });
+          // Crear barra visual con caracteres
+          const barLength = Math.round(progreso / 5); // Cada 5% = 1 carácter
+          const bar = '█'.repeat(barLength) + '░'.repeat(20 - barLength);
           
-          console.log('🎉 ¡GRÁFICA DE TORTA CREADA CON EXCEL4NODE!');
+          // Determinar color según progreso
+          let color = 'FF000000'; // Negro por defecto
+          if (progreso >= 80) color = 'FF00AA00'; // Verde
+          else if (progreso >= 60) color = 'FF0088FF'; // Azul
+          else if (progreso >= 40) color = 'FFFF8800'; // Naranja
+          else color = 'FFFF0000'; // Rojo
           
-        } catch (chartError) {
-          console.error('❌ ERROR creando gráfica:', chartError);
-          console.error('❌ Stack trace:', chartError.stack);
+          // Determinar estado
+          let estado = 'Excelente';
+          if (progreso < 80) estado = 'Bueno';
+          if (progreso < 60) estado = 'Regular';
+          if (progreso < 40) estado = 'Necesita Mejora';
           
-          // Fallback: crear tabla con barras visuales
-          console.log('🔄 Creando fallback con barras visuales...');
+          // Llenar datos
+          sheet.getCell(row, 1).value = item.cargo;
+          sheet.getCell(row, 2).value = progreso;
+          sheet.getCell(row, 3).value = bar;
+          sheet.getCell(row, 4).value = estado;
           
-          const visualHeaders = ['Cargo', 'Progreso (%)', 'Barra Visual', 'Estado'];
-          visualHeaders.forEach((header, index) => {
-            sheet.cell(progresoTableStartRow, index + 1).string(header)
-              .style({
-                font: { bold: true },
-                fill: { type: 'pattern', patternType: 'solid', fgColor: 'F2F2F2' }
-              });
-          });
+          // Aplicar colores
+          sheet.getCell(row, 2).font = { bold: true, color: { argb: color } };
+          sheet.getCell(row, 3).font = { color: { argb: color } };
+          sheet.getCell(row, 4).font = { bold: true, color: { argb: color } };
           
-          chartData.progresoData.forEach((item, index) => {
-            const row = progresoTableStartRow + 1 + index;
-            const progreso = item.progreso;
-            const barLength = Math.round(progreso / 5);
-            const bar = '█'.repeat(barLength) + '░'.repeat(20 - barLength);
-            
-            let color = '000000';
-            if (progreso >= 80) color = '00AA00';
-            else if (progreso >= 60) color = '0088FF';
-            else if (progreso >= 40) color = 'FF8800';
-            else color = 'FF0000';
-            
-            let estado = progreso >= 80 ? 'Excelente' : progreso >= 60 ? 'Bueno' : progreso >= 40 ? 'Regular' : 'Necesita Mejora';
-            
-            sheet.cell(row, 1).string(item.cargo);
-            sheet.cell(row, 2).number(progreso).style({ font: { bold: true, color: color } });
-            sheet.cell(row, 3).string(bar).style({ font: { color: color } });
-            sheet.cell(row, 4).string(estado).style({ font: { bold: true, color: color } });
-          });
-        }
+          console.log(`📊 ${item.cargo}: ${progreso}% - ${estado}`);
+        });
+        
+        // Ajustar ancho de columnas
+        sheet.columns = [
+          { width: 25 }, // Cargo
+          { width: 12 }, // Progreso
+          { width: 25 }, // Barra visual
+          { width: 18 }  // Estado
+        ];
+        
+        console.log('🎉 ¡BARRAS VISUALES CREADAS EXITOSAMENTE!');
+        
       } else {
         console.log('⚠️ No hay datos de progreso');
       }
 
+      // Agregar bordes a la tabla
+      this.addBorders(sheet, `A${progresoTableStartRow}:D${progresoTableStartRow + chartData.progresoData.length}`);
+
       // Agregar título de la visualización
-      sheet.cell(progresoTableStartRow - 1, 1).string('📊 Progreso Promedio por Cargo')
-        .style({ font: { bold: true, size: 14 } });
+      sheet.getCell(progresoTableStartRow - 1, 1).value = '📊 Progreso Promedio por Cargo (Barras Visuales)';
+      sheet.getCell(progresoTableStartRow - 1, 1).font = { bold: true, size: 14 };
       
       console.log('✅ Hoja de gráficas completada exitosamente');
 
@@ -315,8 +318,8 @@ class ExcelReportService {
       console.error('❌ Error name:', error.name);
       
       // Si hay error, crear una hoja simple con solo tablas
-      sheet.cell(3, 1).string(`Error generando gráficas: ${error.message}`)
-        .style({ font: { size: 12, italic: true, color: 'FF0000' } });
+      sheet.getCell('A3').value = `Error generando gráficas: ${error.message}`;
+      sheet.getCell('A3').font = { size: 12, italic: true, color: { argb: 'FFFF0000' } };
     }
   }
 
@@ -706,7 +709,7 @@ class ExcelReportService {
 
   // Generar archivo Excel y devolver buffer
   async generateExcelBuffer(workbook) {
-    return await workbook.writeToBuffer();
+    return await workbook.xlsx.writeBuffer();
   }
 }
 
