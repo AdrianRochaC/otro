@@ -190,16 +190,24 @@ class ExcelReportService {
 
   // Crear hoja de gráficas
   async createChartsSheet(sheet, cargosData) {
-    // Título
-    sheet.mergeCells('A1:H1');
-    const titleCell = sheet.getCell('A1');
-    titleCell.value = 'ANÁLISIS GRÁFICO DE CARGOS';
-    titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
-    titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE74C3C' } };
-    titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
+    try {
+      // Título
+      sheet.mergeCells('A1:H1');
+      const titleCell = sheet.getCell('A1');
+      titleCell.value = 'ANÁLISIS GRÁFICO DE CARGOS';
+      titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
+      titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE74C3C' } };
+      titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Preparar datos para gráficas
-    const chartData = this.prepareChartData(cargosData);
+      // Verificar que hay datos
+      if (!cargosData || cargosData.length === 0) {
+        sheet.getCell('A3').value = 'No hay datos disponibles para generar gráficas';
+        sheet.getCell('A3').font = { size: 14, italic: true };
+        return;
+      }
+
+      // Preparar datos para gráficas
+      const chartData = this.prepareChartData(cargosData);
 
     // Crear tabla de datos para gráfica de torta de usuarios
     const usuariosTableStartRow = 3;
@@ -218,52 +226,59 @@ class ExcelReportService {
       sheet.getCell(row, 2).value = item.usuarios;
     });
 
-    // Crear gráfica de torta de distribución de usuarios
-    const usuariosChart = sheet.addChart({
-      type: 'pie',
-      name: 'Distribución de Usuarios por Cargo',
-      title: {
-        name: 'Distribución de Usuarios por Cargo',
-        overlay: false,
-        layout: {
-          x: 0.1,
-          y: 0.1
-        }
-      },
-      legend: {
-        position: 'right',
-        overlay: false
-      },
-      plotArea: {
-        showBubbleSize: true,
-        showCatName: false,
-        showLeaderLines: false,
-        showPercent: true,
-        showSerName: false,
-        showVal: true
-      },
-      dataLabels: {
-        showBubbleSize: true,
-        showCatName: true,
-        showLeaderLines: true,
-        showLegendKey: true,
-        showPercent: true,
-        showSerName: true,
-        showVal: true
+    // Crear gráfica de torta de distribución de usuarios (solo si hay datos)
+    if (chartData.pieChartData.length > 0) {
+      try {
+        const usuariosChart = sheet.addChart({
+          type: 'pie',
+          name: 'Distribución de Usuarios por Cargo',
+          title: {
+            name: 'Distribución de Usuarios por Cargo',
+            overlay: false,
+            layout: {
+              x: 0.1,
+              y: 0.1
+            }
+          },
+          legend: {
+            position: 'right',
+            overlay: false
+          },
+          plotArea: {
+            showBubbleSize: true,
+            showCatName: false,
+            showLeaderLines: false,
+            showPercent: true,
+            showSerName: false,
+            showVal: true
+          },
+          dataLabels: {
+            showBubbleSize: true,
+            showCatName: true,
+            showLeaderLines: true,
+            showLegendKey: true,
+            showPercent: true,
+            showSerName: true,
+            showVal: true
+          }
+        });
+
+        usuariosChart.addSeries({
+          categories: `A${usuariosTableStartRow + 1}:A${usuariosTableStartRow + chartData.pieChartData.length}`,
+          values: `B${usuariosTableStartRow + 1}:B${usuariosTableStartRow + chartData.pieChartData.length}`,
+          name: 'Usuarios por Cargo'
+        });
+
+        // Posicionar la gráfica
+        sheet.addChart(usuariosChart, {
+          tl: { col: 4, row: usuariosTableStartRow - 1 },
+          br: { col: 10, row: usuariosTableStartRow + 15 }
+        });
+      } catch (chartError) {
+        console.log('Error creando gráfica de usuarios:', chartError.message);
+        // Continuar sin la gráfica
       }
-    });
-
-    usuariosChart.addSeries({
-      categories: `A${usuariosTableStartRow + 1}:A${usuariosTableStartRow + chartData.pieChartData.length}`,
-      values: `B${usuariosTableStartRow + 1}:B${usuariosTableStartRow + chartData.pieChartData.length}`,
-      name: 'Usuarios por Cargo'
-    });
-
-    // Posicionar la gráfica
-    sheet.addChart(usuariosChart, {
-      tl: { col: 4, row: usuariosTableStartRow - 1 },
-      br: { col: 10, row: usuariosTableStartRow + 15 }
-    });
+    }
 
     // Crear tabla de datos para gráfica de torta de progreso
     const progresoTableStartRow = usuariosTableStartRow + chartData.pieChartData.length + 20;
@@ -552,6 +567,13 @@ class ExcelReportService {
     
     sheet.getCell(documentosTableStartRow - 1, 1).value = 'Distribución de Documentos por Cargo';
     sheet.getCell(documentosTableStartRow - 1, 1).font = { bold: true, size: 14 };
+
+    } catch (error) {
+      console.error('Error creando hoja de gráficas:', error);
+      // Si hay error, crear una hoja simple con solo tablas
+      sheet.getCell('A3').value = 'Error generando gráficas. Mostrando solo datos tabulares.';
+      sheet.getCell('A3').font = { size: 12, italic: true, color: { argb: 'FFFF0000' } };
+    }
   }
 
   // Calcular estadísticas
