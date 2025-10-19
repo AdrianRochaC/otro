@@ -48,19 +48,62 @@ class ExcelReportService {
     return workbook;
   }
 
+  // Agregar logo de la empresa al reporte
+  async addCompanyLogo(sheet) {
+    try {
+      // Usar la imagen fija del proyecto
+      const logoPath = './public/image.jpg';
+      
+      console.log('🖼️ Intentando agregar logo:', logoPath);
+      
+      // Verificar si el archivo existe
+      const fs = require('fs');
+      const path = require('path');
+      
+      if (fs.existsSync(logoPath)) {
+        console.log('✅ Logo encontrado, agregando al reporte...');
+        
+        // Agregar imagen al workbook
+        const imageId = this.workbook.addImage({
+          filename: logoPath,
+          extension: 'jpeg'
+        });
+        
+        // Insertar imagen en la esquina superior izquierda
+        sheet.addImage(imageId, {
+          tl: { col: 0, row: 0 },
+          br: { col: 2, row: 3 },
+          editAs: 'oneCell'
+        });
+        
+        console.log('🎉 Logo agregado exitosamente');
+        return true;
+      } else {
+        console.log('⚠️ Logo no encontrado en:', logoPath);
+        return false;
+      }
+    } catch (error) {
+      console.error('❌ Error agregando logo:', error.message);
+      return false;
+    }
+  }
+
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Título principal
-    sheet.mergeCells('A1:H1');
-    const titleCell = sheet.getCell('A1');
+    // Intentar agregar logo de la empresa
+    await this.addCompanyLogo(sheet);
+    
+    // Título principal (ajustado para dejar espacio al logo)
+    sheet.mergeCells('D1:H1');
+    const titleCell = sheet.getCell('D1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Información de fecha
-    sheet.mergeCells('A2:H2');
-    const dateCell = sheet.getCell('A2');
+    // Información de fecha (ajustada para no superponerse con el logo)
+    sheet.mergeCells('D2:H2');
+    const dateCell = sheet.getCell('D2');
     dateCell.value = `Generado el: ${new Date().toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long', 
@@ -86,11 +129,11 @@ class ExcelReportService {
       ['Cargos con Mayor Actividad', stats.cargoMasActivo, 'Cargo con más usuarios asignados']
     ];
 
-    // Aplicar datos a la hoja
+    // Aplicar datos a la hoja (ajustado para no superponerse con el logo)
     statsData.forEach((row, index) => {
       const rowNum = 4 + index;
       row.forEach((cell, colIndex) => {
-        const cellRef = sheet.getCell(rowNum, colIndex + 1);
+        const cellRef = sheet.getCell(rowNum, colIndex + 4); // +4 para empezar en columna D
         cellRef.value = cell;
         
         if (index === 0) { // Encabezados
@@ -107,15 +150,18 @@ class ExcelReportService {
       });
     });
 
-    // Ajustar ancho de columnas
+    // Ajustar ancho de columnas (ajustado para el logo)
     sheet.columns = [
-      { width: 25 },
-      { width: 15 },
-      { width: 40 }
+      { width: 15 }, // Columna A - espacio para logo
+      { width: 15 }, // Columna B - espacio para logo
+      { width: 15 }, // Columna C - espacio para logo
+      { width: 25 }, // Columna D - métricas
+      { width: 15 }, // Columna E - valores
+      { width: 40 }  // Columna F - descripciones
     ];
 
-    // Agregar bordes a la tabla
-    const tableRange = `A4:C${3 + statsData.length}`;
+    // Agregar bordes a la tabla (ajustado para no superponerse con el logo)
+    const tableRange = `D4:F${3 + statsData.length}`;
     this.addBorders(sheet, tableRange);
 
     // Espaciado final
@@ -124,9 +170,12 @@ class ExcelReportService {
 
   // Crear hoja de datos detallados
   async createDataSheet(sheet, cargosData) {
-    // Título
-    sheet.mergeCells('A1:H1');
-    const titleCell = sheet.getCell('A1');
+    // Intentar agregar logo de la empresa
+    await this.addCompanyLogo(sheet);
+    
+    // Título (ajustado para dejar espacio al logo)
+    sheet.mergeCells('D1:H1');
+    const titleCell = sheet.getCell('D1');
     titleCell.value = 'DATOS DETALLADOS DE CARGOS';
     titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF70AD47' } };
@@ -194,9 +243,12 @@ class ExcelReportService {
       console.log('🎯 INICIANDO CREACIÓN DE BARRAS VISUALES...');
       console.log('📊 Datos recibidos:', cargosData?.length || 0, 'cargos');
       
-      // Título
-      sheet.mergeCells('A1:H1');
-      const titleCell = sheet.getCell('A1');
+      // Intentar agregar logo de la empresa
+      await this.addCompanyLogo(sheet);
+      
+      // Título (ajustado para dejar espacio al logo)
+      sheet.mergeCells('D1:H1');
+      const titleCell = sheet.getCell('D1');
       titleCell.value = 'ANÁLISIS GRÁFICO DE CARGOS';
       titleCell.font = { size: 16, bold: true, color: { argb: 'FFFFFFFF' } };
       titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFE74C3C' } };
@@ -205,8 +257,8 @@ class ExcelReportService {
       // Verificar que hay datos
       if (!cargosData || cargosData.length === 0) {
         console.log('❌ No hay datos de cargos');
-        sheet.getCell('A3').value = 'No hay datos disponibles para generar gráficas';
-        sheet.getCell('A3').font = { size: 14, italic: true };
+        sheet.getCell('D3').value = 'No hay datos disponibles para generar gráficas';
+        sheet.getCell('D3').font = { size: 14, italic: true };
         return;
       }
 
@@ -215,13 +267,13 @@ class ExcelReportService {
       const chartData = this.prepareChartData(cargosData);
       console.log('📊 Datos preparados:', chartData);
 
-      // Crear tabla de datos para gráfica de torta de progreso
+      // Crear tabla de datos para gráfica de torta de progreso (ajustada para el logo)
       const progresoTableStartRow = 3;
       const progresoHeaders = ['Cargo', 'Progreso Promedio (%)'];
       
       console.log('📋 Creando tabla de progreso...');
       progresoHeaders.forEach((header, index) => {
-        const cell = sheet.getCell(progresoTableStartRow, index + 1);
+        const cell = sheet.getCell(progresoTableStartRow, index + 4); // +4 para empezar en columna D
         cell.value = header;
         cell.font = { bold: true };
         cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
@@ -230,8 +282,8 @@ class ExcelReportService {
       console.log('📊 Datos de progreso:', chartData.progresoData);
       chartData.progresoData.forEach((item, index) => {
         const row = progresoTableStartRow + 1 + index;
-        sheet.getCell(row, 1).value = item.cargo;
-        sheet.getCell(row, 2).value = item.progreso;
+        sheet.getCell(row, 4).value = item.cargo; // +4 para empezar en columna D
+        sheet.getCell(row, 5).value = item.progreso; // +4 para empezar en columna D
         console.log(`📝 Fila ${row}: ${item.cargo} - ${item.progreso}%`);
       });
 
@@ -244,9 +296,9 @@ class ExcelReportService {
         // Agregar columnas adicionales para barras visuales
         const visualHeaders = ['Cargo', 'Progreso (%)', 'Barra Visual', 'Estado'];
         
-        // Recrear encabezados con más columnas
+        // Recrear encabezados con más columnas (ajustado para el logo)
         visualHeaders.forEach((header, index) => {
-          const cell = sheet.getCell(progresoTableStartRow, index + 1);
+          const cell = sheet.getCell(progresoTableStartRow, index + 4); // +4 para empezar en columna D
           cell.value = header;
           cell.font = { bold: true };
           cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FFF2F2F2' } };
@@ -274,26 +326,29 @@ class ExcelReportService {
           if (progreso < 60) estado = 'Regular';
           if (progreso < 40) estado = 'Necesita Mejora';
           
-          // Llenar datos
-          sheet.getCell(row, 1).value = item.cargo;
-          sheet.getCell(row, 2).value = progreso;
-          sheet.getCell(row, 3).value = bar;
-          sheet.getCell(row, 4).value = estado;
+          // Llenar datos (ajustado para el logo)
+          sheet.getCell(row, 4).value = item.cargo; // +4 para empezar en columna D
+          sheet.getCell(row, 5).value = progreso;   // +4 para empezar en columna D
+          sheet.getCell(row, 6).value = bar;        // +4 para empezar en columna D
+          sheet.getCell(row, 7).value = estado;     // +4 para empezar en columna D
           
           // Aplicar colores
-          sheet.getCell(row, 2).font = { bold: true, color: { argb: color } };
-          sheet.getCell(row, 3).font = { color: { argb: color } };
-          sheet.getCell(row, 4).font = { bold: true, color: { argb: color } };
+          sheet.getCell(row, 5).font = { bold: true, color: { argb: color } };
+          sheet.getCell(row, 6).font = { color: { argb: color } };
+          sheet.getCell(row, 7).font = { bold: true, color: { argb: color } };
           
           console.log(`📊 ${item.cargo}: ${progreso}% - ${estado}`);
         });
         
-        // Ajustar ancho de columnas
+        // Ajustar ancho de columnas (ajustado para el logo)
         sheet.columns = [
-          { width: 25 }, // Cargo
-          { width: 12 }, // Progreso
-          { width: 25 }, // Barra visual
-          { width: 18 }  // Estado
+          { width: 15 }, // Columna A - espacio para logo
+          { width: 15 }, // Columna B - espacio para logo
+          { width: 15 }, // Columna C - espacio para logo
+          { width: 25 }, // Columna D - Cargo
+          { width: 12 }, // Columna E - Progreso
+          { width: 25 }, // Columna F - Barra visual
+          { width: 18 }  // Columna G - Estado
         ];
         
         console.log('🎉 ¡BARRAS VISUALES CREADAS EXITOSAMENTE!');
@@ -302,12 +357,12 @@ class ExcelReportService {
         console.log('⚠️ No hay datos de progreso');
       }
 
-      // Agregar bordes a la tabla
-      this.addBorders(sheet, `A${progresoTableStartRow}:D${progresoTableStartRow + chartData.progresoData.length}`);
+      // Agregar bordes a la tabla (ajustado para el logo)
+      this.addBorders(sheet, `D${progresoTableStartRow}:G${progresoTableStartRow + chartData.progresoData.length}`);
 
-      // Agregar título de la visualización
-      sheet.getCell(progresoTableStartRow - 1, 1).value = '📊 Progreso Promedio por Cargo (Barras Visuales)';
-      sheet.getCell(progresoTableStartRow - 1, 1).font = { bold: true, size: 14 };
+      // Agregar título de la visualización (ajustado para el logo)
+      sheet.getCell(progresoTableStartRow - 1, 4).value = '📊 Progreso Promedio por Cargo (Barras Visuales)';
+      sheet.getCell(progresoTableStartRow - 1, 4).font = { bold: true, size: 14 };
       
       console.log('✅ Hoja de gráficas completada exitosamente');
 
@@ -317,9 +372,9 @@ class ExcelReportService {
       console.error('❌ Error stack:', error.stack);
       console.error('❌ Error name:', error.name);
       
-      // Si hay error, crear una hoja simple con solo tablas
-      sheet.getCell('A3').value = `Error generando gráficas: ${error.message}`;
-      sheet.getCell('A3').font = { size: 12, italic: true, color: { argb: 'FFFF0000' } };
+          // Si hay error, crear una hoja simple con solo tablas
+          sheet.getCell('D3').value = `Error generando gráficas: ${error.message}`;
+          sheet.getCell('D3').font = { size: 12, italic: true, color: { argb: 'FFFF0000' } };
     }
   }
 

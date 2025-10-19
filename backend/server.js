@@ -311,6 +311,7 @@ const documentUpload = multer({
 // Servir documentos como archivos estáticos
 app.use('/uploads/documents', express.static(documentsDir));
 
+
 // Endpoint para subir documento (con asignación múltiple)
 app.post('/api/documents', verifyToken, documentUpload.single('document'), async (req, res) => {
   try {
@@ -1963,6 +1964,7 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
     console.log('🎯 === INICIANDO GENERACIÓN DE REPORTE EXCEL ===');
     console.log('👤 Usuario:', req.user);
     console.log('🔑 Rol del usuario:', req.user.rol);
+    
     
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
