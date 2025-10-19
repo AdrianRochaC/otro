@@ -1,5 +1,4 @@
 const ExcelJS = require('exceljs');
-const path = require('path');
 const { getCargoMetrics } = require('./cargosMetrics.js');
 
 class ExcelReportService {
@@ -49,83 +48,20 @@ class ExcelReportService {
     return workbook;
   }
 
-  // Agregar logo de la empresa al reporte
-  async addCompanyLogo(sheet) {
-    try {
-      // Usar la imagen fija del proyecto (ruta correcta desde el backend)
-      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
-      
-      // También intentar ruta alternativa
-      const altLogoPath = './public/image.jpg';
-      
-      console.log('🖼️ Intentando agregar logo:', logoPath);
-      
-      // Verificar si el archivo existe
-      const fs = require('fs');
-      
-      // Intentar ambas rutas
-      let finalLogoPath = null;
-      if (fs.existsSync(logoPath)) {
-        finalLogoPath = logoPath;
-        console.log('✅ Logo encontrado en ruta principal:', logoPath);
-      } else if (fs.existsSync(altLogoPath)) {
-        finalLogoPath = altLogoPath;
-        console.log('✅ Logo encontrado en ruta alternativa:', altLogoPath);
-      }
-      
-      if (finalLogoPath) {
-        console.log('✅ Logo encontrado, agregando al reporte...');
-        
-        // Agregar imagen al workbook
-        const imageId = this.workbook.addImage({
-          filename: finalLogoPath,
-          extension: 'jpeg'
-        });
-        
-        console.log('🖼️ ImageId generado:', imageId);
-        
-        // Insertar imagen en la esquina superior izquierda
-        sheet.addImage(imageId, {
-          tl: { col: 0, row: 0 },
-          br: { col: 2, row: 3 },
-          editAs: 'oneCell'
-        });
-        
-        console.log('🎉 Logo agregado exitosamente en posición A1:C3');
-        return true;
-      } else {
-        console.log('⚠️ Logo no encontrado en ninguna ruta:');
-        console.log('⚠️ Ruta principal:', logoPath);
-        console.log('⚠️ Ruta alternativa:', altLogoPath);
-        return false;
-      }
-    } catch (error) {
-      console.error('❌ Error agregando logo:', error.message);
-      return false;
-    }
-  }
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo de la empresa solo en la primera hoja
-    try {
-      const logoAdded = await this.addCompanyLogo(sheet);
-      console.log('🖼️ Logo agregado en resumen:', logoAdded);
-    } catch (error) {
-      console.log('⚠️ Error agregando logo, continuando sin logo:', error.message);
-    }
-    
-    // Título principal (ajustado para el logo)
-    sheet.mergeCells('D1:H1');
-    const titleCell = sheet.getCell('D1');
+    // Título principal
+    sheet.mergeCells('A1:H1');
+    const titleCell = sheet.getCell('A1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Información de fecha (ajustada para el logo)
-    sheet.mergeCells('D2:H2');
-    const dateCell = sheet.getCell('D2');
+    // Información de fecha
+    sheet.mergeCells('A2:H2');
+    const dateCell = sheet.getCell('A2');
     dateCell.value = `Generado el: ${new Date().toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long', 
@@ -151,11 +87,11 @@ class ExcelReportService {
       ['Cargos con Mayor Actividad', stats.cargoMasActivo, 'Cargo con más usuarios asignados']
     ];
 
-    // Aplicar datos a la hoja (ajustado para el logo)
+    // Aplicar datos a la hoja
     statsData.forEach((row, index) => {
       const rowNum = 4 + index;
       row.forEach((cell, colIndex) => {
-        const cellRef = sheet.getCell(rowNum, colIndex + 4); // +4 para empezar en columna D
+        const cellRef = sheet.getCell(rowNum, colIndex + 1);
         cellRef.value = cell;
         
         if (index === 0) { // Encabezados
@@ -172,18 +108,15 @@ class ExcelReportService {
       });
     });
 
-    // Ajustar ancho de columnas (ajustado para el logo)
+    // Ajustar ancho de columnas
     sheet.columns = [
-      { width: 15 }, // Columna A - espacio para logo
-      { width: 15 }, // Columna B - espacio para logo
-      { width: 15 }, // Columna C - espacio para logo
-      { width: 25 }, // Columna D - métricas
-      { width: 15 }, // Columna E - valores
-      { width: 40 }  // Columna F - descripciones
+      { width: 25 },
+      { width: 15 },
+      { width: 40 }
     ];
 
-    // Agregar bordes a la tabla (ajustado para el logo)
-    const tableRange = `D4:F${3 + statsData.length}`;
+    // Agregar bordes a la tabla
+    const tableRange = `A4:C${3 + statsData.length}`;
     this.addBorders(sheet, tableRange);
 
     // Espaciado final
