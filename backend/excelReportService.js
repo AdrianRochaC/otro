@@ -231,36 +231,7 @@ class ExcelReportService {
       try {
         const usuariosChart = sheet.addChart({
           type: 'pie',
-          name: 'Distribución de Usuarios por Cargo',
-          title: {
-            name: 'Distribución de Usuarios por Cargo',
-            overlay: false,
-            layout: {
-              x: 0.1,
-              y: 0.1
-            }
-          },
-          legend: {
-            position: 'right',
-            overlay: false
-          },
-          plotArea: {
-            showBubbleSize: true,
-            showCatName: false,
-            showLeaderLines: false,
-            showPercent: true,
-            showSerName: false,
-            showVal: true
-          },
-          dataLabels: {
-            showBubbleSize: true,
-            showCatName: true,
-            showLeaderLines: true,
-            showLegendKey: true,
-            showPercent: true,
-            showSerName: true,
-            showVal: true
-          }
+          name: 'Distribución de Usuarios por Cargo'
         });
 
         usuariosChart.addSeries({
@@ -300,36 +271,7 @@ class ExcelReportService {
     // Crear gráfica de torta de progreso
     const progresoChart = sheet.addChart({
       type: 'pie',
-      name: 'Progreso Promedio por Cargo',
-      title: {
-        name: 'Progreso Promedio por Cargo',
-        overlay: false,
-        layout: {
-          x: 0.1,
-          y: 0.1
-        }
-      },
-      legend: {
-        position: 'right',
-        overlay: false
-      },
-      plotArea: {
-        showBubbleSize: true,
-        showCatName: false,
-        showLeaderLines: false,
-        showPercent: true,
-        showSerName: false,
-        showVal: true
-      },
-      dataLabels: {
-        showBubbleSize: true,
-        showCatName: true,
-        showLeaderLines: true,
-        showLegendKey: true,
-        showPercent: true,
-        showSerName: true,
-        showVal: true
-      }
+      name: 'Progreso Promedio por Cargo'
     });
 
     progresoChart.addSeries({
@@ -364,36 +306,7 @@ class ExcelReportService {
     // Crear gráfica de torta de cursos
     const cursosChart = sheet.addChart({
       type: 'pie',
-      name: 'Distribución de Cursos por Cargo',
-      title: {
-        name: 'Distribución de Cursos por Cargo',
-        overlay: false,
-        layout: {
-          x: 0.1,
-          y: 0.1
-        }
-      },
-      legend: {
-        position: 'right',
-        overlay: false
-      },
-      plotArea: {
-        showBubbleSize: true,
-        showCatName: false,
-        showLeaderLines: false,
-        showPercent: true,
-        showSerName: false,
-        showVal: true
-      },
-      dataLabels: {
-        showBubbleSize: true,
-        showCatName: true,
-        showLeaderLines: true,
-        showLegendKey: true,
-        showPercent: true,
-        showSerName: true,
-        showVal: true
-      }
+      name: 'Distribución de Cursos por Cargo'
     });
 
     cursosChart.addSeries({
@@ -428,36 +341,7 @@ class ExcelReportService {
     // Crear gráfica de torta de estado de usuarios
     const estadoChart = sheet.addChart({
       type: 'pie',
-      name: 'Estado de Usuarios por Cargo',
-      title: {
-        name: 'Estado de Usuarios por Cargo',
-        overlay: false,
-        layout: {
-          x: 0.1,
-          y: 0.1
-        }
-      },
-      legend: {
-        position: 'right',
-        overlay: false
-      },
-      plotArea: {
-        showBubbleSize: true,
-        showCatName: false,
-        showLeaderLines: false,
-        showPercent: true,
-        showSerName: false,
-        showVal: true
-      },
-      dataLabels: {
-        showBubbleSize: true,
-        showCatName: true,
-        showLeaderLines: true,
-        showLegendKey: true,
-        showPercent: true,
-        showSerName: true,
-        showVal: true
-      }
+      name: 'Estado de Usuarios por Cargo'
     });
 
     estadoChart.addSeries({
@@ -492,36 +376,7 @@ class ExcelReportService {
     // Crear gráfica de torta de documentos
     const documentosChart = sheet.addChart({
       type: 'pie',
-      name: 'Distribución de Documentos por Cargo',
-      title: {
-        name: 'Distribución de Documentos por Cargo',
-        overlay: false,
-        layout: {
-          x: 0.1,
-          y: 0.1
-        }
-      },
-      legend: {
-        position: 'right',
-        overlay: false
-      },
-      plotArea: {
-        showBubbleSize: true,
-        showCatName: false,
-        showLeaderLines: false,
-        showPercent: true,
-        showSerName: false,
-        showVal: true
-      },
-      dataLabels: {
-        showBubbleSize: true,
-        showCatName: true,
-        showLeaderLines: true,
-        showLegendKey: true,
-        showPercent: true,
-        showSerName: true,
-        showVal: true
-      }
+      name: 'Distribución de Documentos por Cargo'
     });
 
     documentosChart.addSeries({
