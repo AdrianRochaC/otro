@@ -1,4 +1,6 @@
+console.log('📦 Cargando excel4node...');
 const xl = require('excel4node');
+console.log('✅ excel4node cargado correctamente');
 const path = require('path');
 const fs = require('fs');
 const { getCargoMetrics } = require('./cargosMetrics.js');
@@ -24,28 +26,28 @@ class ExcelReportServiceNew {
       
       console.log('✅ Workbook creado exitosamente');
 
-    // Crear hoja principal de resumen
-    const summarySheet = workbook.addWorksheet('Resumen Ejecutivo', {
-      tabColor: '4472C4'
-    });
-
-    // Crear hoja de datos detallados
-    const dataSheet = workbook.addWorksheet('Datos Detallados', {
-      tabColor: '70AD47'
-    });
-
-    // Crear hoja de gráficas
-    const chartsSheet = workbook.addWorksheet('Gráficas', {
-      tabColor: 'E74C3C'
-    });
-
-    // Crear hoja individual para cada cargo
-    for (const cargo of cargosData) {
-      const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
-        tabColor: '9B59B6'
+      // Crear hoja principal de resumen
+      const summarySheet = workbook.addWorksheet('Resumen Ejecutivo', {
+        tabColor: '4472C4'
       });
-      await this.createIndividualCargoSheet(cargoSheet, cargo);
-    }
+
+      // Crear hoja de datos detallados
+      const dataSheet = workbook.addWorksheet('Datos Detallados', {
+        tabColor: '70AD47'
+      });
+
+      // Crear hoja de gráficas
+      const chartsSheet = workbook.addWorksheet('Gráficas', {
+        tabColor: 'E74C3C'
+      });
+
+      // Crear hoja individual para cada cargo
+      for (const cargo of cargosData) {
+        const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
+          tabColor: '9B59B6'
+        });
+        await this.createIndividualCargoSheet(cargoSheet, cargo);
+      }
 
       // Generar contenido de las hojas
       console.log('📋 Creando hoja de resumen...');
@@ -72,34 +74,34 @@ class ExcelReportServiceNew {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo de la empresa (temporalmente deshabilitado para debug)
-    // try {
-    //   const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
-    //   console.log('🖼️ Buscando logo en:', logoPath);
-    //   
-    //   if (fs.existsSync(logoPath)) {
-    //     console.log('✅ Logo encontrado, agregando...');
-    //     
-    //     // Agregar imagen en la esquina superior izquierda
-    //     sheet.addImage({
-    //       path: logoPath,
-    //       type: 'picture',
-    //       position: {
-    //         type: 'absolute',
-    //         x: 10,
-    //         y: 10
-    //       },
-    //       width: 150,
-    //       height: 100
-    //     });
-    //     
-    //     console.log('🎉 Logo agregado exitosamente');
-    //   } else {
-    //     console.log('⚠️ Logo no encontrado en:', logoPath);
-    //   }
-    // } catch (error) {
-    //   console.log('❌ Error agregando logo:', error.message);
-    // }
+    // Agregar logo de la empresa
+    try {
+      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
+      console.log('🖼️ Buscando logo en:', logoPath);
+      
+      if (fs.existsSync(logoPath)) {
+        console.log('✅ Logo encontrado, agregando...');
+        
+        // Agregar imagen en la esquina superior izquierda
+        sheet.addImage({
+          path: logoPath,
+          type: 'picture',
+          position: {
+            type: 'absolute',
+            x: 10,
+            y: 10
+          },
+          width: 150,
+          height: 100
+        });
+        
+        console.log('🎉 Logo agregado exitosamente');
+      } else {
+        console.log('⚠️ Logo no encontrado en:', logoPath);
+      }
+    } catch (error) {
+      console.log('❌ Error agregando logo:', error.message);
+    }
     
     // Título principal
     sheet.cell(1, 1, 1, 8, true).string('REPORTE EJECUTIVO - GESTIÓN DE CARGOS')

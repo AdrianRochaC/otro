@@ -21,7 +21,9 @@ const {
 const { getCargoMetrics } = require('./cargosMetrics.js');
 
 // Importar servicio de reportes Excel
+console.log('📦 Cargando servicio de reportes Excel...');
 const excelReportService = require('./excelReportServiceNew.js');
+console.log('✅ Servicio de reportes Excel cargado:', excelReportService.constructor.name);
 
 // Importar servicio de video y OpenAI
 const videoProcessor = require('./videoProcessor.js');
@@ -1964,7 +1966,7 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
     console.log('🎯 === INICIANDO GENERACIÓN DE REPORTE EXCEL ===');
     console.log('👤 Usuario:', req.user);
     console.log('🔑 Rol del usuario:', req.user.rol);
-    
+    console.log('📅 Timestamp:', new Date().toISOString());
     
     // Verificar que el usuario sea admin
     if (req.user.rol !== 'Admin') {
@@ -1980,6 +1982,7 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
     console.log('🔌 Conectando a la base de datos...');
     const connection = await createConnection();
     console.log('✅ Conexión a BD exitosa');
+    console.log('🔗 Configuración BD:', dbConfig.host, dbConfig.database);
     
     // Obtener datos completos de cargos con estadísticas detalladas
     console.log('📊 Ejecutando consulta SQL...');
@@ -2022,38 +2025,57 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
     
     console.log('📋 Cargos obtenidos:', cargos.length);
     console.log('📊 Primer cargo:', cargos[0]);
+    console.log('📊 Estructura de datos:', Object.keys(cargos[0] || {}));
     
     await connection.end();
     console.log('🔌 Conexión cerrada');
 
     // Generar reporte Excel
     console.log('📊 Iniciando generación de reporte Excel...');
+    console.log('📦 Usando servicio:', excelReportService.constructor.name);
     let buffer;
     try {
+      console.log('🔄 Llamando a generateCargosReport...');
       const workbook = await excelReportService.generateCargosReport(cargos);
+      console.log('✅ generateCargosReport completado');
       console.log('📊 Reporte generado, creando buffer...');
+      console.log('🔄 Llamando a generateExcelBuffer...');
       buffer = await excelReportService.generateExcelBuffer(workbook);
+      console.log('✅ generateExcelBuffer completado');
       console.log('📊 Buffer creado, tamaño:', buffer.length, 'bytes');
+      console.log('📊 Tipo de buffer:', typeof buffer);
+      console.log('📊 Buffer es Buffer?', Buffer.isBuffer(buffer));
     } catch (excelError) {
       console.error('❌ ERROR EN GENERACIÓN DE EXCEL:', excelError);
       console.error('❌ Error message:', excelError.message);
       console.error('❌ Error stack:', excelError.stack);
+      console.error('❌ Error name:', excelError.name);
+      console.error('❌ Error code:', excelError.code);
       throw excelError;
     }
 
     // Configurar headers para descarga
     const fileName = `Reporte_Cargos_${new Date().toISOString().split('T')[0]}.xlsx`;
+    console.log('📁 Nombre del archivo:', fileName);
     
+    console.log('📤 Configurando headers de respuesta...');
     res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
     res.setHeader('Content-Disposition', `attachment; filename="${fileName}"`);
     res.setHeader('Content-Length', buffer.length);
+    console.log('✅ Headers configurados');
     
+    console.log('📤 Enviando buffer al cliente...');
     res.send(buffer);
+    console.log('✅ Buffer enviado exitosamente');
+    console.log('🎉 === REPORTE EXCEL COMPLETADO ===');
 
   } catch (error) {
     console.error('❌ ERROR GENERANDO REPORTE EXCEL:', error);
     console.error('❌ Error message:', error.message);
     console.error('❌ Error stack:', error.stack);
+    console.error('❌ Error name:', error.name);
+    console.error('❌ Error code:', error.code);
+    console.error('❌ Timestamp del error:', new Date().toISOString());
     res.status(500).json({
       success: false,
       message: 'Error generando reporte Excel'
