@@ -225,7 +225,11 @@ const Layout = ({ children }) => {
       <Chatbot />
       
       {/* Badge de rol visible en todas las páginas */}
-      {user && <RoleBadge />}
+      {user && (
+        <div style={{ position: 'fixed', top: '20px', right: '20px', zIndex: 1000 }}>
+          <RoleBadge />
+        </div>
+      )}
     </div>
   );
 };
