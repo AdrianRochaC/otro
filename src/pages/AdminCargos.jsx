@@ -42,6 +42,7 @@ const AdminCargos = () => {
   const [descripcion, setDescripcion] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredCargos, setFilteredCargos] = useState([]);
+  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   
   // Estados para el formulario de edición
   const [editNombre, setEditNombre] = useState('');
@@ -226,8 +227,16 @@ const AdminCargos = () => {
   };
 
   // Función para manejar el input y mostrar la lista
-  const handleNombreChange = (value) => {
+  const handleNombreChange = (e) => {
+    const value = e.target.value;
     setNombre(value);
+    
+    // Recalcular posición del dropdown
+    const inputRect = e.target.getBoundingClientRect();
+    setDropdownPosition({
+      top: inputRect.bottom + window.scrollY + 5,
+      left: inputRect.left + window.scrollX
+    });
     
     if (value.length > 0) {
       // Filtrar cargos según el texto ingresado
@@ -243,10 +252,18 @@ const AdminCargos = () => {
   };
 
   // Función para mostrar la lista cuando se hace focus en el input
-  const handleInputFocus = () => {
+  const handleInputFocus = (e) => {
     if (filteredCargos.length === 0) {
       setFilteredCargos(CARGOS_PREDEFINIDOS);
     }
+    
+    // Calcular posición del dropdown
+    const inputRect = e.target.getBoundingClientRect();
+    setDropdownPosition({
+      top: inputRect.bottom + window.scrollY + 5,
+      left: inputRect.left + window.scrollX
+    });
+    
     setShowDropdown(true);
   };
 
@@ -452,7 +469,13 @@ const AdminCargos = () => {
                   autoComplete="off"
                 />
                 {showDropdown && filteredCargos.length > 0 && (
-                  <div className="dropdown-list">
+                  <div 
+                    className="dropdown-list"
+                    style={{
+                      top: `${dropdownPosition.top}px`,
+                      left: `${dropdownPosition.left}px`
+                    }}
+                  >
                     {filteredCargos.map((cargo, index) => (
                       <div
                         key={index}
