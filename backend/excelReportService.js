@@ -33,13 +33,13 @@ class ExcelReportService {
       properties: { tabColor: { argb: 'FFE74C3C' } }
     });
 
-    // Crear hoja individual para cada cargo (temporalmente deshabilitado para evitar errores)
-    // for (const cargo of cargosData) {
-    //   const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
-    //     properties: { tabColor: { argb: 'FF9B59B6' } }
-    //   });
-    //   await this.createIndividualCargoSheet(cargoSheet, cargo);
-    // }
+    // Crear hoja individual para cada cargo
+    for (const cargo of cargosData) {
+      const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
+        properties: { tabColor: { argb: 'FF9B59B6' } }
+      });
+      await this.createIndividualCargoSheet(cargoSheet, cargo);
+    }
 
     // Generar contenido de las hojas
     await this.createSummarySheet(summarySheet, cargosData);
@@ -107,21 +107,25 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Intentar agregar logo de la empresa (temporalmente deshabilitado)
-    // const logoAdded = await this.addCompanyLogo(sheet);
-    // console.log('🖼️ Logo agregado en resumen:', logoAdded);
+    // Agregar logo de la empresa solo en la primera hoja
+    try {
+      const logoAdded = await this.addCompanyLogo(sheet);
+      console.log('🖼️ Logo agregado en resumen:', logoAdded);
+    } catch (error) {
+      console.log('⚠️ Error agregando logo, continuando sin logo:', error.message);
+    }
     
-    // Título principal (volviendo a posición original)
-    sheet.mergeCells('A1:H1');
-    const titleCell = sheet.getCell('A1');
+    // Título principal (ajustado para el logo)
+    sheet.mergeCells('D1:H1');
+    const titleCell = sheet.getCell('D1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Información de fecha (volviendo a posición original)
-    sheet.mergeCells('A2:H2');
-    const dateCell = sheet.getCell('A2');
+    // Información de fecha (ajustada para el logo)
+    sheet.mergeCells('D2:H2');
+    const dateCell = sheet.getCell('D2');
     dateCell.value = `Generado el: ${new Date().toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long', 
@@ -147,11 +151,11 @@ class ExcelReportService {
       ['Cargos con Mayor Actividad', stats.cargoMasActivo, 'Cargo con más usuarios asignados']
     ];
 
-    // Aplicar datos a la hoja (volviendo a posición original)
+    // Aplicar datos a la hoja (ajustado para el logo)
     statsData.forEach((row, index) => {
       const rowNum = 4 + index;
       row.forEach((cell, colIndex) => {
-        const cellRef = sheet.getCell(rowNum, colIndex + 1); // Volviendo a columna A
+        const cellRef = sheet.getCell(rowNum, colIndex + 4); // +4 para empezar en columna D
         cellRef.value = cell;
         
         if (index === 0) { // Encabezados
@@ -168,15 +172,18 @@ class ExcelReportService {
       });
     });
 
-    // Ajustar ancho de columnas (volviendo a configuración original)
+    // Ajustar ancho de columnas (ajustado para el logo)
     sheet.columns = [
-      { width: 25 }, // Columna A - métricas
-      { width: 15 }, // Columna B - valores
-      { width: 40 }  // Columna C - descripciones
+      { width: 15 }, // Columna A - espacio para logo
+      { width: 15 }, // Columna B - espacio para logo
+      { width: 15 }, // Columna C - espacio para logo
+      { width: 25 }, // Columna D - métricas
+      { width: 15 }, // Columna E - valores
+      { width: 40 }  // Columna F - descripciones
     ];
 
-    // Agregar bordes a la tabla (volviendo a configuración original)
-    const tableRange = `A4:C${3 + statsData.length}`;
+    // Agregar bordes a la tabla (ajustado para el logo)
+    const tableRange = `D4:F${3 + statsData.length}`;
     this.addBorders(sheet, tableRange);
 
     // Espaciado final
