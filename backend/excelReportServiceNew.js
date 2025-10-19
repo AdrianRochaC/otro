@@ -10,13 +10,19 @@ class ExcelReportServiceNew {
 
   // Crear reporte completo de cargos con gráficas
   async generateCargosReport(cargosData) {
-    const workbook = new xl.Workbook();
-    
-    // Configurar propiedades del workbook
-    workbook.creator = 'Sistema de Gestión Educativa';
-    workbook.lastModifiedBy = 'Sistema';
-    workbook.created = new Date();
-    workbook.modified = new Date();
+    try {
+      console.log('🎯 INICIANDO GENERACIÓN CON EXCEL4NODE...');
+      console.log('📊 Datos recibidos:', cargosData?.length || 0, 'cargos');
+      
+      const workbook = new xl.Workbook();
+      
+      // Configurar propiedades del workbook
+      workbook.creator = 'Sistema de Gestión Educativa';
+      workbook.lastModifiedBy = 'Sistema';
+      workbook.created = new Date();
+      workbook.modified = new Date();
+      
+      console.log('✅ Workbook creado exitosamente');
 
     // Crear hoja principal de resumen
     const summarySheet = workbook.addWorksheet('Resumen Ejecutivo', {
@@ -41,44 +47,59 @@ class ExcelReportServiceNew {
       await this.createIndividualCargoSheet(cargoSheet, cargo);
     }
 
-    // Generar contenido de las hojas
-    await this.createSummarySheet(summarySheet, cargosData);
-    await this.createDataSheet(dataSheet, cargosData);
-    await this.createChartsSheet(chartsSheet, cargosData);
+      // Generar contenido de las hojas
+      console.log('📋 Creando hoja de resumen...');
+      await this.createSummarySheet(summarySheet, cargosData);
+      console.log('✅ Hoja de resumen creada');
+      
+      console.log('📋 Creando hoja de datos...');
+      await this.createDataSheet(dataSheet, cargosData);
+      console.log('✅ Hoja de datos creada');
+      
+      console.log('📋 Creando hoja de gráficas...');
+      await this.createChartsSheet(chartsSheet, cargosData);
+      console.log('✅ Hoja de gráficas creada');
 
-    return workbook;
+      console.log('🎉 Reporte generado exitosamente con excel4node');
+      return workbook;
+    } catch (error) {
+      console.error('❌ ERROR EN GENERACIÓN CON EXCEL4NODE:', error);
+      console.error('❌ Error message:', error.message);
+      console.error('❌ Error stack:', error.stack);
+      throw error;
+    }
   }
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Agregar logo de la empresa
-    try {
-      const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
-      console.log('🖼️ Buscando logo en:', logoPath);
-      
-      if (fs.existsSync(logoPath)) {
-        console.log('✅ Logo encontrado, agregando...');
-        
-        // Agregar imagen en la esquina superior izquierda
-        sheet.addImage({
-          path: logoPath,
-          type: 'picture',
-          position: {
-            type: 'absolute',
-            x: 10,
-            y: 10
-          },
-          width: 150,
-          height: 100
-        });
-        
-        console.log('🎉 Logo agregado exitosamente');
-      } else {
-        console.log('⚠️ Logo no encontrado en:', logoPath);
-      }
-    } catch (error) {
-      console.log('❌ Error agregando logo:', error.message);
-    }
+    // Agregar logo de la empresa (temporalmente deshabilitado para debug)
+    // try {
+    //   const logoPath = path.join(__dirname, '..', 'public', 'image.jpg');
+    //   console.log('🖼️ Buscando logo en:', logoPath);
+    //   
+    //   if (fs.existsSync(logoPath)) {
+    //     console.log('✅ Logo encontrado, agregando...');
+    //     
+    //     // Agregar imagen en la esquina superior izquierda
+    //     sheet.addImage({
+    //       path: logoPath,
+    //       type: 'picture',
+    //       position: {
+    //         type: 'absolute',
+    //         x: 10,
+    //         y: 10
+    //       },
+    //       width: 150,
+    //       height: 100
+    //     });
+    //     
+    //     console.log('🎉 Logo agregado exitosamente');
+    //   } else {
+    //     console.log('⚠️ Logo no encontrado en:', logoPath);
+    //   }
+    // } catch (error) {
+    //   console.log('❌ Error agregando logo:', error.message);
+    // }
     
     // Título principal
     sheet.cell(1, 1, 1, 8, true).string('REPORTE EJECUTIVO - GESTIÓN DE CARGOS')
@@ -477,7 +498,15 @@ class ExcelReportServiceNew {
 
   // Generar buffer del Excel
   async generateExcelBuffer(workbook) {
-    return await workbook.writeToBuffer();
+    try {
+      console.log('📊 Generando buffer con excel4node...');
+      const buffer = await workbook.writeToBuffer();
+      console.log('✅ Buffer generado exitosamente, tamaño:', buffer.length, 'bytes');
+      return buffer;
+    } catch (error) {
+      console.error('❌ Error generando buffer:', error.message);
+      throw error;
+    }
   }
 }
 
