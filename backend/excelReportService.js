@@ -33,13 +33,13 @@ class ExcelReportService {
       properties: { tabColor: { argb: 'FFE74C3C' } }
     });
 
-    // Crear hoja individual para cada cargo
-    for (const cargo of cargosData) {
-      const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
-        properties: { tabColor: { argb: 'FF9B59B6' } }
-      });
-      await this.createIndividualCargoSheet(cargoSheet, cargo);
-    }
+    // Crear hoja individual para cada cargo (temporalmente deshabilitado para evitar errores)
+    // for (const cargo of cargosData) {
+    //   const cargoSheet = workbook.addWorksheet(`Cargo_${cargo.nombre.replace(/[^a-zA-Z0-9]/g, '_')}`, {
+    //     properties: { tabColor: { argb: 'FF9B59B6' } }
+    //   });
+    //   await this.createIndividualCargoSheet(cargoSheet, cargo);
+    // }
 
     // Generar contenido de las hojas
     await this.createSummarySheet(summarySheet, cargosData);
