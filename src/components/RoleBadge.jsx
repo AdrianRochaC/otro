@@ -12,7 +12,7 @@ const RoleBadge = memo(() => {
   // Configuración simple
   const config = isAdmin 
     ? { icon: '👑', text: 'Administrador', className: 'admin' }
-    : { icon: '👤', text: 'Empleado', className: 'employee' };
+    : { icon: '💼', text: 'Empleado', className: 'employee' };
 
   return (
     <div className={`role-badge ${config.className}`}>
