@@ -42,6 +42,7 @@ const AdminCargos = () => {
   const [descripcion, setDescripcion] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredCargos, setFilteredCargos] = useState([]);
+  const [dropdownOpen, setDropdownOpen] = useState(false);
   
   // Estados para el formulario de edición
   const [editNombre, setEditNombre] = useState('');
@@ -240,6 +241,7 @@ const AdminCargos = () => {
     setDescripcion('');
     setShowDropdown(false);
     setFilteredCargos([]);
+    setDropdownOpen(false);
   };
 
   // Función para manejar el input y mostrar la lista
@@ -258,6 +260,7 @@ const AdminCargos = () => {
       setFilteredCargos(CARGOS_PREDEFINIDOS);
     }
     setShowDropdown(true);
+    setDropdownOpen(true);
   };
 
   // Función para mostrar la lista cuando se hace focus en el input
@@ -266,6 +269,7 @@ const AdminCargos = () => {
       setFilteredCargos(CARGOS_PREDEFINIDOS);
     }
     setShowDropdown(true);
+    setDropdownOpen(true);
   };
 
   // Función para seleccionar un cargo de la lista
@@ -274,12 +278,14 @@ const AdminCargos = () => {
     setDescripcion(cargo.descripcion);
     setShowDropdown(false);
     setFilteredCargos([]);
+    setDropdownOpen(false);
   };
 
   // Función para cerrar el dropdown
   const closeDropdown = () => {
     setTimeout(() => {
       setShowDropdown(false);
+      setDropdownOpen(false);
     }, 200);
   };
 
@@ -485,7 +491,7 @@ const AdminCargos = () => {
               </div>
             </div>
             
-            <div className="form-group form-group-description">
+            <div className={`form-group form-group-description ${dropdownOpen ? 'dropdown-open' : ''}`}>
               <label htmlFor="descripcion">Descripción *</label>
               <textarea
                 id="descripcion"

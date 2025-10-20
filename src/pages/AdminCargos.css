@@ -399,7 +399,12 @@
 }
 
 .form-group-description {
-  margin-top: 4rem !important;
+  margin-top: 2rem !important;
+  transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.form-group-description.dropdown-open {
+  margin-top: 12rem !important;
 }
 
 .form-group label {
