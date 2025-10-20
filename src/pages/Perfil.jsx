@@ -20,6 +20,10 @@ const Perfil = () => {
         // Debug: mostrar información del usuario
         console.log('👤 Usuario cargado:', userData);
         console.log('🔑 Rol del usuario:', userData.rol);
+        console.log('🔍 Tipo de rol:', typeof userData.rol);
+        console.log('🔍 Rol es undefined?', userData.rol === undefined);
+        console.log('🔍 Rol es null?', userData.rol === null);
+        console.log('🔍 Rol es string vacío?', userData.rol === '');
         
         setUser(userData);
 
@@ -60,7 +64,24 @@ const Perfil = () => {
           <div className="perfil-info">
             <div className="info-row"><span className="info-label">Nombre:</span><span className="info-value">{user.nombre}</span></div>
             <div className="info-row"><span className="info-label">Email:</span><span className="info-value">{user.email}</span></div>
-            <div className="info-row"><span className="info-label">Rol:</span><span className="info-value role-badge">{user.rol || 'Sin rol asignado'}</span></div>
+            <div className="info-row">
+              <span className="info-label">Rol:</span>
+              <span className="info-value role-badge" style={{ 
+                backgroundColor: '#007bff', 
+                color: 'white', 
+                padding: '4px 12px', 
+                borderRadius: '20px',
+                fontSize: '0.9rem',
+                fontWeight: '600',
+                border: '2px solid #0056b3'
+              }}>
+                {(() => {
+                  console.log('🎨 Renderizando rol:', user.rol);
+                  console.log('🎨 Rol existe?', !!user.rol);
+                  return user.rol || 'Sin rol asignado';
+                })()}
+              </span>
+            </div>
           </div>
         </div>
 
