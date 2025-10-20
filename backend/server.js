@@ -1836,8 +1836,20 @@ app.get('/api/bitacora', verifyToken, async (req, res) => {
           console.log(`👥 Tarea ${tarea.id}: usuarios activos encontrados =`, usuariosActivos.length);
           
           if (usuariosActivos.length > 0) {
-            tareasFiltradas.push(tarea);
-            console.log(`✅ Tarea ${tarea.id}: incluida en resultado`);
+            // Obtener información completa de todos los usuarios asignados (activos e inactivos) para mostrar nombres
+            const [usuariosAsignados] = await connection.execute(
+              `SELECT id, nombre, activo FROM usuarios WHERE id IN (${placeholders})`,
+              asignados
+            );
+            
+            // Crear objeto con información de usuarios asignados
+            const tareaConUsuarios = {
+              ...tarea,
+              usuariosAsignados: usuariosAsignados
+            };
+            
+            tareasFiltradas.push(tareaConUsuarios);
+            console.log(`✅ Tarea ${tarea.id}: incluida en resultado con usuarios:`, usuariosAsignados.map(u => `${u.nombre}(${u.activo ? 'activo' : 'inactivo'})`));
           } else {
             console.log(`❌ Tarea ${tarea.id}: excluida (sin usuarios activos)`);
           }

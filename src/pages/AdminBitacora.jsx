@@ -226,6 +226,18 @@ const AdminBitacora = () => {
                               <span className="no-asignados">Sin asignar</span>
                             ) : (
                               asignados.map((id) => {
+                                // Primero intentar usar la información del backend
+                                const userFromBackend = t.usuariosAsignados?.find((u) => u.id === id);
+                                if (userFromBackend) {
+                                  return (
+                                    <span key={id} className={`asignado-badge ${userFromBackend.activo ? 'activo' : 'inactivo'}`}>
+                                      <FaUser /> {userFromBackend.nombre}
+                                      {!userFromBackend.activo && <span className="status-indicator"> (Inactivo)</span>}
+                                    </span>
+                                  );
+                                }
+                                
+                                // Fallback: buscar en la lista local de usuarios
                                 const user = usuarios.find((u) => u.id === id);
                                 return (
                                   <span key={id} className="asignado-badge">
