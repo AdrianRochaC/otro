@@ -18,9 +18,9 @@ async function getCargoMetrics(cargoId) {
     
     const cargo = cargoInfo[0];
     
-    // Obtener total de usuarios en este cargo
+    // Obtener total de usuarios activos en este cargo
     const usuariosResult = await executeQuery(
-      'SELECT COUNT(*) as total FROM usuarios WHERE cargo_id = ?',
+      'SELECT COUNT(*) as total FROM usuarios WHERE cargo_id = ? AND activo = 1',
       [cargoId]
     );
     
@@ -48,7 +48,7 @@ async function getCargoMetrics(cargoId) {
         END
       ), 0) as promedio FROM course_progress cp 
       JOIN usuarios u ON cp.user_id = u.id 
-      WHERE u.cargo_id = ?`,
+      WHERE u.cargo_id = ? AND u.activo = 1`,
       [cargoId]
     );
     
@@ -89,7 +89,7 @@ async function getCargoStats(cargoId) {
         id, nombre, email, rol, activo, fecha_registro,
         (SELECT COUNT(*) FROM course_progress WHERE user_id = usuarios.id) as cursos_asignados,
         (SELECT COUNT(*) FROM course_progress WHERE user_id = usuarios.id AND evaluation_status = 'aprobado') as cursos_aprobados
-      FROM usuarios WHERE cargo_id = ? ORDER BY nombre ASC
+      FROM usuarios WHERE cargo_id = ? AND activo = 1 ORDER BY nombre ASC
     `, [cargoId]);
 
     // Estadísticas de cursos
@@ -106,8 +106,8 @@ async function getCargoStats(cargoId) {
       SELECT 
         c.*,
         (SELECT COUNT(*) FROM questions WHERE course_id = c.id) as total_preguntas,
-        (SELECT COUNT(DISTINCT user_id) FROM course_progress WHERE course_id = c.id) as usuarios_asignados,
-        (SELECT COUNT(DISTINCT user_id) FROM course_progress WHERE course_id = c.id AND evaluation_status = 'aprobado') as usuarios_aprobados
+        (SELECT COUNT(DISTINCT cp.user_id) FROM course_progress cp JOIN usuarios u ON cp.user_id = u.id WHERE cp.course_id = c.id AND u.activo = 1) as usuarios_asignados,
+        (SELECT COUNT(DISTINCT cp.user_id) FROM course_progress cp JOIN usuarios u ON cp.user_id = u.id WHERE cp.course_id = c.id AND u.activo = 1 AND cp.evaluation_status = 'aprobado') as usuarios_aprobados
       FROM courses c WHERE c.role = ? ORDER BY c.created_at DESC
     `, [cargo.nombre]);
 
@@ -130,7 +130,7 @@ async function getCargoStats(cargoId) {
         u.nombre as subido_por
       FROM documents d
       JOIN document_targets dt ON d.id = dt.document_id
-      LEFT JOIN usuarios u ON d.user_id = u.id
+      LEFT JOIN usuarios u ON d.user_id = u.id AND u.activo = 1
       WHERE dt.target_type = 'role' AND dt.target_value = ?
       ORDER BY d.created_at DESC
     `, [cargo.nombre]);
@@ -153,7 +153,7 @@ async function getCargoStats(cargoId) {
         ), 0) as promedio_puntuacion
       FROM course_progress cp
       JOIN usuarios u ON cp.user_id = u.id
-      WHERE u.cargo_id = ?
+      WHERE u.cargo_id = ? AND u.activo = 1
     `, [cargoId]);
 
     return {
@@ -175,7 +175,7 @@ async function getAllCargosStats() {
     const cargos = await executeQuery(`
       SELECT 
         c.*,
-        COUNT(DISTINCT u.id) as total_empleados,
+        COUNT(DISTINCT CASE WHEN u.activo = 1 THEN u.id END) as total_empleados,
         COUNT(CASE WHEN u.activo = 1 THEN 1 END) as empleados_activos,
         (SELECT COUNT(*) FROM courses WHERE role = c.nombre) as total_cursos,
         (SELECT COUNT(DISTINCT d.id) FROM documents d 
@@ -183,10 +183,10 @@ async function getAllCargosStats() {
          WHERE dt.target_type = 'role' AND dt.target_value = c.nombre) as total_documentos,
         (SELECT COUNT(*) FROM course_progress cp 
          JOIN usuarios u2 ON cp.user_id = u2.id 
-         WHERE u2.cargo_id = c.id AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
+         WHERE u2.cargo_id = c.id AND u2.activo = 1 AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
         (SELECT COUNT(*) FROM course_progress cp 
          JOIN usuarios u2 ON cp.user_id = u2.id 
-         WHERE u2.cargo_id = c.id AND cp.video_completed = 1) as videos_completados,
+         WHERE u2.cargo_id = c.id AND u2.activo = 1 AND cp.video_completed = 1) as videos_completados,
         (SELECT COALESCE(ROUND(AVG(
           CASE 
             WHEN cp.evaluation_score IS NOT NULL AND cp.evaluation_total > 0 
@@ -197,7 +197,7 @@ async function getAllCargosStats() {
           END
         ), 2), 0) FROM course_progress cp 
          JOIN usuarios u3 ON cp.user_id = u3.id 
-         WHERE u3.cargo_id = c.id) as promedio_progreso
+         WHERE u3.cargo_id = c.id AND u3.activo = 1) as promedio_progreso
       FROM cargos c
       LEFT JOIN usuarios u ON c.id = u.cargo_id
       GROUP BY c.id

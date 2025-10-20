@@ -1717,6 +1717,7 @@ app.get('/api/progress/all', verifyToken, async (req, res) => {
        FROM course_progress cp
        JOIN usuarios u ON cp.user_id = u.id
        JOIN courses c ON cp.course_id = c.id
+       WHERE u.activo = 1
        ORDER BY cp.updated_at DESC`
     );
 
@@ -1987,7 +1988,7 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
     const [cargos] = await connection.execute(`
       SELECT 
         c.*,
-        COUNT(DISTINCT u.id) as usuarios_count,
+        COUNT(DISTINCT CASE WHEN u.activo = 1 THEN u.id END) as usuarios_count,
         COUNT(CASE WHEN u.activo = 1 THEN 1 END) as usuarios_activos,
         COUNT(CASE WHEN u.activo = 0 THEN 1 END) as usuarios_inactivos,
         (SELECT COUNT(*) FROM courses WHERE role = c.nombre) as cursos_count,
@@ -1996,7 +1997,7 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
          WHERE dt.target_type = 'role' AND dt.target_value = c.nombre) as documentos_count,
         (SELECT COUNT(*) FROM course_progress cp 
          JOIN usuarios u2 ON cp.user_id = u2.id 
-         WHERE u2.cargo_id = c.id AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
+         WHERE u2.cargo_id = c.id AND u2.activo = 1 AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
         (SELECT ROUND(AVG(
           CASE 
             WHEN cp.evaluation_score IS NOT NULL AND cp.evaluation_total > 0 
@@ -2005,16 +2006,16 @@ app.get('/api/cargos/reporte-excel', verifyToken, async (req, res) => {
           END
         ), 2) FROM course_progress cp 
          JOIN usuarios u3 ON cp.user_id = u3.id 
-         WHERE u3.cargo_id = c.id) as promedio_progreso,
+         WHERE u3.cargo_id = c.id AND u3.activo = 1) as promedio_progreso,
         (SELECT ROUND(AVG(cp.attempts_used), 2) FROM course_progress cp 
          JOIN usuarios u4 ON cp.user_id = u4.id 
-         WHERE u4.cargo_id = c.id AND cp.attempts_used > 0) as intentos_promedio,
+         WHERE u4.cargo_id = c.id AND u4.activo = 1 AND cp.attempts_used > 0) as intentos_promedio,
         (SELECT ROUND(
           (COUNT(CASE WHEN cp.evaluation_status = 'aprobado' THEN 1 END) * 100.0 / 
            NULLIF(COUNT(cp.id), 0)), 2
         ) FROM course_progress cp 
          JOIN usuarios u5 ON cp.user_id = u5.id 
-         WHERE u5.cargo_id = c.id) as tasa_aprobacion
+         WHERE u5.cargo_id = c.id AND u5.activo = 1) as tasa_aprobacion
       FROM cargos c
       LEFT JOIN usuarios u ON u.cargo_id = c.id
       GROUP BY c.id
@@ -2108,7 +2109,7 @@ app.get('/api/cargos/:id/reporte-excel', verifyToken, async (req, res) => {
          WHERE dt.target_type = 'role' AND dt.target_value = c.nombre) as documentos_count,
         (SELECT COUNT(*) FROM course_progress cp 
          JOIN usuarios u2 ON cp.user_id = u2.id 
-         WHERE u2.cargo_id = c.id AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
+         WHERE u2.cargo_id = c.id AND u2.activo = 1 AND cp.evaluation_status = 'aprobado') as cursos_aprobados,
         (SELECT ROUND(AVG(
           CASE 
             WHEN cp.evaluation_score IS NOT NULL AND cp.evaluation_total > 0 
@@ -2117,16 +2118,16 @@ app.get('/api/cargos/:id/reporte-excel', verifyToken, async (req, res) => {
           END
         ), 2) FROM course_progress cp 
          JOIN usuarios u3 ON cp.user_id = u3.id 
-         WHERE u3.cargo_id = c.id) as promedio_progreso,
+         WHERE u3.cargo_id = c.id AND u3.activo = 1) as promedio_progreso,
         (SELECT ROUND(AVG(cp.attempts_used), 2) FROM course_progress cp 
          JOIN usuarios u4 ON cp.user_id = u4.id 
-         WHERE u4.cargo_id = c.id AND cp.attempts_used > 0) as intentos_promedio,
+         WHERE u4.cargo_id = c.id AND u4.activo = 1 AND cp.attempts_used > 0) as intentos_promedio,
         (SELECT ROUND(
           (COUNT(CASE WHEN cp.evaluation_status = 'aprobado' THEN 1 END) * 100.0 / 
            NULLIF(COUNT(cp.id), 0)), 2
         ) FROM course_progress cp 
          JOIN usuarios u5 ON cp.user_id = u5.id 
-         WHERE u5.cargo_id = c.id) as tasa_aprobacion
+         WHERE u5.cargo_id = c.id AND u5.activo = 1) as tasa_aprobacion
       FROM cargos c
       LEFT JOIN usuarios u ON u.cargo_id = c.id
       WHERE c.id = ?
@@ -2418,9 +2419,9 @@ app.get('/api/stats/general', verifyToken, async (req, res) => {
         (SELECT COUNT(*) FROM courses) as total_cursos,
         (SELECT COUNT(*) FROM cargos) as total_cargos,
         (SELECT COUNT(*) FROM documents) as total_documentos,
-        (SELECT COUNT(*) FROM course_progress WHERE video_completed = 1) as videos_completados,
-        (SELECT COUNT(*) FROM course_progress WHERE evaluation_status = 'aprobado') as evaluaciones_aprobadas,
-        (SELECT COUNT(*) FROM course_progress WHERE evaluation_status = 'reprobado') as evaluaciones_reprobadas,
+        (SELECT COUNT(*) FROM course_progress cp JOIN usuarios u ON cp.user_id = u.id WHERE cp.video_completed = 1 AND u.activo = 1) as videos_completados,
+        (SELECT COUNT(*) FROM course_progress cp JOIN usuarios u ON cp.user_id = u.id WHERE cp.evaluation_status = 'aprobado' AND u.activo = 1) as evaluaciones_aprobadas,
+        (SELECT COUNT(*) FROM course_progress cp JOIN usuarios u ON cp.user_id = u.id WHERE cp.evaluation_status = 'reprobado' AND u.activo = 1) as evaluaciones_reprobadas,
         (SELECT COALESCE(ROUND(AVG(
           CASE 
             WHEN evaluation_score IS NOT NULL AND evaluation_total > 0 
@@ -2429,7 +2430,7 @@ app.get('/api/stats/general', verifyToken, async (req, res) => {
             THEN 50
             ELSE 0 
           END
-        ), 2), 0) FROM course_progress) as progreso_promedio_general
+        ), 2), 0) FROM course_progress cp JOIN usuarios u ON cp.user_id = u.id WHERE u.activo = 1) as progreso_promedio_general
     `);
     
     await connection.end();
