@@ -464,16 +464,17 @@
 }
 
 .dropdown-list {
-  position: fixed;
-  background: white;
-  border: 2px solid #007bff;
-  border-radius: 8px;
-  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-  z-index: 99999;
+  position: fixed !important;
+  background: white !important;
+  border: 2px solid #007bff !important;
+  border-radius: 8px !important;
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4) !important;
+  z-index: 999999 !important;
   max-height: 300px;
   overflow-y: auto;
   min-width: 400px;
   max-width: 500px;
+  pointer-events: auto !important;
 }
 
 .dropdown-item {

@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaDownload, FaUsers, FaGraduationCap, FaFileAlt } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import './AdminCargos.css';
@@ -51,6 +52,23 @@ const AdminCargos = () => {
   useEffect(() => {
     fetchCargos();
   }, []);
+
+  // Efecto para cerrar el dropdown cuando se hace clic fuera
+  useEffect(() => {
+    const handleClickOutside = (event) => {
+      if (showDropdown && !event.target.closest('.dropdown-container') && !event.target.closest('.dropdown-list')) {
+        setShowDropdown(false);
+      }
+    };
+
+    if (showDropdown) {
+      document.addEventListener('mousedown', handleClickOutside);
+    }
+
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, [showDropdown]);
 
   const fetchCargos = async () => {
     try {
@@ -468,7 +486,7 @@ const AdminCargos = () => {
                   required
                   autoComplete="off"
                 />
-                {showDropdown && filteredCargos.length > 0 && (
+                {showDropdown && filteredCargos.length > 0 && createPortal(
                   <div 
                     className="dropdown-list"
                     style={{
@@ -486,7 +504,8 @@ const AdminCargos = () => {
                         <div className="cargo-description">{cargo.descripcion}</div>
                       </div>
                     ))}
-                  </div>
+                  </div>,
+                  document.body
                 )}
               </div>
             </div>
