@@ -503,8 +503,8 @@
   top: 100%;
   left: 0;
   right: 0;
-  background: white;
-  border: 2px solid #007bff;
+  background: var(--bg-card);
+  border: 2px solid var(--primary-color);
   border-radius: 8px;
   box-shadow: 0 10px 30px rgba(0, 0, 0, 0.4);
   z-index: 999999;
@@ -516,7 +516,7 @@
 .dropdown-item {
   padding: 10px 16px;
   cursor: pointer;
-  border-bottom: 1px solid #f0f0f0;
+  border-bottom: 1px solid var(--border-primary);
   transition: background-color 0.2s ease;
 }
 
@@ -525,7 +525,7 @@
 }
 
 .dropdown-item:hover {
-  background-color: #f8f9fa;
+  background-color: var(--bg-card-hover);
 }
 
 .cargo-name {
@@ -548,21 +548,21 @@
 }
 
 .dropdown-item.predefined {
-  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.1) 0%, rgba(14, 165, 233, 0.05) 100%);
   border-left: 3px solid #0ea5e9;
 }
 
 .dropdown-item.existing {
-  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.1) 0%, rgba(245, 158, 11, 0.05) 100%);
   border-left: 3px solid #f59e0b;
 }
 
 .dropdown-item.predefined:hover {
-  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+  background: linear-gradient(135deg, rgba(14, 165, 233, 0.2) 0%, rgba(14, 165, 233, 0.1) 100%);
 }
 
 .dropdown-item.existing:hover {
-  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
+  background: linear-gradient(135deg, rgba(245, 158, 11, 0.2) 0%, rgba(245, 158, 11, 0.1) 100%);
 }
 
 .cargo-description {

@@ -17,6 +17,10 @@ const Perfil = () => {
       const token = localStorage.getItem("authToken");
 
       if (userData && token) {
+        // Debug: mostrar información del usuario
+        console.log('👤 Usuario cargado:', userData);
+        console.log('🔑 Rol del usuario:', userData.rol);
+        
         setUser(userData);
 
         // Obtener progreso
@@ -29,12 +33,12 @@ const Perfil = () => {
         const result = await response.json();
         if (result.success) {
           setProgress(result.progress);
-          // LOG
         }
       }
 
       setLoading(false);
     } catch (error) {
+      console.error('❌ Error cargando datos del usuario:', error);
       setLoading(false);
     }
   };
@@ -56,7 +60,7 @@ const Perfil = () => {
           <div className="perfil-info">
             <div className="info-row"><span className="info-label">Nombre:</span><span className="info-value">{user.nombre}</span></div>
             <div className="info-row"><span className="info-label">Email:</span><span className="info-value">{user.email}</span></div>
-            <div className="info-row"><span className="info-label">Rol:</span><span className="info-value role-badge">{user.rol}</span></div>
+            <div className="info-row"><span className="info-label">Rol:</span><span className="info-value role-badge">{user.rol || 'Sin rol asignado'}</span></div>
           </div>
         </div>
 
@@ -65,13 +69,13 @@ const Perfil = () => {
           <h2>Información de la Cuenta</h2>
           <div className="perfil-info">
             <div className="info-row"><span className="info-label">Estado:</span><span className="info-value status-active">✅ Activa</span></div>
-            <div className="info-row"><span className="info-label">Tipo de Usuario:</span><span className="info-value">{user.rol === 'Admin' ? 'Administrador del Sistema' : 'Usuario Estándar'}</span></div>
-            <div className="info-row"><span className="info-label">Permisos:</span><span className="info-value">{user.rol === 'Admin' ? 'Control total del sistema' : 'Acceso a cursos y funcionalidades básicas'}</span></div>
+            <div className="info-row"><span className="info-label">Tipo de Usuario:</span><span className="info-value">{user.rol === 'Admin' || user.rol === 'Admin del Sistema' ? 'Administrador del Sistema' : 'Usuario Estándar'}</span></div>
+            <div className="info-row"><span className="info-label">Permisos:</span><span className="info-value">{user.rol === 'Admin' || user.rol === 'Admin del Sistema' ? 'Control total del sistema' : 'Acceso a cursos y funcionalidades básicas'}</span></div>
           </div>
         </div>
 
         {/* Progreso solo si no es Admin */}
-        {user.rol !== 'Admin' && (
+        {user.rol !== 'Admin' && user.rol !== 'Admin del Sistema' && (
           <div className="perfil-card">
             <h2 style={{ marginBottom: '1rem' }}>📈 Progreso de Cursos</h2>
             {progress.length === 0 ? (
