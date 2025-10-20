@@ -485,7 +485,7 @@ const AdminCargos = () => {
               </div>
             </div>
             
-            <div className="form-group">
+            <div className="form-group form-group-description">
               <label htmlFor="descripcion">Descripción *</label>
               <textarea
                 id="descripcion"

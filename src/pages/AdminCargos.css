@@ -394,6 +394,14 @@
   position: relative;
 }
 
+.form-group:last-of-type {
+  margin-top: 3rem;
+}
+
+.form-group-description {
+  margin-top: 4rem !important;
+}
+
 .form-group label {
   display: block;
   margin-bottom: 0.75rem;
