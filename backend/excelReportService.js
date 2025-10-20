@@ -63,8 +63,8 @@ class ExcelReportService {
           base64: logoBase64,
           extension: 'jpeg',
         });
-        // Logo más cuadrado en esquina superior izquierda
-        sheet.addImage(logo, 'A1:C3');
+        // Logo solo en columna A
+        sheet.addImage(logo, 'A1:A4');
         console.log('✅ Logo agregado exitosamente al Excel');
       } else {
         console.log('⚠️ Logo no encontrado en:', logoPath);
@@ -74,16 +74,16 @@ class ExcelReportService {
     }
 
     // Título principal (centrado, a la derecha del logo)
-    sheet.mergeCells('D1:H1');
-    const titleCell = sheet.getCell('D1');
+    sheet.mergeCells('B1:H1');
+    const titleCell = sheet.getCell('B1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
     // Información de fecha (centrada, abajo del título)
-    sheet.mergeCells('D2:H2');
-    const dateCell = sheet.getCell('D2');
+    sheet.mergeCells('B2:H2');
+    const dateCell = sheet.getCell('B2');
     dateCell.value = `Generado el: ${new Date().toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long', 
