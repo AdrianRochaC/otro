@@ -478,7 +478,6 @@ const AdminCargos = () => {
                         onClick={() => selectCargo(cargo)}
                       >
                         <div className="cargo-name">{cargo.nombre}</div>
-                        <div className="cargo-description">{cargo.descripcion}</div>
                       </div>
                     ))}
                   </div>
