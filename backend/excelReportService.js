@@ -55,13 +55,13 @@ class ExcelReportService {
   async createSummarySheet(sheet, cargosData) {
     // Agregar logo (más pequeño y en esquina)
     try {
-      const logoPath = path.join(__dirname, '../public/image.jpg');
+      const logoPath = path.join(__dirname, '../public/logoExcel.png');
       if (fs.existsSync(logoPath)) {
         const logoBuffer = fs.readFileSync(logoPath);
         const logoBase64 = logoBuffer.toString('base64');
         const logo = sheet.workbook.addImage({
           base64: logoBase64,
-          extension: 'jpeg',
+          extension: 'png',
         });
         // Logo solo en columna A
         sheet.addImage(logo, 'A1:A4');
@@ -149,13 +149,13 @@ class ExcelReportService {
   async createDataSheet(sheet, cargosData) {
     // Agregar logo en las otras hojas
     try {
-      const logoPath = path.join(__dirname, '../public/image.jpg');
+      const logoPath = path.join(__dirname, '../public/logoExcel.png');
       if (fs.existsSync(logoPath)) {
         const logoBuffer = fs.readFileSync(logoPath);
         const logoBase64 = logoBuffer.toString('base64');
         const logo = sheet.workbook.addImage({
           base64: logoBase64,
-          extension: 'jpeg',
+          extension: 'png',
         });
         // Logo en J1:K4 para hojas secundarias
         sheet.addImage(logo, 'J1:K4');
@@ -241,13 +241,13 @@ class ExcelReportService {
       
       // Agregar logo en la hoja de gráficas
       try {
-        const logoPath = path.join(__dirname, '../public/image.jpg');
+        const logoPath = path.join(__dirname, '../public/logoExcel.png');
         if (fs.existsSync(logoPath)) {
           const logoBuffer = fs.readFileSync(logoPath);
           const logoBase64 = logoBuffer.toString('base64');
           const logo = sheet.workbook.addImage({
             base64: logoBase64,
-            extension: 'jpeg',
+            extension: 'png',
           });
           // Logo en J1:K4 para hojas secundarias
           sheet.addImage(logo, 'J1:K4');
@@ -499,13 +499,13 @@ class ExcelReportService {
   async createIndividualCargoSheet(sheet, cargo) {
     // Agregar logo en hojas individuales de cargos
     try {
-      const logoPath = path.join(__dirname, '../public/image.jpg');
+      const logoPath = path.join(__dirname, '../public/logoExcel.png');
       if (fs.existsSync(logoPath)) {
         const logoBuffer = fs.readFileSync(logoPath);
         const logoBase64 = logoBuffer.toString('base64');
         const logo = sheet.workbook.addImage({
           base64: logoBase64,
-          extension: 'jpeg',
+          extension: 'png',
         });
         // Logo en J1:K4 para hojas secundarias
         sheet.addImage(logo, 'J1:K4');
