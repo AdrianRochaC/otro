@@ -1,5 +1,7 @@
 const ExcelJS = require('exceljs');
 const { getCargoMetrics } = require('./cargosMetrics.js');
+const fs = require('fs');
+const path = require('path');
 
 class ExcelReportService {
   constructor() {
@@ -51,17 +53,36 @@ class ExcelReportService {
 
   // Crear hoja de resumen ejecutivo
   async createSummarySheet(sheet, cargosData) {
-    // Título principal
-    sheet.mergeCells('A1:H1');
-    const titleCell = sheet.getCell('A1');
+    // Agregar logo
+    try {
+      const logoPath = path.join(__dirname, '../public/image.jpg');
+      if (fs.existsSync(logoPath)) {
+        const logoBuffer = fs.readFileSync(logoPath);
+        const logoBase64 = logoBuffer.toString('base64');
+        const logo = sheet.workbook.addImage({
+          base64: logoBase64,
+          extension: 'jpeg',
+        });
+        sheet.addImage(logo, 'A1:C3');
+        console.log('✅ Logo agregado exitosamente al Excel');
+      } else {
+        console.log('⚠️ Logo no encontrado en:', logoPath);
+      }
+    } catch (error) {
+      console.error('❌ Error agregando logo:', error.message);
+    }
+
+    // Título principal (mover a la derecha del logo)
+    sheet.mergeCells('D1:H1');
+    const titleCell = sheet.getCell('D1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
-    // Información de fecha
-    sheet.mergeCells('A2:H2');
-    const dateCell = sheet.getCell('A2');
+    // Información de fecha (mover abajo del logo)
+    sheet.mergeCells('A4:H4');
+    const dateCell = sheet.getCell('A4');
     dateCell.value = `Generado el: ${new Date().toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long', 
@@ -73,7 +94,7 @@ class ExcelReportService {
     dateCell.alignment = { horizontal: 'center' };
 
     // Espaciado
-    sheet.getRow(3).height = 20;
+    sheet.getRow(5).height = 20;
 
     // Resumen estadístico
     const stats = this.calculateStatistics(cargosData);
@@ -89,7 +110,7 @@ class ExcelReportService {
 
     // Aplicar datos a la hoja
     statsData.forEach((row, index) => {
-      const rowNum = 4 + index;
+      const rowNum = 6 + index;
       row.forEach((cell, colIndex) => {
         const cellRef = sheet.getCell(rowNum, colIndex + 1);
         cellRef.value = cell;
@@ -116,11 +137,11 @@ class ExcelReportService {
     ];
 
     // Agregar bordes a la tabla
-    const tableRange = `A4:C${3 + statsData.length}`;
+    const tableRange = `A6:C${5 + statsData.length}`;
     this.addBorders(sheet, tableRange);
 
     // Espaciado final
-    sheet.getRow(4 + statsData.length + 2).height = 20;
+    sheet.getRow(6 + statsData.length + 2).height = 20;
   }
 
   // Crear hoja de datos detallados
