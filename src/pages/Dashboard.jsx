@@ -48,8 +48,8 @@ const Dashboard = () => {
     return acc;
   }, {});
 
-  // Filtrar usuarios: solo los que no son admin ni Admin
-  let nonAdminUsers = users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin');
+  // Filtrar usuarios: solo los que no son admin ni Admin y están activos
+  let nonAdminUsers = users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin' && u.activo === 1);
   // Filtro por cargo
   if (cargoFiltro !== 'todos') {
     nonAdminUsers = nonAdminUsers.filter(u => u.rol === cargoFiltro);
@@ -117,7 +117,7 @@ const Dashboard = () => {
           <label style={{ fontWeight: 500, marginRight: 8 }}>Filtrar por cargo:</label>
           <select value={cargoFiltro} onChange={e => setCargoFiltro(e.target.value)} style={{ padding: '0.4rem 1rem', borderRadius: 8, border: '1.5px solid #bcd2f7', fontSize: '1rem' }}>
             <option value="todos">Todos</option>
-            {[...new Set(users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin').map(u => u.rol))].map(rol => (
+            {[...new Set(users.filter(u => u.rol !== 'admin' && u.rol !== 'Admin' && u.activo === 1).map(u => u.rol))].map(rol => (
               <option key={rol} value={rol}>{rol.charAt(0).toUpperCase() + rol.slice(1)}</option>
             ))}
           </select>

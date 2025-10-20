@@ -44,7 +44,7 @@ const openai = new OpenAI({
 });
 
 // Middleware para verificar JWT (compatible con versiones antiguas)
-function verifyToken(req, res, next) {
+async function verifyToken(req, res, next) {
   var authHeader = req.headers.authorization;
   var token = authHeader ? authHeader.split(' ')[1] : null;
 
@@ -57,6 +57,26 @@ function verifyToken(req, res, next) {
 
   try {
     var decoded = jwt.verify(token, JWT_SECRET);
+    
+    // Verificar que el usuario sigue activo
+    const connection = await createConnection();
+    const [userRows] = await connection.execute('SELECT id, activo FROM usuarios WHERE id = ?', [decoded.id]);
+    await connection.end();
+    
+    if (userRows.length === 0) {
+      return res.status(401).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+    
+    if (!userRows[0].activo) {
+      return res.status(403).json({
+        success: false,
+        message: 'Usuario desactivado'
+      });
+    }
+    
     req.user = decoded;
     next();
   } catch (error) {
