@@ -1,5 +1,4 @@
 import React, { useState, useEffect } from 'react';
-import { createPortal } from 'react-dom';
 import { FaPlus, FaEdit, FaTrash, FaEye, FaDownload, FaUsers, FaGraduationCap, FaFileAlt } from 'react-icons/fa';
 import Modal from '../components/Modal';
 import './AdminCargos.css';
@@ -43,7 +42,6 @@ const AdminCargos = () => {
   const [descripcion, setDescripcion] = useState('');
   const [showDropdown, setShowDropdown] = useState(false);
   const [filteredCargos, setFilteredCargos] = useState([]);
-  const [dropdownPosition, setDropdownPosition] = useState({ top: 0, left: 0 });
   
   // Estados para el formulario de edición
   const [editNombre, setEditNombre] = useState('');
@@ -249,13 +247,6 @@ const AdminCargos = () => {
     const value = e.target.value;
     setNombre(value);
     
-    // Recalcular posición del dropdown
-    const inputRect = e.target.getBoundingClientRect();
-    setDropdownPosition({
-      top: inputRect.bottom + window.scrollY + 5,
-      left: inputRect.left + window.scrollX
-    });
-    
     if (value.length > 0) {
       // Filtrar cargos según el texto ingresado
       const filtered = CARGOS_PREDEFINIDOS.filter(cargo => 
@@ -270,18 +261,10 @@ const AdminCargos = () => {
   };
 
   // Función para mostrar la lista cuando se hace focus en el input
-  const handleInputFocus = (e) => {
+  const handleInputFocus = () => {
     if (filteredCargos.length === 0) {
       setFilteredCargos(CARGOS_PREDEFINIDOS);
     }
-    
-    // Calcular posición del dropdown
-    const inputRect = e.target.getBoundingClientRect();
-    setDropdownPosition({
-      top: inputRect.bottom + window.scrollY + 5,
-      left: inputRect.left + window.scrollX
-    });
-    
     setShowDropdown(true);
   };
 
@@ -486,14 +469,8 @@ const AdminCargos = () => {
                   required
                   autoComplete="off"
                 />
-                {showDropdown && filteredCargos.length > 0 && createPortal(
-                  <div 
-                    className="dropdown-list"
-                    style={{
-                      top: `${dropdownPosition.top}px`,
-                      left: `${dropdownPosition.left}px`
-                    }}
-                  >
+                {showDropdown && filteredCargos.length > 0 && (
+                  <div className="dropdown-list">
                     {filteredCargos.map((cargo, index) => (
                       <div
                         key={index}
@@ -504,8 +481,7 @@ const AdminCargos = () => {
                         <div className="cargo-description">{cargo.descripcion}</div>
                       </div>
                     ))}
-                  </div>,
-                  document.body
+                  </div>
                 )}
               </div>
             </div>
