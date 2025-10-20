@@ -147,7 +147,25 @@ class ExcelReportService {
 
   // Crear hoja de datos detallados
   async createDataSheet(sheet, cargosData) {
-    // Intentar agregar logo de la empresa (temporalmente deshabilitado)
+    // Agregar logo en las otras hojas
+    try {
+      const logoPath = path.join(__dirname, '../public/image.jpg');
+      if (fs.existsSync(logoPath)) {
+        const logoBuffer = fs.readFileSync(logoPath);
+        const logoBase64 = logoBuffer.toString('base64');
+        const logo = sheet.workbook.addImage({
+          base64: logoBase64,
+          extension: 'jpeg',
+        });
+        // Logo en J1:K4 para hojas secundarias
+        sheet.addImage(logo, 'J1:K4');
+        console.log('✅ Logo agregado en hoja de datos detallados');
+      } else {
+        console.log('⚠️ Logo no encontrado en:', logoPath);
+      }
+    } catch (error) {
+      console.error('❌ Error agregando logo en datos detallados:', error.message);
+    }
     // const logoAdded = await this.addCompanyLogo(sheet);
     // console.log('🖼️ Logo agregado en datos:', logoAdded);
     
@@ -221,9 +239,25 @@ class ExcelReportService {
       console.log('🎯 INICIANDO CREACIÓN DE BARRAS VISUALES...');
       console.log('📊 Datos recibidos:', cargosData?.length || 0, 'cargos');
       
-      // Intentar agregar logo de la empresa (temporalmente deshabilitado)
-      // const logoAdded = await this.addCompanyLogo(sheet);
-      // console.log('🖼️ Logo agregado en gráficas:', logoAdded);
+      // Agregar logo en la hoja de gráficas
+      try {
+        const logoPath = path.join(__dirname, '../public/image.jpg');
+        if (fs.existsSync(logoPath)) {
+          const logoBuffer = fs.readFileSync(logoPath);
+          const logoBase64 = logoBuffer.toString('base64');
+          const logo = sheet.workbook.addImage({
+            base64: logoBase64,
+            extension: 'jpeg',
+          });
+          // Logo en J1:K4 para hojas secundarias
+          sheet.addImage(logo, 'J1:K4');
+          console.log('✅ Logo agregado en hoja de gráficas');
+        } else {
+          console.log('⚠️ Logo no encontrado en:', logoPath);
+        }
+      } catch (error) {
+        console.error('❌ Error agregando logo en gráficas:', error.message);
+      }
       
       // Título (volviendo a posición original)
       sheet.mergeCells('A1:H1');
@@ -463,6 +497,26 @@ class ExcelReportService {
 
   // Crear hoja individual para cada cargo
   async createIndividualCargoSheet(sheet, cargo) {
+    // Agregar logo en hojas individuales de cargos
+    try {
+      const logoPath = path.join(__dirname, '../public/image.jpg');
+      if (fs.existsSync(logoPath)) {
+        const logoBuffer = fs.readFileSync(logoPath);
+        const logoBase64 = logoBuffer.toString('base64');
+        const logo = sheet.workbook.addImage({
+          base64: logoBase64,
+          extension: 'jpeg',
+        });
+        // Logo en J1:K4 para hojas secundarias
+        sheet.addImage(logo, 'J1:K4');
+        console.log(`✅ Logo agregado en hoja individual de ${cargo.nombre}`);
+      } else {
+        console.log('⚠️ Logo no encontrado en:', logoPath);
+      }
+    } catch (error) {
+      console.error('❌ Error agregando logo en hoja individual:', error.message);
+    }
+
     // Título principal
     sheet.mergeCells('A1:F1');
     const titleCell = sheet.getCell('A1');
