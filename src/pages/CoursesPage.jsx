@@ -98,13 +98,6 @@ const CoursesPage = () => {
                         src={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
                         controls
                         width="100%"
-                        onError={(e) => {
-                          console.error('❌ Error cargando video:', e.target.src);
-                          console.error('❌ Video URL completa:', `${BACKEND_URL}${course.videoUrl || course.video_url}`);
-                          console.error('❌ BACKEND_URL:', BACKEND_URL);
-                          console.error('❌ course.videoUrl:', course.videoUrl);
-                          console.error('❌ course.video_url:', course.video_url);
-                        }}
                         height="315"
                         style={{ background: '#000' }}
                       >

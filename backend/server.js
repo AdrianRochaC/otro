@@ -218,64 +218,6 @@ if (!fs.existsSync(documentsDir)) {
 // Servir las carpetas como archivos estáticos (públicas)
 app.use('/uploads/videos', express.static(videosDir));
 
-// Endpoint de prueba para verificar videos
-app.get('/api/test-video/:filename', (req, res) => {
-  const { filename } = req.params;
-  const videoPath = path.join(videosDir, filename);
-  
-  console.log('🔍 Verificando video:', {
-    filename: filename,
-    videoPath: videoPath,
-    exists: fs.existsSync(videoPath)
-  });
-  
-  if (fs.existsSync(videoPath)) {
-    res.json({
-      success: true,
-      message: 'Video encontrado',
-      path: videoPath,
-      url: `/uploads/videos/${filename}`
-    });
-  } else {
-    res.status(404).json({
-      success: false,
-      message: 'Video no encontrado',
-      path: videoPath
-    });
-  }
-});
-
-// Endpoint para listar todos los videos disponibles
-app.get('/api/videos/list', (req, res) => {
-  try {
-    const files = fs.readdirSync(videosDir);
-    const videoFiles = files.filter(file => 
-      file.toLowerCase().endsWith('.mp4') || 
-      file.toLowerCase().endsWith('.avi') || 
-      file.toLowerCase().endsWith('.mov') ||
-      file.toLowerCase().endsWith('.wmv')
-    );
-    
-    console.log('📁 Videos disponibles:', videoFiles);
-    
-    res.json({
-      success: true,
-      videos: videoFiles.map(file => ({
-        filename: file,
-        url: `/uploads/videos/${file}`,
-        path: path.join(videosDir, file)
-      }))
-    });
-  } catch (error) {
-    console.error('❌ Error listando videos:', error);
-    res.status(500).json({
-      success: false,
-      message: 'Error listando videos',
-      error: error.message
-    });
-  }
-});
-
 // RUTA: Verificar si un archivo de video existe
 app.get('/api/check-video/:filename', verifyToken, async (req, res) => {
   try {
@@ -1359,13 +1301,6 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
     // Si se subió un archivo, usa su ruta
     if (req.file) {
       finalVideoUrl = `/uploads/videos/${req.file.filename}`;
-      console.log('📁 Video subido:', {
-        originalName: req.file.originalname,
-        filename: req.file.filename,
-        path: req.file.path,
-        finalVideoUrl: finalVideoUrl,
-        size: req.file.size
-      });
     }
 
     // Procesar evaluation como JSON
@@ -1468,10 +1403,6 @@ app.get('/api/courses', verifyToken, async (req, res) => {
       : await connection.execute(`SELECT * FROM courses`);
     
     console.log('Cursos encontrados en DB:', courses.length);
-    console.log('📋 Cursos obtenidos para rol:', rol);
-    courses.forEach(course => {
-      console.log(`  - ${course.title}: video_url = "${course.video_url}"`);
-    });
 
     // Agrega las preguntas para cada curso
     const formattedCourses = await Promise.all(courses.map(async (course) => {
