@@ -63,8 +63,8 @@ class ExcelReportService {
           base64: logoBase64,
           extension: 'jpeg',
         });
-        // Logo alargado hacia abajo en esquina superior izquierda
-        sheet.addImage(logo, 'A1:B4');
+        // Logo más cuadrado en esquina superior izquierda
+        sheet.addImage(logo, 'A1:C3');
         console.log('✅ Logo agregado exitosamente al Excel');
       } else {
         console.log('⚠️ Logo no encontrado en:', logoPath);
@@ -73,17 +73,17 @@ class ExcelReportService {
       console.error('❌ Error agregando logo:', error.message);
     }
 
-    // Título principal (centrado, sin interferir con logo)
-    sheet.mergeCells('C1:H1');
-    const titleCell = sheet.getCell('C1');
+    // Título principal (centrado, a la derecha del logo)
+    sheet.mergeCells('D1:H1');
+    const titleCell = sheet.getCell('D1');
     titleCell.value = 'REPORTE EJECUTIVO - GESTIÓN DE CARGOS';
     titleCell.font = { size: 18, bold: true, color: { argb: 'FFFFFFFF' } };
     titleCell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF2F5597' } };
     titleCell.alignment = { horizontal: 'center', vertical: 'middle' };
 
     // Información de fecha (centrada, abajo del título)
-    sheet.mergeCells('C2:H2');
-    const dateCell = sheet.getCell('C2');
+    sheet.mergeCells('D2:H2');
+    const dateCell = sheet.getCell('D2');
     dateCell.value = `Generado el: ${new Date().toLocaleDateString('es-ES', { 
       year: 'numeric', 
       month: 'long', 
@@ -94,8 +94,8 @@ class ExcelReportService {
     dateCell.font = { size: 12, italic: true };
     dateCell.alignment = { horizontal: 'center' };
 
-    // Espaciado (ajustado para el logo más alto)
-    sheet.getRow(5).height = 20;
+    // Espaciado (ajustado para el logo más cuadrado)
+    sheet.getRow(4).height = 20;
 
     // Resumen estadístico
     const stats = this.calculateStatistics(cargosData);
@@ -111,7 +111,7 @@ class ExcelReportService {
 
     // Aplicar datos a la hoja
     statsData.forEach((row, index) => {
-      const rowNum = 6 + index;
+      const rowNum = 5 + index;
       row.forEach((cell, colIndex) => {
         const cellRef = sheet.getCell(rowNum, colIndex + 1);
         cellRef.value = cell;
@@ -138,11 +138,11 @@ class ExcelReportService {
     ];
 
     // Agregar bordes a la tabla
-    const tableRange = `A6:C${5 + statsData.length}`;
+    const tableRange = `A5:C${4 + statsData.length}`;
     this.addBorders(sheet, tableRange);
 
     // Espaciado final
-    sheet.getRow(6 + statsData.length + 2).height = 20;
+    sheet.getRow(5 + statsData.length + 2).height = 20;
   }
 
   // Crear hoja de datos detallados
