@@ -63,8 +63,8 @@ class ExcelReportService {
           base64: logoBase64,
           extension: 'jpeg',
         });
-        // Logo más pequeño en esquina superior izquierda
-        sheet.addImage(logo, 'A1:B2');
+        // Logo alargado hacia abajo en esquina superior izquierda
+        sheet.addImage(logo, 'A1:B4');
         console.log('✅ Logo agregado exitosamente al Excel');
       } else {
         console.log('⚠️ Logo no encontrado en:', logoPath);
@@ -94,9 +94,8 @@ class ExcelReportService {
     dateCell.font = { size: 12, italic: true };
     dateCell.alignment = { horizontal: 'center' };
 
-    // Espaciado
-    sheet.getRow(3).height = 15;
-    sheet.getRow(4).height = 20;
+    // Espaciado (ajustado para el logo más alto)
+    sheet.getRow(5).height = 20;
 
     // Resumen estadístico
     const stats = this.calculateStatistics(cargosData);
@@ -112,7 +111,7 @@ class ExcelReportService {
 
     // Aplicar datos a la hoja
     statsData.forEach((row, index) => {
-      const rowNum = 5 + index;
+      const rowNum = 6 + index;
       row.forEach((cell, colIndex) => {
         const cellRef = sheet.getCell(rowNum, colIndex + 1);
         cellRef.value = cell;
@@ -139,11 +138,11 @@ class ExcelReportService {
     ];
 
     // Agregar bordes a la tabla
-    const tableRange = `A5:C${4 + statsData.length}`;
+    const tableRange = `A6:C${5 + statsData.length}`;
     this.addBorders(sheet, tableRange);
 
     // Espaciado final
-    sheet.getRow(5 + statsData.length + 2).height = 20;
+    sheet.getRow(6 + statsData.length + 2).height = 20;
   }
 
   // Crear hoja de datos detallados
