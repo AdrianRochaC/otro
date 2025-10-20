@@ -66,7 +66,7 @@ const Perfil = () => {
             <div className="info-row"><span className="info-label">Email:</span><span className="info-value">{user.email}</span></div>
             <div className="info-row">
               <span className="info-label">Rol:</span>
-              <span className="role-badge">
+              <span className="perfil-role-badge">
                 {user.rol || 'Sin rol asignado'}
               </span>
             </div>

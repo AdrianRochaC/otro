@@ -90,12 +90,7 @@
   font-weight: 500;
 }
 
-.info-value.role-badge {
-  color: white !important;
-  background: #007bff !important;
-}
-
-.role-badge {
+.perfil-role-badge {
   background: #007bff !important;
   color: white !important;
   padding: 0.4rem 1rem !important;
