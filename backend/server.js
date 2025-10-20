@@ -1811,9 +1811,14 @@ app.get('/api/bitacora', verifyToken, async (req, res) => {
   try {
     const connection = await createConnection();
     const [rows] = await connection.execute(`
-      SELECT id, titulo, descripcion, estado, asignados, deadline, created_at, updated_at 
-      FROM bitacora_global 
-      ORDER BY created_at DESC
+      SELECT b.id, b.titulo, b.descripcion, b.estado, b.asignados, b.deadline, b.created_at, b.updated_at 
+      FROM bitacora_global b
+      WHERE EXISTS (
+        SELECT 1 FROM usuarios u 
+        WHERE u.activo = 1 
+        AND JSON_SEARCH(b.asignados, 'one', CAST(u.id AS CHAR)) IS NOT NULL
+      )
+      ORDER BY b.created_at DESC
     `);
     await connection.end();
 
@@ -1836,6 +1841,24 @@ app.post('/api/bitacora', verifyToken, async (req, res) => {
 
   try {
     const connection = await createConnection();
+
+    // Verificar que todos los usuarios asignados estén activos
+    const placeholders = asignados.map(() => '?').join(',');
+    const [usuariosActivos] = await connection.execute(
+      `SELECT id FROM usuarios WHERE id IN (${placeholders}) AND activo = 1`,
+      asignados
+    );
+    
+    const usuariosActivosIds = usuariosActivos.map(u => u.id);
+    const usuariosInactivos = asignados.filter(id => !usuariosActivosIds.includes(id));
+    
+    if (usuariosInactivos.length > 0) {
+      await connection.end();
+      return res.status(400).json({ 
+        success: false, 
+        message: `No se pueden asignar tareas a usuarios inactivos. IDs: ${usuariosInactivos.join(', ')}` 
+      });
+    }
 
     for (const userId of asignados) {
       await connection.execute(`
@@ -1878,6 +1901,24 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
     const yaVenció = new Date(tarea.deadline) < new Date();
 
     if (rol === 'Admin') {
+      // Verificar que todos los usuarios asignados estén activos
+      const placeholders = asignados.map(() => '?').join(',');
+      const [usuariosActivos] = await connection.execute(
+        `SELECT id FROM usuarios WHERE id IN (${placeholders}) AND activo = 1`,
+        asignados
+      );
+      
+      const usuariosActivosIds = usuariosActivos.map(u => u.id);
+      const usuariosInactivos = asignados.filter(id => !usuariosActivosIds.includes(id));
+      
+      if (usuariosInactivos.length > 0) {
+        await connection.end();
+        return res.status(400).json({ 
+          success: false, 
+          message: `No se pueden asignar tareas a usuarios inactivos. IDs: ${usuariosInactivos.join(', ')}` 
+        });
+      }
+
       await connection.execute(`
         UPDATE bitacora_global 
         SET titulo = ?, descripcion = ?, estado = ?, asignados = ?, deadline = ?, updated_at = NOW()

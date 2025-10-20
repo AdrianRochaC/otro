@@ -30,7 +30,11 @@ const AdminBitacora = () => {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
-      if (data.success) setUsuarios(data.usuarios || []);
+      if (data.success) {
+        // Filtrar solo usuarios activos
+        const usuariosActivos = (data.usuarios || []).filter(usuario => usuario.activo === 1);
+        setUsuarios(usuariosActivos);
+      }
     } catch (error) {
       }
   };
