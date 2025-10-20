@@ -1810,23 +1810,62 @@ app.get('/api/bitacora', verifyToken, async (req, res) => {
   console.log('User:', req.user);
   try {
     const connection = await createConnection();
-    const [rows] = await connection.execute(`
-      SELECT b.id, b.titulo, b.descripcion, b.estado, b.asignados, b.deadline, b.created_at, b.updated_at 
-      FROM bitacora_global b
-      WHERE EXISTS (
-        SELECT 1 FROM usuarios u 
-        WHERE u.activo = 1 
-        AND JSON_SEARCH(b.asignados, 'one', CAST(u.id AS CHAR)) IS NOT NULL
-      )
-      ORDER BY b.created_at DESC
+    // Primero obtener todas las tareas
+    const [allTareas] = await connection.execute(`
+      SELECT id, titulo, descripcion, estado, asignados, deadline, created_at, updated_at 
+      FROM bitacora_global 
+      ORDER BY created_at DESC
     `);
+    
+    // Filtrar tareas que tengan al menos un usuario activo asignado
+    console.log('📋 Total de tareas encontradas:', allTareas.length);
+    const tareasFiltradas = [];
+    for (const tarea of allTareas) {
+      try {
+        const asignados = JSON.parse(tarea.asignados || '[]');
+        console.log(`🔍 Tarea ${tarea.id}: asignados =`, asignados);
+        
+        if (asignados.length > 0) {
+          // Verificar si al menos uno de los asignados está activo
+          const placeholders = asignados.map(() => '?').join(',');
+          const [usuariosActivos] = await connection.execute(
+            `SELECT id FROM usuarios WHERE id IN (${placeholders}) AND activo = 1`,
+            asignados
+          );
+          
+          console.log(`👥 Tarea ${tarea.id}: usuarios activos encontrados =`, usuariosActivos.length);
+          
+          if (usuariosActivos.length > 0) {
+            tareasFiltradas.push(tarea);
+            console.log(`✅ Tarea ${tarea.id}: incluida en resultado`);
+          } else {
+            console.log(`❌ Tarea ${tarea.id}: excluida (sin usuarios activos)`);
+          }
+        } else {
+          console.log(`⚠️ Tarea ${tarea.id}: sin asignados, excluida`);
+        }
+      } catch (error) {
+        console.error('❌ Error procesando tarea:', tarea.id, error);
+        // Si hay error parseando JSON, incluir la tarea por seguridad
+        tareasFiltradas.push(tarea);
+        console.log(`🔄 Tarea ${tarea.id}: incluida por error de parsing`);
+      }
+    }
+    
+    const rows = tareasFiltradas;
     await connection.end();
 
     console.log('Tareas de bitácora encontradas:', rows.length);
     res.json({ success: true, tareas: rows || [] });
   } catch (error) {
-    console.error('Error en endpoint bitácora:', error);
-    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    console.error('❌ Error en endpoint bitácora:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor',
+      error: error.message 
+    });
   }
 });
 
