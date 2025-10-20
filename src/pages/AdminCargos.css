@@ -532,6 +532,37 @@
   font-weight: 600;
   color: var(--text-primary);
   font-size: 1rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.cargo-badge {
+  background: linear-gradient(135deg, #10b981 0%, #059669 100%);
+  color: white;
+  font-size: 0.7rem;
+  padding: 2px 8px;
+  border-radius: 12px;
+  font-weight: 500;
+  letter-spacing: 0.025em;
+}
+
+.dropdown-item.predefined {
+  background: linear-gradient(135deg, #f0f9ff 0%, #e0f2fe 100%);
+  border-left: 3px solid #0ea5e9;
+}
+
+.dropdown-item.existing {
+  background: linear-gradient(135deg, #fefce8 0%, #fef3c7 100%);
+  border-left: 3px solid #f59e0b;
+}
+
+.dropdown-item.predefined:hover {
+  background: linear-gradient(135deg, #e0f2fe 0%, #bae6fd 100%);
+}
+
+.dropdown-item.existing:hover {
+  background: linear-gradient(135deg, #fef3c7 0%, #fde68a 100%);
 }
 
 .cargo-description {

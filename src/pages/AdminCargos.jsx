@@ -244,20 +244,45 @@ const AdminCargos = () => {
     setDropdownOpen(false);
   };
 
+  // Función para combinar cargos predefinidos con los existentes
+  const getCombinedCargos = () => {
+    // Convertir cargos existentes al formato de los predefinidos
+    const existingCargos = cargos.map(cargo => ({
+      nombre: cargo.nombre,
+      descripcion: cargo.descripcion
+    }));
+    
+    // Combinar predefinidos con existentes, evitando duplicados
+    const combined = [...CARGOS_PREDEFINIDOS];
+    
+    existingCargos.forEach(existingCargo => {
+      const exists = combined.some(predefined => 
+        predefined.nombre.toLowerCase() === existingCargo.nombre.toLowerCase()
+      );
+      if (!exists) {
+        combined.push(existingCargo);
+      }
+    });
+    
+    return combined;
+  };
+
   // Función para manejar el input y mostrar la lista
   const handleNombreChange = (e) => {
     const value = e.target.value;
     setNombre(value);
     
+    const allCargos = getCombinedCargos();
+    
     if (value.length > 0) {
       // Filtrar cargos según el texto ingresado
-      const filtered = CARGOS_PREDEFINIDOS.filter(cargo => 
+      const filtered = allCargos.filter(cargo => 
         cargo.nombre.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredCargos(filtered);
     } else {
       // Si no hay texto, mostrar todos los cargos
-      setFilteredCargos(CARGOS_PREDEFINIDOS);
+      setFilteredCargos(allCargos);
     }
     setShowDropdown(true);
     setDropdownOpen(true);
@@ -266,7 +291,8 @@ const AdminCargos = () => {
   // Función para mostrar la lista cuando se hace focus en el input
   const handleInputFocus = () => {
     if (filteredCargos.length === 0) {
-      setFilteredCargos(CARGOS_PREDEFINIDOS);
+      const allCargos = getCombinedCargos();
+      setFilteredCargos(allCargos);
     }
     setShowDropdown(true);
     setDropdownOpen(true);
@@ -477,15 +503,25 @@ const AdminCargos = () => {
                 />
                 {showDropdown && filteredCargos.length > 0 && (
                   <div className="dropdown-list">
-                    {filteredCargos.map((cargo, index) => (
-                      <div
-                        key={index}
-                        className="dropdown-item"
-                        onClick={() => selectCargo(cargo)}
-                      >
-                        <div className="cargo-name">{cargo.nombre}</div>
-                      </div>
-                    ))}
+                    {filteredCargos.map((cargo, index) => {
+                      // Verificar si es un cargo predefinido
+                      const isPredefined = CARGOS_PREDEFINIDOS.some(predefined => 
+                        predefined.nombre.toLowerCase() === cargo.nombre.toLowerCase()
+                      );
+                      
+                      return (
+                        <div
+                          key={index}
+                          className={`dropdown-item ${isPredefined ? 'predefined' : 'existing'}`}
+                          onClick={() => selectCargo(cargo)}
+                        >
+                          <div className="cargo-name">
+                            {cargo.nombre}
+                            {isPredefined && <span className="cargo-badge">Predefinido</span>}
+                          </div>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
