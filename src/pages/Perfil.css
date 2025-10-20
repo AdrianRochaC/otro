@@ -90,13 +90,23 @@
   font-weight: 500;
 }
 
+.info-value.role-badge {
+  color: white !important;
+  background: #007bff !important;
+}
+
 .role-badge {
-  background: var(--gradient-info);
-  color: var(--text-white);
-  padding: 0.25rem 0.75rem;
-  border-radius: 20px;
-  font-size: 0.9rem;
-  font-weight: 600;
+  background: #007bff !important;
+  color: white !important;
+  padding: 0.4rem 1rem !important;
+  border-radius: 20px !important;
+  font-size: 0.9rem !important;
+  font-weight: 600 !important;
+  display: inline-block !important;
+  min-width: 80px !important;
+  text-align: center !important;
+  border: 2px solid #0056b3 !important;
+  box-shadow: 0 2px 4px rgba(0, 123, 255, 0.3) !important;
 }
 
 .status-active {

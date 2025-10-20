@@ -66,20 +66,8 @@ const Perfil = () => {
             <div className="info-row"><span className="info-label">Email:</span><span className="info-value">{user.email}</span></div>
             <div className="info-row">
               <span className="info-label">Rol:</span>
-              <span className="info-value role-badge" style={{ 
-                backgroundColor: '#007bff', 
-                color: 'white', 
-                padding: '4px 12px', 
-                borderRadius: '20px',
-                fontSize: '0.9rem',
-                fontWeight: '600',
-                border: '2px solid #0056b3'
-              }}>
-                {(() => {
-                  console.log('🎨 Renderizando rol:', user.rol);
-                  console.log('🎨 Rol existe?', !!user.rol);
-                  return user.rol || 'Sin rol asignado';
-                })()}
+              <span className="role-badge">
+                {user.rol || 'Sin rol asignado'}
               </span>
             </div>
           </div>
