@@ -99,7 +99,7 @@ class GoogleDriveService {
         fileName: fileName,
         webViewLink: webViewLink,
         webContentLink: webContentLink,
-        publicUrl: `https://drive.google.com/uc?export=view&id=${fileId}`,
+        publicUrl: `https://drive.google.com/uc?export=download&id=${fileId}`,
         size: file.size,
         type: 'google-drive'
       };
@@ -226,7 +226,7 @@ class GoogleDriveService {
    * Obtener URL pública de un archivo
    */
   getPublicUrl(fileId) {
-    return `https://drive.google.com/uc?export=view&id=${fileId}`;
+    return `https://drive.google.com/uc?export=download&id=${fileId}`;
   }
 }
 
