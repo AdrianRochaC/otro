@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CoursesPage.css";
 import { BACKEND_URL } from '../utils/api';
+import { debugVideos, checkSpecificVideo, testVideoAccess } from '../utils/videoDebug';
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -68,10 +69,32 @@ const CoursesPage = () => {
     return match ? `https://www.youtube.com/embed/${match[1]}` : url;
   };
 
+  // Función para hacer debug de videos
+  const handleDebugVideos = async () => {
+    console.log('🔍 Iniciando debug de videos...');
+    await debugVideos();
+  };
+
   return (
     <div className="courses-body">
       <div className="courses-page">
         <h1>Cursos Disponibles</h1>
+        
+        {/* Botón de debug temporal */}
+        <button 
+          onClick={handleDebugVideos}
+          style={{
+            background: '#ff6b6b',
+            color: 'white',
+            border: 'none',
+            padding: '10px 20px',
+            borderRadius: '5px',
+            marginBottom: '20px',
+            cursor: 'pointer'
+          }}
+        >
+          🔍 Debug Videos
+        </button>
         <div className="courses-container">
           {courses.length === 0 ? (
             <p>No hay cursos disponibles para tu rol.</p>
@@ -117,6 +140,35 @@ const CoursesPage = () => {
                       finalUrl, 
                       courseId: course.id 
                     });
+                    
+                    // Verificar si el archivo existe antes de cargar
+                    const checkVideoExists = async () => {
+                      try {
+                        const filename = videoUrl.replace('/uploads/videos/', '');
+                        console.log('🔍 Verificando video específico:', filename);
+                        
+                        // Verificar con el servidor
+                        const serverCheck = await checkSpecificVideo(filename);
+                        
+                        // Probar acceso directo
+                        const directAccess = await testVideoAccess(finalUrl);
+                        
+                        console.log('📊 Resultados de verificación:', {
+                          filename,
+                          serverCheck,
+                          directAccess,
+                          finalUrl
+                        });
+                        
+                        return serverCheck?.exists && directAccess;
+                      } catch (error) {
+                        console.error('❌ Error verificando video:', error);
+                        return false;
+                      }
+                    };
+                    
+                    // Verificar existencia del archivo
+                    checkVideoExists();
                     
                     return (
                       <video

@@ -238,32 +238,94 @@ app.get('/api/check-video/:filename', verifyToken, async (req, res) => {
     const { filename } = req.params;
     const videoPath = path.join(videosDir, filename);
     
-    console.log('🔍 Verificando archivo de video:', {
-      filename,
-      videoPath,
-      exists: fs.existsSync(videoPath)
-    });
+    console.log('🔍 === VERIFICACIÓN DE VIDEO ===');
+    console.log('📁 Filename:', filename);
+    console.log('📂 Video path:', videoPath);
+    console.log('📁 Videos directory:', videosDir);
+    console.log('✅ Directory exists:', fs.existsSync(videosDir));
+    console.log('✅ File exists:', fs.existsSync(videoPath));
+    
+    // Listar archivos en el directorio para debug
+    try {
+      const files = fs.readdirSync(videosDir);
+      console.log('📋 Files in videos directory:', files);
+    } catch (dirError) {
+      console.log('❌ Error reading videos directory:', dirError.message);
+    }
     
     if (fs.existsSync(videoPath)) {
       const stats = fs.statSync(videoPath);
+      console.log('✅ File found:', {
+        size: stats.size,
+        modified: stats.mtime,
+        isFile: stats.isFile()
+      });
+      
       res.json({
         success: true,
         exists: true,
         size: stats.size,
-        modified: stats.mtime
+        modified: stats.mtime,
+        path: videoPath
       });
     } else {
+      console.log('❌ File not found:', videoPath);
       res.json({
         success: true,
         exists: false,
-        message: 'Archivo no encontrado'
+        message: 'Archivo no encontrado',
+        searchedPath: videoPath
       });
     }
   } catch (error) {
-    console.error('Error verificando archivo:', error);
+    console.error('❌ Error verificando archivo:', error);
     res.status(500).json({
       success: false,
-      message: 'Error verificando archivo'
+      message: 'Error verificando archivo',
+      error: error.message
+    });
+  }
+});
+
+// RUTA: Listar archivos de video (solo para debug)
+app.get('/api/debug/videos', verifyToken, async (req, res) => {
+  try {
+    console.log('🔍 === LISTANDO ARCHIVOS DE VIDEO ===');
+    console.log('📁 Videos directory:', videosDir);
+    console.log('✅ Directory exists:', fs.existsSync(videosDir));
+    
+    if (!fs.existsSync(videosDir)) {
+      return res.json({
+        success: false,
+        message: 'Directorio de videos no existe',
+        path: videosDir
+      });
+    }
+    
+    const files = fs.readdirSync(videosDir);
+    const videoFiles = files.filter(file => 
+      file.endsWith('.mp4') || 
+      file.endsWith('.avi') || 
+      file.endsWith('.mov') || 
+      file.endsWith('.wmv')
+    );
+    
+    console.log('📋 All files:', files);
+    console.log('🎬 Video files:', videoFiles);
+    
+    res.json({
+      success: true,
+      directory: videosDir,
+      allFiles: files,
+      videoFiles: videoFiles,
+      count: videoFiles.length
+    });
+  } catch (error) {
+    console.error('❌ Error listando videos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error listando videos',
+      error: error.message
     });
   }
 });
