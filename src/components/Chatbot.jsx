@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Chatbot.css';
 import { MessageCircle, X, Send, Clock, User, Bot } from 'lucide-react';
 import { BACKEND_URL } from '../utils/api';
+import RobotIcon from './RobotIcon';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);
@@ -203,7 +204,7 @@ const Chatbot = () => {
         onClick={toggleChatbot}
         title="Asistente Médico - Enfermedades Comunes"
       >
-        {isOpen ? <X size={24} /> : <MessageCircle size={24} />}
+        {isOpen ? <X size={24} /> : <RobotIcon size={24} />}
       </button>
 
       {/* Ventana del chatbot */}
