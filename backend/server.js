@@ -349,6 +349,67 @@ app.get('/api/videos/status', verifyToken, async (req, res) => {
   }
 });
 
+// RUTA: Debug completo de videos
+app.get('/api/debug/video-status', verifyToken, async (req, res) => {
+  try {
+    console.log('🔍 === DEBUG COMPLETO DE VIDEOS ===');
+    
+    const debugInfo = {
+      timestamp: new Date().toISOString(),
+      googleDrive: {
+        configured: !!(process.env.GOOGLE_CLIENT_EMAIL && process.env.GOOGLE_PRIVATE_KEY),
+        clientEmail: process.env.GOOGLE_CLIENT_EMAIL ? '✅ Configurado' : '❌ No configurado',
+        privateKey: process.env.GOOGLE_PRIVATE_KEY ? '✅ Configurado' : '❌ No configurado',
+        folderId: process.env.GOOGLE_DRIVE_FOLDER_ID || 'No configurado'
+      },
+      localStorage: {
+        videosDir: videosDir,
+        exists: fs.existsSync(videosDir),
+        files: []
+      },
+      system: {
+        nodeVersion: process.version,
+        platform: process.platform,
+        memoryUsage: process.memoryUsage()
+      }
+    };
+    
+    // Listar archivos locales
+    if (fs.existsSync(videosDir)) {
+      try {
+        const files = fs.readdirSync(videosDir);
+        debugInfo.localStorage.files = files.map(file => {
+          const filePath = path.join(videosDir, file);
+          const stats = fs.statSync(filePath);
+          return {
+            name: file,
+            size: stats.size,
+            modified: stats.mtime,
+            isFile: stats.isFile()
+          };
+        });
+      } catch (error) {
+        debugInfo.localStorage.error = error.message;
+      }
+    }
+    
+    console.log('📋 Información de debug:', debugInfo);
+    
+    res.json({
+      success: true,
+      debug: debugInfo
+    });
+    
+  } catch (error) {
+    console.error('❌ Error en debug de videos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error obteniendo información de debug',
+      error: error.message
+    });
+  }
+});
+
 // RUTA: Listar archivos de video (solo para debug)
 app.get('/api/debug/videos', verifyToken, async (req, res) => {
   try {
@@ -1531,12 +1592,32 @@ app.post('/api/courses', verifyToken, googleDriveUpload.single('videoFile'), pro
     // Si se subió un archivo, usar la URL de Google Drive
     if (req.file) {
       finalVideoUrl = req.file.location; // URL pública de Google Drive
-      console.log('✅ === VIDEO SUBIDO A GOOGLE DRIVE EXITOSAMENTE ===');
+      console.log('✅ === VIDEO PROCESADO EXITOSAMENTE ===');
       console.log('📄 Nombre del archivo:', req.file.originalname);
       console.log('🆔 Google Drive ID:', req.file.googleDriveId);
-      console.log('🌐 URL pública:', finalVideoUrl);
+      console.log('🌐 URL pública final:', finalVideoUrl);
       console.log('📊 Tamaño del archivo:', req.file.size, 'bytes');
-      console.log('☁️ Almacenamiento: Google Drive (PERSISTENTE Y GRATIS)');
+      console.log('🏷️ Tipo de almacenamiento:', req.file.googleDrive?.type || 'desconocido');
+      
+      if (req.file.googleDrive?.warning) {
+        console.warn('⚠️ Advertencia del almacenamiento:', req.file.googleDrive.warning);
+      }
+      
+      // Verificar que la URL es accesible
+      if (finalVideoUrl) {
+        console.log('🔍 Verificando accesibilidad de la URL...');
+        try {
+          const response = await fetch(finalVideoUrl, { method: 'HEAD' });
+          console.log('📊 Status de verificación:', response.status);
+          if (response.ok) {
+            console.log('✅ URL del video es accesible');
+          } else {
+            console.warn('⚠️ URL del video puede no ser accesible');
+          }
+        } catch (error) {
+          console.warn('⚠️ No se pudo verificar la URL del video:', error.message);
+        }
+      }
     }
 
     // Procesar evaluation como JSON
@@ -3143,6 +3224,17 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     
     console.log('📤 === ENVIANDO RESPUESTA AL FRONTEND ===');
     console.log('📊 Tamaño de la respuesta:', JSON.stringify(response).length, 'caracteres');
+    
+    // Logging adicional para debug
+    if (req.file) {
+      console.log('🎬 === RESUMEN DEL VIDEO ===');
+      console.log('📄 Archivo:', req.file.originalname);
+      console.log('🌐 URL final:', finalVideoUrl);
+      console.log('📊 Tamaño:', req.file.size, 'bytes');
+      console.log('🏷️ Almacenamiento:', req.file.googleDrive?.type || 'local');
+      console.log('✅ Curso guardado con video:', response.success);
+    }
+    
     res.json(response);
     console.log('✅ === RESPUESTA ENVIADA EXITOSAMENTE ===');
       
