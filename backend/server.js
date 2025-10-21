@@ -287,6 +287,65 @@ app.get('/api/check-video/:filename', verifyToken, async (req, res) => {
   }
 });
 
+// RUTA: Verificar estado de videos después de subir
+app.get('/api/videos/status', verifyToken, async (req, res) => {
+  try {
+    console.log('🔍 === ESTADO DE VIDEOS ===');
+    console.log('📁 Videos directory:', videosDir);
+    console.log('✅ Directory exists:', fs.existsSync(videosDir));
+    
+    if (!fs.existsSync(videosDir)) {
+      return res.json({
+        success: false,
+        message: 'Directorio de videos no existe',
+        path: videosDir
+      });
+    }
+    
+    const files = fs.readdirSync(videosDir);
+    const videoFiles = files.filter(file => 
+      file.endsWith('.mp4') || 
+      file.endsWith('.avi') || 
+      file.endsWith('.mov') || 
+      file.endsWith('.wmv')
+    );
+    
+    // Obtener información detallada de cada archivo
+    const videoInfo = videoFiles.map(filename => {
+      const filePath = path.join(videosDir, filename);
+      const stats = fs.statSync(filePath);
+      return {
+        filename,
+        size: stats.size,
+        modified: stats.mtime,
+        created: stats.birthtime,
+        path: filePath
+      };
+    });
+    
+    console.log('📋 Archivos encontrados:', files);
+    console.log('🎬 Videos encontrados:', videoFiles);
+    console.log('📊 Información detallada:', videoInfo);
+    
+    res.json({
+      success: true,
+      directory: videosDir,
+      allFiles: files,
+      videoFiles: videoFiles,
+      videoInfo: videoInfo,
+      count: videoFiles.length,
+      totalSize: videoInfo.reduce((sum, file) => sum + file.size, 0)
+    });
+  } catch (error) {
+    console.error('❌ Error obteniendo estado de videos:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error obteniendo estado de videos',
+      error: error.message
+    });
+  }
+});
+
 // RUTA: Listar archivos de video (solo para debug)
 app.get('/api/debug/videos', verifyToken, async (req, res) => {
   try {
@@ -408,11 +467,28 @@ app.get('/api/video/:filename', (req, res) => {
 // Configuración de almacenamiento para videos
 const storage = multer.diskStorage({
   destination: function (req, file, cb) {
+    console.log('📁 === SUBIENDO VIDEO ===');
+    console.log('📂 Destino:', videosDir);
+    console.log('✅ Directorio existe:', fs.existsSync(videosDir));
+    
+    // Crear directorio si no existe
+    if (!fs.existsSync(videosDir)) {
+      console.log('📁 Creando directorio de videos...');
+      fs.mkdirSync(videosDir, { recursive: true });
+    }
+    
     cb(null, videosDir); // Carpeta donde se guardarán los videos
   },
   filename: function (req, file, cb) {
     const ext = path.extname(file.originalname);
-    cb(null, Date.now() + '-' + file.fieldname + ext);
+    const filename = Date.now() + '-' + file.fieldname + ext;
+    
+    console.log('📄 Archivo original:', file.originalname);
+    console.log('📄 Nombre generado:', filename);
+    console.log('📄 Tamaño:', file.size, 'bytes');
+    console.log('📄 Tipo MIME:', file.mimetype);
+    
+    cb(null, filename);
   }
 });
 const upload = multer({ storage: storage });
@@ -1452,6 +1528,12 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
     // Si se subió un archivo, usa su ruta
     if (req.file) {
       finalVideoUrl = `/uploads/videos/${req.file.filename}`;
+      console.log('✅ === VIDEO SUBIDO EXITOSAMENTE ===');
+      console.log('📄 Nombre del archivo:', req.file.filename);
+      console.log('📂 Ruta completa:', finalVideoUrl);
+      console.log('📊 Tamaño del archivo:', req.file.size, 'bytes');
+      console.log('📁 Ubicación física:', path.join(videosDir, req.file.filename));
+      console.log('✅ Archivo existe físicamente:', fs.existsSync(path.join(videosDir, req.file.filename)));
     }
 
     // Procesar evaluation como JSON
