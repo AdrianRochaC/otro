@@ -82,33 +82,64 @@ const CoursesPage = () => {
                 <p>{course.description}</p>
 
                 <div className="video-container">
-                  {(course.videoUrl || course.video_url) && (course.videoUrl || course.video_url).trim() !== "" ? (
-                    (course.videoUrl || course.video_url).includes('youtube.com/embed/') ? (
-                      <iframe
-                        src={ensureEmbedUrl(course.videoUrl || course.video_url)}
-                        title={course.title}
-                        width="100%"
-                        height="315"
-                        frameBorder="0"
-                        allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
-                        allowFullScreen
-                      />
-                    ) : (
+                  {(() => {
+                    const videoUrl = course.videoUrl || course.video_url;
+                    if (!videoUrl || videoUrl.trim() === "") {
+                      return (
+                        <div className="no-video">
+                          <p>⚠️ No hay video disponible</p>
+                        </div>
+                      );
+                    }
+                    
+                    // Si es YouTube, usar iframe
+                    if (videoUrl.includes('youtube.com/embed/') || videoUrl.includes('youtube.com/watch') || videoUrl.includes('youtu.be/')) {
+                      return (
+                        <iframe
+                          src={ensureEmbedUrl(videoUrl)}
+                          title={course.title}
+                          width="100%"
+                          height="315"
+                          frameBorder="0"
+                          allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
+                          allowFullScreen
+                        />
+                      );
+                    }
+                    
+                    // Para archivos locales, construir la URL correcta
+                    const finalUrl = videoUrl.startsWith('http') 
+                      ? videoUrl 
+                      : `${BACKEND_URL}${videoUrl.startsWith('/') ? '' : '/'}${videoUrl}`;
+                    
+                    console.log('🎬 Cargando video:', { 
+                      originalUrl: videoUrl, 
+                      finalUrl, 
+                      courseId: course.id 
+                    });
+                    
+                    return (
                       <video
-                        src={`${BACKEND_URL}${course.videoUrl || course.video_url}`}
+                        src={finalUrl}
                         controls
                         width="100%"
                         height="315"
                         style={{ background: '#000' }}
+                        onError={(e) => {
+                          console.error('❌ Error cargando video:', e);
+                          console.error('URL que falló:', finalUrl);
+                        }}
+                        onLoadStart={() => {
+                          console.log('🔄 Iniciando carga de video:', finalUrl);
+                        }}
+                        onCanPlay={() => {
+                          console.log('✅ Video listo para reproducir:', finalUrl);
+                        }}
                       >
                         Tu navegador no soporta la reproducción de video.
                       </video>
-                    )
-                  ) : (
-                    <div className="no-video">
-                      <p>⚠️ No hay video disponible</p>
-                    </div>
-                  )}
+                    );
+                  })()}
                 </div>
 
                 {/* ✅ Botón corregido con ruta correcta */}

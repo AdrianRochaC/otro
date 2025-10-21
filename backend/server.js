@@ -216,7 +216,21 @@ if (!fs.existsSync(documentsDir)) {
 }
 
 // Servir las carpetas como archivos estáticos (públicas)
-app.use('/uploads/videos', express.static(videosDir));
+app.use('/uploads/videos', express.static(videosDir, {
+  setHeaders: (res, path) => {
+    // Headers específicos para videos
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Range');
+    
+    // Headers para streaming de video
+    if (path.endsWith('.mp4')) {
+      res.setHeader('Content-Type', 'video/mp4');
+    }
+  }
+}));
 
 // RUTA: Verificar si un archivo de video existe
 app.get('/api/check-video/:filename', verifyToken, async (req, res) => {
@@ -250,6 +264,81 @@ app.get('/api/check-video/:filename', verifyToken, async (req, res) => {
     res.status(500).json({
       success: false,
       message: 'Error verificando archivo'
+    });
+  }
+});
+
+// RUTA: Servir video con mejor manejo de errores y logging
+app.get('/api/video/:filename', (req, res) => {
+  try {
+    const { filename } = req.params;
+    const videoPath = path.join(videosDir, filename);
+    
+    console.log('🎬 === SOLICITUD DE VIDEO ===');
+    console.log('📁 Filename:', filename);
+    console.log('📂 Video path:', videoPath);
+    console.log('✅ Existe:', fs.existsSync(videoPath));
+    
+    // Verificar que el archivo existe
+    if (!fs.existsSync(videoPath)) {
+      console.log('❌ Video no encontrado:', videoPath);
+      return res.status(404).json({
+        success: false,
+        message: 'Video no encontrado'
+      });
+    }
+    
+    // Configurar headers CORS y de video
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, HEAD, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Range');
+    res.setHeader('Accept-Ranges', 'bytes');
+    res.setHeader('Cache-Control', 'public, max-age=3600');
+    
+    // Obtener estadísticas del archivo
+    const stats = fs.statSync(videoPath);
+    const fileSize = stats.size;
+    const range = req.headers.range;
+    
+    console.log('📊 File size:', fileSize, 'bytes');
+    console.log('🔍 Range header:', range);
+    
+    if (range) {
+      // Manejar streaming de video
+      const parts = range.replace(/bytes=/, "").split("-");
+      const start = parseInt(parts[0], 10);
+      const end = parts[1] ? parseInt(parts[1], 10) : fileSize - 1;
+      const chunksize = (end - start) + 1;
+      
+      console.log('📦 Streaming:', { start, end, chunksize });
+      
+      const file = fs.createReadStream(videoPath, { start, end });
+      const head = {
+        'Content-Range': `bytes ${start}-${end}/${fileSize}`,
+        'Accept-Ranges': 'bytes',
+        'Content-Length': chunksize,
+        'Content-Type': 'video/mp4',
+      };
+      res.writeHead(206, head);
+      file.pipe(res);
+    } else {
+      // Servir archivo completo
+      const head = {
+        'Content-Length': fileSize,
+        'Content-Type': 'video/mp4',
+        'Accept-Ranges': 'bytes',
+        'Cache-Control': 'public, max-age=3600'
+      };
+      res.writeHead(200, head);
+      fs.createReadStream(videoPath).pipe(res);
+    }
+    
+    console.log('✅ Video enviado correctamente');
+  } catch (error) {
+    console.error('❌ Error sirviendo video:', error);
+    res.status(500).json({
+      success: false,
+      message: 'Error cargando video'
     });
   }
 });

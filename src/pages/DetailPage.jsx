@@ -227,27 +227,33 @@ const DetailPage = () => {
         <div className="detail-video">
           {(() => {
             const videoUrl = course.videoUrl || course.video_url;
-            const isYouTube = videoUrl && videoUrl.includes('youtube.com/embed/');
-            const finalUrl = isYouTube 
-              ? videoUrl 
-              : (videoUrl && videoUrl.startsWith('http') 
-                ? videoUrl 
-                : `${BACKEND_URL}${videoUrl}`);
-            
-            // Verificar si el archivo existe (solo para archivos locales)
-            if (!isYouTube && videoUrl && !videoUrl.startsWith('http')) {
-              const filename = videoUrl.replace('/uploads/videos/', '');
-              
-              // Hacer una petición HEAD para verificar si el archivo existe
-              fetch(finalUrl, { method: 'HEAD' })
-                .then(response => {
-                  if (response.ok) {
-                  } else {
-                  }
-                })
-                .catch(error => {
-                });
+            if (!videoUrl) {
+              return <p>⚠️ No hay video disponible</p>;
             }
+            
+            const isYouTube = videoUrl.includes('youtube.com/embed/') || 
+                             videoUrl.includes('youtube.com/watch') || 
+                             videoUrl.includes('youtu.be/');
+            
+            let finalUrl;
+            if (isYouTube) {
+              // Para YouTube, usar la URL tal como está o convertir a embed
+              finalUrl = videoUrl.includes('youtube.com/embed/') 
+                ? videoUrl 
+                : videoUrl.replace(/(?:youtu\.be\/|youtube\.com\/watch\?v=)([^&]+)/, 'https://www.youtube.com/embed/$1');
+            } else {
+              // Para archivos locales, construir la URL correcta
+              finalUrl = videoUrl.startsWith('http') 
+                ? videoUrl 
+                : `${BACKEND_URL}${videoUrl.startsWith('/') ? '' : '/'}${videoUrl}`;
+            }
+            
+            console.log('🎬 DetailPage - Cargando video:', { 
+              originalUrl: videoUrl, 
+              finalUrl, 
+              isYouTube,
+              courseId: course.id 
+            });
             
             return (
               <ReactPlayer
@@ -256,6 +262,11 @@ const DetailPage = () => {
                 onProgress={handleProgress}
                 onEnded={() => setVideoEnded(true)}
                 onError={(error) => {
+                  console.error('❌ Error en ReactPlayer:', error);
+                  console.error('URL que falló:', finalUrl);
+                }}
+                onReady={() => {
+                  console.log('✅ ReactPlayer listo:', finalUrl);
                 }}
                 className="react-player"
               />
