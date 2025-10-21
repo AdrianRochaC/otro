@@ -28,6 +28,9 @@ const videoProcessor = require('./videoProcessor.js');
 const aiService = require('./aiService.js');
 const OpenAI = require('openai');
 
+// Importar configuración de Google Drive
+const { googleDriveUpload, processVideoToGoogleDrive } = require('./config/googleDriveUpload.js');
+
 // Importar configuraciones centralizadas PRIMERO
 const { dbConfig, createConnection, testConnection } = require('./config/database.js');
 const appConfig = require('./config/app.js');
@@ -1519,21 +1522,21 @@ app.get('/api/profile/:id', verifyToken, async (req, res) => {
 
 // server.js (continuación - agregar rutas de cursos y evaluaciones)
 
-// RUTA: Crear curso con evaluación
-app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, res) => {
+// RUTA: Crear curso con evaluación (usando Google Drive para videos)
+app.post('/api/courses', verifyToken, googleDriveUpload.single('videoFile'), processVideoToGoogleDrive, async (req, res) => {
   try {
     const { title, description, videoUrl, cargoId, attempts = 1, timeLimit = 30 } = req.body;
     let finalVideoUrl = videoUrl;
 
-    // Si se subió un archivo, usa su ruta
+    // Si se subió un archivo, usar la URL de Google Drive
     if (req.file) {
-      finalVideoUrl = `/uploads/videos/${req.file.filename}`;
-      console.log('✅ === VIDEO SUBIDO EXITOSAMENTE ===');
-      console.log('📄 Nombre del archivo:', req.file.filename);
-      console.log('📂 Ruta completa:', finalVideoUrl);
+      finalVideoUrl = req.file.location; // URL pública de Google Drive
+      console.log('✅ === VIDEO SUBIDO A GOOGLE DRIVE EXITOSAMENTE ===');
+      console.log('📄 Nombre del archivo:', req.file.originalname);
+      console.log('🆔 Google Drive ID:', req.file.googleDriveId);
+      console.log('🌐 URL pública:', finalVideoUrl);
       console.log('📊 Tamaño del archivo:', req.file.size, 'bytes');
-      console.log('📁 Ubicación física:', path.join(videosDir, req.file.filename));
-      console.log('✅ Archivo existe físicamente:', fs.existsSync(path.join(videosDir, req.file.filename)));
+      console.log('☁️ Almacenamiento: Google Drive (PERSISTENTE Y GRATIS)');
     }
 
     // Procesar evaluation como JSON
