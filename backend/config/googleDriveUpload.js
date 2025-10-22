@@ -15,6 +15,8 @@ const googleDriveUpload = multer({
     console.log('📄 Archivo recibido:', file.originalname);
     console.log('📄 Tipo MIME:', file.mimetype);
     console.log('📄 Campo:', file.fieldname);
+    console.log('📄 Request body keys:', Object.keys(req.body || {}));
+    console.log('📄 Request files:', req.files);
     
     if (file.mimetype.startsWith('video/')) {
       console.log('✅ Archivo de video aceptado');
