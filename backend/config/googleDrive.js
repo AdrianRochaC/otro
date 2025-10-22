@@ -15,9 +15,16 @@ class GoogleDriveService {
    */
   initializeAuth() {
     try {
+      console.log('🔍 === INICIALIZANDO GOOGLE DRIVE ===');
+      
       // Verificar si las variables de entorno están configuradas
       const clientEmail = process.env.GOOGLE_CLIENT_EMAIL;
       const privateKey = process.env.GOOGLE_PRIVATE_KEY;
+      
+      console.log('📧 Client Email configurado:', !!clientEmail);
+      console.log('🔑 Private Key configurado:', !!privateKey);
+      console.log('📧 Client Email valor:', clientEmail ? 'Configurado' : 'No configurado');
+      console.log('🔑 Private Key longitud:', privateKey ? privateKey.length : 0);
       
       if (!clientEmail || !privateKey) {
         console.warn('⚠️ Variables de Google Drive no configuradas - usando modo local');
@@ -36,8 +43,10 @@ class GoogleDriveService {
 
       this.drive = google.drive({ version: 'v3', auth });
       console.log('✅ Google Drive autenticado correctamente');
+      console.log('🔍 Drive object creado:', !!this.drive);
     } catch (error) {
       console.error('❌ Error autenticando Google Drive:', error);
+      console.error('📚 Error details:', error.message);
       console.warn('⚠️ Google Drive no disponible - usando almacenamiento local');
     }
   }
@@ -50,6 +59,7 @@ class GoogleDriveService {
       // Verificar si Google Drive está disponible
       if (!this.drive) {
         console.warn('⚠️ Google Drive no disponible - usando almacenamiento local');
+        console.warn('🔍 Debug: this.drive es null, verificar autenticación');
         return this.fallbackToLocal(file, courseId);
       }
 

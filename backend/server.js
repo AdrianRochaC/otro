@@ -1586,6 +1586,12 @@ app.get('/api/profile/:id', verifyToken, async (req, res) => {
 // RUTA: Crear curso con evaluación (usando Google Drive para videos)
 app.post('/api/courses', verifyToken, googleDriveUpload.single('videoFile'), processVideoToGoogleDrive, async (req, res) => {
   try {
+    console.log('🎬 === CREANDO CURSO ===');
+    console.log('📄 Archivo recibido:', !!req.file);
+    console.log('📄 Nombre del archivo:', req.file?.originalname);
+    console.log('📊 Tamaño del archivo:', req.file?.size);
+    console.log('🌐 Video URL del body:', req.body.videoUrl);
+    
     const { title, description, videoUrl, cargoId, attempts = 1, timeLimit = 30 } = req.body;
     let finalVideoUrl = videoUrl;
 

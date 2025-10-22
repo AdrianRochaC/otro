@@ -11,9 +11,16 @@ const googleDriveUpload = multer({
     fileSize: 100 * 1024 * 1024 // 100MB máximo
   },
   fileFilter: function (req, file, cb) {
+    console.log('🔍 === MULTER FILE FILTER ===');
+    console.log('📄 Archivo recibido:', file.originalname);
+    console.log('📄 Tipo MIME:', file.mimetype);
+    console.log('📄 Campo:', file.fieldname);
+    
     if (file.mimetype.startsWith('video/')) {
+      console.log('✅ Archivo de video aceptado');
       cb(null, true);
     } else {
+      console.log('❌ Archivo rechazado - no es video');
       cb(new Error('Solo se permiten archivos de video'), false);
     }
   }
