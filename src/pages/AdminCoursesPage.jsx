@@ -170,16 +170,6 @@ const AdminCoursesPage = () => {
     }
 
     try {
-      console.log('🚀 === INICIANDO SUBIDA DE CURSO ===');
-      console.log('📄 Título:', title);
-      console.log('📝 Descripción:', description);
-      console.log('🎬 Video URL:', videoUrl);
-      console.log('📁 Usar archivo:', useFile);
-      console.log('📄 Archivo seleccionado:', videoFile?.name);
-      console.log('📊 Tamaño del archivo:', videoFile?.size);
-      console.log('📄 Tipo del archivo:', videoFile?.type);
-      console.log('👥 Cargo ID:', cargoId);
-      
       const url = editingCourse ? `${API_URL_INTERNAL}/api/courses/${editingCourse}` : `${API_URL_INTERNAL}/api/courses`;
       const method = editingCourse ? "PUT" : "POST";
 
@@ -214,22 +204,8 @@ const AdminCoursesPage = () => {
         headers['Content-Type'] = 'application/json';
       } else {
         // Para crear, usar FormData
-        console.log('📦 === FORM DATA ===');
-        console.log('📄 FormData creado:', formData);
-        console.log('📄 Archivo en FormData:', formData.get('videoFile'));
-        console.log('📄 Título en FormData:', formData.get('title'));
-        console.log('📄 Descripción en FormData:', formData.get('description'));
-        console.log('📄 Video URL en FormData:', formData.get('videoUrl'));
-        console.log('📄 Cargo ID en FormData:', formData.get('cargoId'));
-        
         requestBody = formData;
       }
-
-      console.log('🌐 === ENVIANDO REQUEST ===');
-      console.log('🔗 URL:', url);
-      console.log('📡 Método:', method);
-      console.log('📋 Headers:', headers);
-      console.log('📦 Body type:', requestBody instanceof FormData ? 'FormData' : 'JSON');
 
       const res = await fetch(url, {
         method,
@@ -237,17 +213,7 @@ const AdminCoursesPage = () => {
         body: requestBody,
       });
 
-      console.log('📊 === RESPUESTA DEL SERVIDOR ===');
-      console.log('📊 Status:', res.status);
-      console.log('📊 Status Text:', res.statusText);
-      console.log('📊 Headers:', Object.fromEntries(res.headers.entries()));
-      
       const data = await res.json();
-      console.log('📋 === DATOS DE RESPUESTA ===');
-      console.log('✅ Éxito:', data.success);
-      console.log('📄 Mensaje:', data.message);
-      console.log('📊 Datos completos:', data);
-      
       if (data.success) {
         fetchCourses();
         resetForm();
@@ -256,9 +222,7 @@ const AdminCoursesPage = () => {
         alert(data.message);
       }
     } catch (err) {
-      console.error('❌ === ERROR EN SUBIDA ===');
-      console.error('❌ Error:', err);
-      console.error('📚 Stack:', err.stack);
+      console.error('Error al crear el curso:', err);
       alert('Error al crear el curso: ' + err.message);
     }
   };

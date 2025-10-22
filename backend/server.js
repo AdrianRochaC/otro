@@ -29,7 +29,7 @@ const aiService = require('./aiService.js');
 const OpenAI = require('openai');
 
 // Importar configuración de Google Drive
-const { googleDriveUpload, processVideoToGoogleDrive } = require('./config/googleDriveUpload.js');
+// Google Drive removido - usando almacenamiento local simple
 
 // Importar configuraciones centralizadas PRIMERO
 const { dbConfig, createConnection, testConnection } = require('./config/database.js');
@@ -1583,56 +1583,16 @@ app.get('/api/profile/:id', verifyToken, async (req, res) => {
 
 // server.js (continuación - agregar rutas de cursos y evaluaciones)
 
-// RUTA: Crear curso con evaluación (usando Google Drive para videos)
-app.post('/api/courses', (req, res, next) => {
-  console.log('🎬 === RUTA /api/courses LLAMADA ===');
-  console.log('📡 Método:', req.method);
-  console.log('🔗 URL:', req.url);
-  console.log('📄 Headers:', req.headers);
-  console.log('📦 Body keys:', Object.keys(req.body || {}));
-  console.log('📄 Files:', req.files);
-  console.log('📄 File:', req.file);
-  next();
-}, verifyToken, googleDriveUpload.single('videoFile'), processVideoToGoogleDrive, async (req, res) => {
+// RUTA: Crear curso con evaluación (almacenamiento local simple)
+app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, res) => {
   try {
-    console.log('🎬 === CREANDO CURSO ===');
-    console.log('📄 Archivo recibido:', !!req.file);
-    console.log('📄 Nombre del archivo:', req.file?.originalname);
-    console.log('📊 Tamaño del archivo:', req.file?.size);
-    console.log('🌐 Video URL del body:', req.body.videoUrl);
-    
     const { title, description, videoUrl, cargoId, attempts = 1, timeLimit = 30 } = req.body;
     let finalVideoUrl = videoUrl;
 
-    // Si se subió un archivo, usar la URL de Google Drive
+    // Si se subió un archivo, usar la ruta local
     if (req.file) {
-      finalVideoUrl = req.file.location; // URL pública de Google Drive
-      console.log('✅ === VIDEO PROCESADO EXITOSAMENTE ===');
-      console.log('📄 Nombre del archivo:', req.file.originalname);
-      console.log('🆔 Google Drive ID:', req.file.googleDriveId);
-      console.log('🌐 URL pública final:', finalVideoUrl);
-      console.log('📊 Tamaño del archivo:', req.file.size, 'bytes');
-      console.log('🏷️ Tipo de almacenamiento:', req.file.googleDrive?.type || 'desconocido');
-      
-      if (req.file.googleDrive?.warning) {
-        console.warn('⚠️ Advertencia del almacenamiento:', req.file.googleDrive.warning);
-      }
-      
-      // Verificar que la URL es accesible
-      if (finalVideoUrl) {
-        console.log('🔍 Verificando accesibilidad de la URL...');
-        try {
-          const response = await fetch(finalVideoUrl, { method: 'HEAD' });
-          console.log('📊 Status de verificación:', response.status);
-          if (response.ok) {
-            console.log('✅ URL del video es accesible');
-          } else {
-            console.warn('⚠️ URL del video puede no ser accesible');
-          }
-        } catch (error) {
-          console.warn('⚠️ No se pudo verificar la URL del video:', error.message);
-        }
-      }
+      finalVideoUrl = `/uploads/videos/${req.file.filename}`;
+      console.log('✅ Video guardado localmente:', finalVideoUrl);
     }
 
     // Procesar evaluation como JSON
