@@ -3,7 +3,7 @@ import "./AdminCoursesPage.css";
 import { useNavigate } from "react-router-dom";
 import { BookOpenCheck, ClipboardList, Users2, BarChart3, User } from "lucide-react";
 import { BACKEND_URL } from '../utils/api';
-import { debugVideoSystem } from '../utils/videoDebugAdmin';
+// Debug removido - versión simple
 
 // Constantes para la API
 const API_URL_INTERNAL = BACKEND_URL;
@@ -32,10 +32,7 @@ const AdminCoursesPage = () => {
   const navigate = useNavigate();
 
   // Función para debug del sistema de videos
-  const handleDebugVideoSystem = async () => {
-    console.log('🔍 Iniciando debug del sistema de videos...');
-    await debugVideoSystem();
-  };
+  // Debug removido - versión simple
 
   useEffect(() => {
     fetchCourses();
@@ -562,59 +559,7 @@ const AdminCoursesPage = () => {
         <h1>Panel Administrador {editingCourse ? "(Editando)" : ""}</h1>
         
         {/* Botones de debug para administradores */}
-        <div style={{ 
-          marginBottom: '20px', 
-          display: 'flex', 
-          gap: '10px',
-          flexWrap: 'wrap',
-          padding: '15px',
-          backgroundColor: '#f8f9fa',
-          borderRadius: '8px',
-          border: '1px solid #e9ecef'
-        }}>
-          <button 
-            type="button"
-            onClick={handleDebugVideoSystem}
-            style={{
-              background: '#007bff',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            🔍 Debug Sistema de Videos
-          </button>
-          
-          <button 
-            type="button"
-            onClick={() => {
-              console.log('📋 === INFORMACIÓN DEL FORMULARIO ===');
-              console.log('📄 Título:', title);
-              console.log('📝 Descripción:', description);
-              console.log('🎬 Video URL:', videoUrl);
-              console.log('📁 Usar archivo:', useFile);
-              console.log('📄 Archivo seleccionado:', videoFile?.name);
-              console.log('👥 Cargo ID:', cargoId);
-              console.log('📊 Intentos:', attempts);
-              console.log('⏰ Tiempo límite:', timeLimit);
-              console.log('❓ Preguntas:', questions.length);
-            }}
-            style={{
-              background: '#28a745',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer',
-              fontSize: '14px'
-            }}
-          >
-            📋 Debug Formulario
-          </button>
-        </div>
+        {/* Debug removido - versión simple */}
         
       <form onSubmit={handleSubmit} className="admin-form">
         <label>Título:</label>

@@ -2,7 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./CoursesPage.css";
 import { BACKEND_URL } from '../utils/api';
-import { debugVideos, checkSpecificVideo, testVideoAccess, diagnoseVideoProblem } from '../utils/videoDebug';
+// Debug removido - versión simple
 
 const CoursesPage = () => {
   const [courses, setCourses] = useState([]);
@@ -69,53 +69,14 @@ const CoursesPage = () => {
     return match ? `https://www.youtube.com/embed/${match[1]}` : url;
   };
 
-  // Función para hacer debug de videos
-  const handleDebugVideos = async () => {
-    console.log('🔍 Iniciando debug de videos...');
-    await debugVideos();
-  };
-
-  // Función para diagnóstico completo
-  const handleDiagnoseVideos = async () => {
-    console.log('🔍 Iniciando diagnóstico completo...');
-    await diagnoseVideoProblem();
-  };
+  // Debug removido - versión simple
 
   return (
     <div className="courses-body">
       <div className="courses-page">
         <h1>Cursos Disponibles</h1>
         
-        {/* Botones de debug temporal */}
-        <div style={{ marginBottom: '20px', display: 'flex', gap: '10px' }}>
-          <button 
-            onClick={handleDebugVideos}
-            style={{
-              background: '#ff6b6b',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            🔍 Debug Videos
-          </button>
-          
-          <button 
-            onClick={handleDiagnoseVideos}
-            style={{
-              background: '#4ecdc4',
-              color: 'white',
-              border: 'none',
-              padding: '10px 20px',
-              borderRadius: '5px',
-              cursor: 'pointer'
-            }}
-          >
-            🔬 Diagnóstico Completo
-          </button>
-        </div>
+        {/* Debug removido - versión simple */}
         <div className="courses-container">
           {courses.length === 0 ? (
             <p>No hay cursos disponibles para tu rol.</p>
