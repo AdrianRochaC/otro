@@ -7,6 +7,7 @@ const AdminBitacora = () => {
   const [tareas, setTareas] = useState([]);
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [loadingUsuarios, setLoadingUsuarios] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTarea, setEditingTarea] = useState(null);
   const [formData, setFormData] = useState({
@@ -25,18 +26,26 @@ const AdminBitacora = () => {
   }, []);
 
   const fetchUsuarios = async () => {
+    setLoadingUsuarios(true);
     try {
-      const response = await fetch(`${BACKEND_URL}/api/usuarios`, {
+      const response = await fetch(`${BACKEND_URL}/api/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await response.json();
       if (data.success) {
         // Filtrar solo usuarios activos
-        const usuariosActivos = (data.usuarios || []).filter(usuario => usuario.activo === 1);
+        const usuariosActivos = (data.users || []).filter(usuario => usuario.activo === 1);
         setUsuarios(usuariosActivos);
+      } else {
+        console.error('Error al obtener usuarios:', data.message);
+        alert('❌ Error al cargar usuarios: ' + data.message);
       }
     } catch (error) {
-      }
+      console.error('Error en fetchUsuarios:', error);
+      alert('❌ No se pudo cargar la lista de usuarios');
+    } finally {
+      setLoadingUsuarios(false);
+    }
   };
 
   const fetchTareas = async () => {
@@ -161,7 +170,11 @@ const AdminBitacora = () => {
     <div className="admin-body bitacora-container">
       <div className="bitacora-header">
         <h1>🚦 Bitácora Global</h1>
-        <button className="btn-primary" onClick={() => setShowModal(true)}>
+        <button className="btn-primary" onClick={() => {
+          setShowModal(true);
+          // Recargar usuarios cuando se abre el modal
+          fetchUsuarios();
+        }}>
           <FaPlus /> Nueva Tarea
         </button>
       </div>
@@ -316,8 +329,15 @@ const AdminBitacora = () => {
               <div className="form-group">
                 <label>👥 Asignar usuarios:</label>
                 <div className="usuarios-checkboxes">
-                  {usuarios.length === 0 ? (
-                    <p className="no-usuarios">No hay usuarios disponibles</p>
+                  {loadingUsuarios ? (
+                    <div className="no-usuarios">
+                      <p>🔄 Cargando usuarios...</p>
+                    </div>
+                  ) : usuarios.length === 0 ? (
+                    <div className="no-usuarios">
+                      <p>❌ No hay usuarios disponibles</p>
+                      <p><small>Verifica tu conexión o contacta al administrador</small></p>
+                    </div>
                   ) : (
                     usuarios.map((u) => (
                       <label key={u.id} className="checkbox-label">
@@ -327,7 +347,7 @@ const AdminBitacora = () => {
                           onChange={() => handleCheckboxChange(u.id)}
                         />
                         <span className="checkmark"></span>
-                        {u.nombre}
+                        {u.nombre} {u.activo === 0 && <span className="inactive-user">(Inactivo)</span>}
                       </label>
                     ))
                   )}

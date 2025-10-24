@@ -1,4 +1,21 @@
 /* Modernización AdminBitacora - estilo profesional tipo Home/Bitacora */
+
+/* Estilos para usuarios en el modal */
+.no-usuarios {
+  text-align: center;
+  padding: 1rem;
+  color: var(--text-secondary);
+}
+
+.no-usuarios p {
+  margin: 0.5rem 0;
+}
+
+.inactive-user {
+  color: var(--text-muted);
+  font-style: italic;
+  font-size: 0.85em;
+}
 .admin-body {
   background: var(--gradient-primary);
   min-height: 100vh;

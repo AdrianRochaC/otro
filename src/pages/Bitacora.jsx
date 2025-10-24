@@ -33,13 +33,20 @@ const Bitacora = () => {
 
   const fetchUsuarios = async () => {
     try {
-      const res = await fetch(`${BACKEND_URL}/api/usuarios`, {
+      const res = await fetch(`${BACKEND_URL}/api/users`, {
         headers: { Authorization: `Bearer ${token}` },
       });
       const data = await res.json();
-      if (data.success) setUsuarios(data.usuarios);
-    } catch (e) {
+      if (data.success) {
+        setUsuarios(data.users || []);
+      } else {
+        console.error('Error al obtener usuarios:', data.message);
+        alert('❌ Error al cargar usuarios: ' + data.message);
       }
+    } catch (error) {
+      console.error('Error en fetchUsuarios:', error);
+      alert('❌ No se pudo cargar la lista de usuarios');
+    }
   };
 
   const cambiarEstado = async (tarea, nuevoEstado) => {
