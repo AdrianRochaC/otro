@@ -1,10 +1,10 @@
 const mysql = require('mysql2/promise');
 
 const dbConfig = {
-  host: 'metro.proxy.rlwy.net',
-  port: 15580,
+  host: 'caboose.proxy.rlwy.net',
+  port: 16023,
   user: 'root',
-  password: 'tjhQWfbfMbKlxUvoEHUERzLEkEMKVcOH',
+  password: 'rGbXfHSKIBHcLqYqpFtHdAGCJddHREpz',
   database: 'railway',
   // Configuraciones para mejorar la estabilidad de la conexión
   acquireTimeout: 60000,

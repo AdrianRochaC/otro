@@ -11,10 +11,10 @@ export const config = {
   
   // Configuración de la base de datos
   database: {
-    host: process.env.DB_HOST || 'metro.proxy.rlwy.net',
-    port: process.env.DB_PORT || 15580,
+    host: process.env.DB_HOST || 'caboose.proxy.rlwy.net',
+    port: process.env.DB_PORT || 16023,
     user: process.env.DB_USER || 'root',
-    password: process.env.DB_PASSWORD || 'tjhQWfbfMbKlxUvoEHUERzLEkEMKVcOH',
+    password: process.env.DB_PASSWORD || 'rGbXfHSKIBHcLqYqpFtHdAGCJddHREpz',
     database: process.env.DB_NAME || 'railway'
   },
   
