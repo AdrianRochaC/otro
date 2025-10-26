@@ -2234,32 +2234,69 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
   const tareaId = req.params.id;
   const { titulo, descripcion, estado, asignados, deadline } = req.body;
 
+  console.log('=== EDITANDO BITÁCORA ===');
+  console.log('Usuario:', { rol, userId });
+  console.log('Tarea ID:', tareaId);
+  console.log('Datos recibidos:', { titulo, descripcion, estado, asignados, deadline });
+
   try {
     const connection = await createConnection();
 
+    // Validar datos requeridos
+    if (!titulo || !descripcion || !estado) {
+      await connection.end();
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Título, descripción y estado son requeridos' 
+      });
+    }
+
+    // Validar estado
+    if (!['rojo', 'amarillo', 'verde'].includes(estado)) {
+      await connection.end();
+      return res.status(400).json({ 
+        success: false, 
+        message: 'Estado debe ser: rojo, amarillo o verde' 
+      });
+    }
+
     const [rows] = await connection.execute(`SELECT * FROM bitacora_global WHERE id = ?`, [tareaId]);
-    if (rows.length === 0) return res.status(404).json({ success: false, message: 'Tarea no encontrada' });
+    if (rows.length === 0) {
+      await connection.end();
+      return res.status(404).json({ success: false, message: 'Tarea no encontrada' });
+    }
 
     const tarea = rows[0];
     const yaVenció = new Date(tarea.deadline) < new Date();
 
     if (rol === 'Admin') {
-      // Verificar que todos los usuarios asignados estén activos
-      const placeholders = asignados.map(() => '?').join(',');
-      const [usuariosActivos] = await connection.execute(
-        `SELECT id FROM usuarios WHERE id IN (${placeholders}) AND activo = 1`,
-        asignados
-      );
-      
-      const usuariosActivosIds = usuariosActivos.map(u => u.id);
-      const usuariosInactivos = asignados.filter(id => !usuariosActivosIds.includes(id));
-      
-      if (usuariosInactivos.length > 0) {
+      // Validar asignados
+      if (!Array.isArray(asignados)) {
         await connection.end();
         return res.status(400).json({ 
           success: false, 
-          message: `No se pueden asignar tareas a usuarios inactivos. IDs: ${usuariosInactivos.join(', ')}` 
+          message: 'Asignados debe ser un array' 
         });
+      }
+
+      // Verificar que todos los usuarios asignados estén activos
+      if (asignados.length > 0) {
+        const placeholders = asignados.map(() => '?').join(',');
+        const [usuariosActivos] = await connection.execute(
+          `SELECT id FROM usuarios WHERE id IN (${placeholders}) AND activo = 1`,
+          asignados
+        );
+        
+        const usuariosActivosIds = usuariosActivos.map(u => u.id);
+        const usuariosInactivos = asignados.filter(id => !usuariosActivosIds.includes(id));
+        
+        if (usuariosInactivos.length > 0) {
+          await connection.end();
+          return res.status(400).json({ 
+            success: false, 
+            message: `No se pueden asignar tareas a usuarios inactivos. IDs: ${usuariosInactivos.join(', ')}` 
+          });
+        }
       }
 
       await connection.execute(`
@@ -2267,6 +2304,8 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
         SET titulo = ?, descripcion = ?, estado = ?, asignados = ?, deadline = ?, updated_at = NOW()
         WHERE id = ?
       `, [titulo, descripcion, estado, JSON.stringify(asignados), deadline, tareaId]);
+      
+      console.log('✅ Tarea actualizada por admin');
     } else {
       const asignadosArr = JSON.parse(tarea.asignados || "[]");
       if (!asignadosArr.includes(userId)) {
@@ -2281,7 +2320,10 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
       await connection.execute(`
         UPDATE bitacora_global SET estado = ?, updated_at = NOW() WHERE id = ?
       `, [estado, tareaId]);
+      
+      console.log('✅ Estado actualizado por usuario');
     }
+    
     // Si la tarea se marca como completa, notificar a los admins
     if (estado === 'verde') {
       const [admins] = await connection.execute("SELECT id FROM usuarios WHERE rol = 'Admin' AND activo = 1");
@@ -2295,9 +2337,16 @@ app.put('/api/bitacora/:id', verifyToken, async (req, res) => {
     }
 
     await connection.end();
-    res.json({ success: true });
+    res.json({ success: true, message: 'Tarea actualizada exitosamente' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    console.error('❌ Error editando bitácora:', error);
+    console.error('❌ Error message:', error.message);
+    console.error('❌ Error stack:', error.stack);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno del servidor',
+      error: error.message 
+    });
   }
 });
 

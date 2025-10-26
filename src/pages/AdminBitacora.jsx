@@ -72,6 +72,8 @@ const AdminBitacora = () => {
       : `${BACKEND_URL}/api/bitacora`;
     const method = editingTarea ? "PUT" : "POST";
 
+    console.log('Enviando datos:', formData);
+
     try {
       const response = await fetch(url, {
         method,
@@ -83,6 +85,8 @@ const AdminBitacora = () => {
       });
 
       const data = await response.json();
+      console.log('Respuesta del servidor:', data);
+      
       if (data.success) {
         fetchTareas();
         setShowModal(false);
@@ -94,11 +98,15 @@ const AdminBitacora = () => {
           asignados: [],
           deadline: "",
         });
+        alert("✅ " + (data.message || "Operación exitosa"));
       } else {
-        alert("❌ " + data.message);
+        console.error('Error del servidor:', data);
+        alert("❌ " + (data.message || "Error desconocido"));
       }
     } catch (error) {
-      }
+      console.error('Error en la petición:', error);
+      alert("❌ Error de conexión: " + error.message);
+    }
   };
 
   const handleDelete = async (id) => {
@@ -116,21 +124,28 @@ const AdminBitacora = () => {
   };
 
   const handleEdit = (tarea) => {
+    console.log('Editando tarea:', tarea);
+    
     setEditingTarea(tarea);
     setFormData({
-      titulo: tarea.titulo,
-      descripcion: tarea.descripcion,
-      estado: tarea.estado,
+      titulo: tarea.titulo || "",
+      descripcion: tarea.descripcion || "",
+      estado: tarea.estado || "rojo",
       asignados: (() => {
         try {
-          return Array.isArray(tarea.asignados)
-            ? tarea.asignados
-            : JSON.parse(tarea.asignados || "[]");
+          if (Array.isArray(tarea.asignados)) {
+            return tarea.asignados;
+          }
+          if (typeof tarea.asignados === 'string') {
+            return JSON.parse(tarea.asignados || "[]");
+          }
+          return [];
         } catch (error) {
+          console.error('Error parseando asignados:', error);
           return [];
         }
       })(),
-      deadline: tarea.deadline?.split("T")[0] || "",
+      deadline: tarea.deadline ? tarea.deadline.split("T")[0] : "",
     });
     setShowModal(true);
   };
