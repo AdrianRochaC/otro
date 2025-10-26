@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import './Chatbot.css';
 import { MessageCircle, X, Send, Clock, User, Bot } from 'lucide-react';
 import { BACKEND_URL } from '../utils/api';
-import RobotIcon from './DoctorIcon';
+import RobotIcon from './RobotIcon';
 
 const Chatbot = () => {
   const [isOpen, setIsOpen] = useState(false);

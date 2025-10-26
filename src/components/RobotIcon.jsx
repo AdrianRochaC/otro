@@ -10,41 +10,68 @@ const RobotIcon = ({ size = 24, className = "" }) => {
       xmlns="http://www.w3.org/2000/svg"
       className={className}
     >
-      {/* Cabeza del robot - rectángulo con esquinas redondeadas */}
+      {/* Cabeza del robot - rectángulo redondeado */}
       <rect 
-        x="6" 
+        x="7" 
         y="6" 
-        width="12" 
-        height="10" 
-        rx="2" 
-        ry="2" 
+        width="10" 
+        height="8" 
+        rx="1.5" 
+        ry="1.5" 
         fill="none" 
         stroke="currentColor" 
-        strokeWidth="1.5"
+        strokeWidth="1.2"
       />
       
-      {/* Antena/conector en la parte superior central */}
-      <path 
-        d="M12 6 L12 3 M10 3 L14 3" 
+      {/* Antena - línea horizontal en la parte superior */}
+      <line 
+        x1="10" 
+        y1="4" 
+        x2="14" 
+        y2="4" 
         stroke="currentColor" 
-        strokeWidth="1.5" 
+        strokeWidth="1.2" 
         strokeLinecap="round"
       />
       
-      {/* Ojos - dos óvalos verticales horizontales */}
+      {/* Conector vertical de la antena */}
+      <line 
+        x1="12" 
+        y1="4" 
+        x2="12" 
+        y2="6" 
+        stroke="currentColor" 
+        strokeWidth="1.2" 
+        strokeLinecap="round"
+      />
+      
+      {/* Ojos - dos óvalos horizontales pequeños */}
       <ellipse 
-        cx="9" 
-        cy="10" 
-        rx="1.2" 
-        ry="2" 
+        cx="9.5" 
+        cy="9" 
+        rx="1" 
+        ry="0.6" 
         fill="currentColor"
       />
       <ellipse 
-        cx="15" 
-        cy="10" 
-        rx="1.2" 
-        ry="2" 
+        cx="14.5" 
+        cy="9" 
+        rx="1" 
+        ry="0.6" 
         fill="currentColor"
+      />
+      
+      {/* Cuerpo - rectángulo más ancho y corto */}
+      <rect 
+        x="5" 
+        y="14" 
+        width="14" 
+        height="6" 
+        rx="1" 
+        ry="1" 
+        fill="none" 
+        stroke="currentColor" 
+        strokeWidth="1.2"
       />
     </svg>
   );
