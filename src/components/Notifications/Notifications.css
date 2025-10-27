@@ -32,13 +32,15 @@
 }
 
 .notification-card.unread {
-  background: linear-gradient(135deg, rgba(59, 130, 246, 0.1), rgba(147, 51, 234, 0.05));
+  background: #ffffff;
+  border: 2px solid #3b82f6;
   border-left: 4px solid #3b82f6;
-  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.1);
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.15);
 }
 
 .notification-card.read {
   background: var(--bg-card);
+  border: 1px solid var(--border-primary);
   opacity: 0.8;
 }
 
@@ -48,26 +50,34 @@
 
 .notification-message {
   font-size: 1rem;
-  color: var(--text-primary);
+  color: #1f2937;
   font-weight: 500;
   line-height: 1.4;
   margin-bottom: 6px;
 }
 
 .notification-card.unread .notification-message {
-  color: var(--text-primary);
+  color: #1f2937;
   font-weight: 600;
+}
+
+.notification-card.read .notification-message {
+  color: var(--text-primary);
 }
 
 .notification-date {
   font-size: 0.85rem;
-  color: var(--text-secondary);
+  color: #6b7280;
   font-weight: 400;
 }
 
 .notification-card.unread .notification-date {
-  color: #10b981;
+  color: #059669;
   font-weight: 500;
+}
+
+.notification-card.read .notification-date {
+  color: var(--text-secondary);
 }
 
 .mark-read-btn {
