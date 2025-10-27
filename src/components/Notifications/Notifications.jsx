@@ -41,29 +41,29 @@ export default function Notifications({ token }) {
   };
 
   return (
-    <div className="notifications-container" style={{width:'100%',maxWidth:'600px',margin:'30px auto',background:'#fff',border:'2px solid #eee',borderRadius:'12px',padding:'24px'}}>
-      <h2 style={{marginBottom:'18px',color:'#222'}}>Notificaciones</h2>
+    <div className="notifications-container">
+      <h2 className="notifications-title">Notificaciones</h2>
       {notifications.length === 0 ? (
         <div className="notif-empty">Sin notificaciones</div>
       ) : (
-        <table style={{width:'100%',borderCollapse:'collapse'}}>
-          <thead>
-            <tr style={{background:'#f6faff',fontWeight:'bold'}}>
-              <th style={{padding:'8px',borderBottom:'2px solid #eee'}}>Mensaje</th>
-              <th style={{padding:'8px',borderBottom:'2px solid #eee'}}>Fecha</th>
-              <th style={{padding:'8px',borderBottom:'2px solid #eee'}}>Leída</th>
-            </tr>
-          </thead>
-          <tbody>
-            {notifications.map(n => (
-              <tr key={n.id} style={{background:n.is_read ? '#fff' : '#ffe0e0'}}>
-                <td style={{padding:'8px',borderBottom:'1px solid #eee'}}>{n.message}</td>
-                <td style={{padding:'8px',borderBottom:'1px solid #eee'}}>{new Date(n.created_at).toLocaleString()}</td>
-                <td style={{padding:'8px',borderBottom:'1px solid #eee',textAlign:'center'}}>{n.is_read ? 'Sí' : 'No'}</td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
+        <div className="notifications-list">
+          {notifications.map(n => (
+            <div key={n.id} className={`notification-card ${n.is_read ? 'read' : 'unread'}`}>
+              <div className="notification-content">
+                <div className="notification-message">{n.message}</div>
+                <div className="notification-date">{new Date(n.created_at).toLocaleString()}</div>
+              </div>
+              {!n.is_read && (
+                <button 
+                  className="mark-read-btn"
+                  onClick={() => markAsRead(n.id)}
+                >
+                  Marcar como leída
+                </button>
+              )}
+            </div>
+          ))}
+        </div>
       )}
     </div>
   );
