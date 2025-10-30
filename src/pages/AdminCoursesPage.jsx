@@ -573,10 +573,21 @@ const AdminCoursesPage = () => {
         
       <form onSubmit={handleSubmit} className="admin-form">
         <label>Título:</label>
-        <input type="text" value={title} onChange={(e) => setTitle(e.target.value)} required />
+        <input
+          type="text"
+          value={title}
+          onChange={(e) => setTitle(e.target.value)}
+          placeholder="Ingresa el título del curso"
+          required
+        />
 
         <label>Descripción:</label>
-        <textarea value={description} onChange={(e) => setDescription(e.target.value)} required />
+        <textarea
+          value={description}
+          onChange={(e) => setDescription(e.target.value)}
+          placeholder="Describe el contenido del curso"
+          required
+        />
 
         {/* Selector para elegir entre link o archivo */}
         <div
@@ -619,6 +630,7 @@ const AdminCoursesPage = () => {
             type="text"
             value={videoUrl}
             onChange={(e) => setVideoUrl(e.target.value)}
+            placeholder="Pega el enlace de YouTube del curso"
             style={{
               background: "#23243a",
               color: "#fff",
