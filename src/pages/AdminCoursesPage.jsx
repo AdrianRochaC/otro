@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 import "./AdminCoursesPage.css";
 import { useNavigate } from "react-router-dom";
-import { BookOpenCheck, ClipboardList, Users2, BarChart3, User } from "lucide-react";
+import { BookOpenCheck, ClipboardList, Users2, BarChart3, User, Info } from "lucide-react";
 import { BACKEND_URL } from '../utils/api';
 // Debug removido - versión simple
 
@@ -557,6 +557,16 @@ const AdminCoursesPage = () => {
     <div className="admin-page-container">
       <div className="admin-main-container">
         <h1>Panel Administrador {editingCourse ? "(Editando)" : ""}</h1>
+        <div className="admin-subtitle">
+          Gestión de cursos (crear, editar o eliminar cursos de capacitación y evaluación)
+        </div>
+
+        <div className="admin-info-tip" title="Si el título, la descripción o el video no son coherentes o son contenido no relacionado, la IA generará preguntas de medicina/farmacia (porque la app es para una farmacia).">
+          <Info size={18} />
+          <div className="admin-info-popover">
+            Si el título, la descripción o el video no son coherentes entre sí, o son canciones u otros contenidos no relacionados, la IA generará preguntas de medicina o de farmacia, ya que esta es una aplicación web para una farmacia.
+          </div>
+        </div>
         
         {/* Botones de debug para administradores */}
         {/* Debug removido - versión simple */}
