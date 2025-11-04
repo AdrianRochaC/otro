@@ -66,16 +66,17 @@
   left: auto !important;
   width: 350px;
   height: 500px;
-  background: var(--bg-card);
+  background: var(--bg-card) !important;
   border-radius: 12px;
   box-shadow: var(--shadow-heavy);
   z-index: 1000;
   display: flex;
   flex-direction: column;
   overflow: hidden;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--border-primary) !important;
   transform: translateX(0);
   animation: slideInFromRight 0.3s ease-out;
+  color-scheme: normal !important;
 }
 
 @keyframes slideInFromRight {
@@ -145,18 +146,19 @@
   flex: 1;
   padding: 15px;
   overflow-y: auto;
-  background: var(--bg-primary);
+  background: var(--bg-primary) !important;
+  color-scheme: normal !important;
 }
 
 .welcome-message {
   text-align: center;
   padding: 20px;
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
 }
 
 .welcome-message h4 {
   margin: 10px 0;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .welcome-message ul {
@@ -177,7 +179,7 @@
   padding: 10px;
   margin-top: 15px;
   font-size: 12px;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .message {
@@ -212,16 +214,16 @@
 
 .message-content {
   max-width: 70%;
-  background: var(--bg-card);
+  background: var(--bg-card) !important;
   padding: 10px 12px;
   border-radius: 12px;
   box-shadow: var(--shadow-light);
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .message.user .message-content {
-  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
-  color: #ffffff;
+  background: linear-gradient(135deg, #667eea 0%, #764ba2 100%) !important;
+  color: #ffffff !important;
 }
 
 .message-text {
@@ -232,11 +234,11 @@
 }
 
 .message.bot .message-text {
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .message.user .message-text {
-  color: #ffffff;
+  color: #ffffff !important;
 }
 
 .message-time {
@@ -278,16 +280,17 @@
 
 .chatbot-input {
   padding: 15px;
-  background: var(--bg-card);
-  border-top: 1px solid var(--border-primary);
+  background: var(--bg-card) !important;
+  border-top: 1px solid var(--border-primary) !important;
   display: flex;
   gap: 10px;
   align-items: flex-end;
+  color-scheme: normal !important;
 }
 
 .chatbot-input textarea {
   flex: 1;
-  border: 1px solid var(--border-primary);
+  border: 1px solid var(--border-primary) !important;
   border-radius: 20px;
   padding: 10px 15px;
   resize: none;
@@ -297,12 +300,13 @@
   transition: border-color 0.2s ease;
   min-height: 20px;
   max-height: 100px;
-  background: var(--bg-input);
-  color: var(--text-primary);
+  background: var(--bg-input) !important;
+  color: var(--text-primary) !important;
+  color-scheme: normal !important;
 }
 
 .chatbot-input textarea::placeholder {
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
   opacity: 0.7;
 }
 
@@ -344,12 +348,13 @@
   flex: 1;
   padding: 15px;
   overflow-y: auto;
-  background: var(--bg-primary);
+  background: var(--bg-primary) !important;
+  color-scheme: normal !important;
 }
 
 .chatbot-history h4 {
   margin: 0 0 15px 0;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
   font-size: 16px;
 }
 
@@ -360,11 +365,11 @@
 }
 
 .history-item {
-  background: var(--bg-card);
+  background: var(--bg-card) !important;
   border-radius: 8px;
   padding: 12px;
   box-shadow: var(--shadow-light);
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .history-item.user {
@@ -380,24 +385,24 @@
   margin-bottom: 5px;
   font-size: 12px;
   text-transform: uppercase;
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
 }
 
 .history-content p {
   margin: 0 0 5px 0;
   font-size: 13px;
   line-height: 1.4;
-  color: var(--text-primary);
+  color: var(--text-primary) !important;
 }
 
 .history-content small {
   font-size: 11px;
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
 }
 
 .no-history {
   text-align: center;
-  color: var(--text-secondary);
+  color: var(--text-secondary) !important;
   font-style: italic;
   margin-top: 50px;
 }
