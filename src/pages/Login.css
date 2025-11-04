@@ -39,19 +39,19 @@
 }
 
 .login-container {
-  background-color: var(--bg-card);
+  background-color: #13327c;
   padding: 3rem 2rem;
   max-width: 450px;
   width: 100%;
   border-radius: var(--radius-large);
   box-shadow: var(--shadow-card);
-  border: 1px solid var(--border-primary);
+  border: 1px solid rgba(255, 255, 255, 0.2);
   z-index: 1;
 }
 
 .login-container h1 {
   text-align: center;
-  color: var(--text-primary);
+  color: #ffffff;
   margin-bottom: 2rem;
   font-size: 2rem;
 }
@@ -64,22 +64,23 @@
 
 .login-form label {
   font-weight: 600;
-  color: var(--text-primary);
+  color: #ffffff;
 }
 
 .login-form input {
   padding: 12px;
   border-radius: var(--radius-small);
-  border: 1px solid var(--border-secondary);
+  border: 1px solid rgba(255, 255, 255, 0.3);
   font-size: 1rem;
-  background: var(--bg-input);
-  color: var(--text-primary);
+  background: rgba(255, 255, 255, 0.95);
+  color: #1a1a1a;
 }
 
 .login-form input:focus {
   outline: none;
-  border-color: var(--border-focus);
-  box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
+  border-color: rgba(255, 255, 255, 0.6);
+  box-shadow: 0 0 0 2px rgba(255, 255, 255, 0.2);
+  background: #ffffff;
 }
 
 .login-form button {
