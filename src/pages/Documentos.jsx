@@ -32,12 +32,8 @@ const Documentos = () => {
   // Función para descargar documentos (maneja Cloudinary y archivos locales)
   const handleDownload = async (doc) => {
     try {
-      console.log('📥 Iniciando descarga de documento:', doc.name);
-      
       // Si es una URL de Cloudinary, descargar usando fetch
       if (doc.filename && doc.filename.startsWith('http')) {
-        console.log('☁️ Descargando desde Cloudinary:', doc.filename);
-        
         const response = await fetch(doc.filename);
         if (!response.ok) {
           throw new Error('Error al descargar el archivo');
@@ -75,15 +71,12 @@ const Documentos = () => {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
-        console.log('✅ Documento descargado:', fileName);
       } else {
         // Para archivos locales, usar el enlace directo
         window.open(`${API_URL}/uploads/documents/${doc.filename}`, '_blank');
       }
     } catch (error) {
-      console.error('❌ Error al descargar documento:', error);
-      alert('Error al descargar el documento. Por favor, intenta nuevamente.');
+      // Error silencioso
     }
   };
 

@@ -37,12 +37,8 @@ const AdminDocumentos = () => {
   // Función para descargar documentos (maneja Cloudinary y archivos locales)
   const handleDownload = async (doc) => {
     try {
-      console.log('📥 Iniciando descarga de documento:', doc.name);
-      
       // Si es una URL de Cloudinary, descargar usando fetch
       if (doc.filename && doc.filename.startsWith('http')) {
-        console.log('☁️ Descargando desde Cloudinary:', doc.filename);
-        
         const response = await fetch(doc.filename);
         if (!response.ok) {
           throw new Error('Error al descargar el archivo');
@@ -80,15 +76,12 @@ const AdminDocumentos = () => {
         link.click();
         document.body.removeChild(link);
         window.URL.revokeObjectURL(url);
-        
-        console.log('✅ Documento descargado:', fileName);
       } else {
         // Para archivos locales, usar el enlace directo
         window.open(`${API_URL}/uploads/documents/${doc.filename}`, '_blank');
       }
     } catch (error) {
-      console.error('❌ Error al descargar documento:', error);
-      alert('Error al descargar el documento. Por favor, intenta nuevamente.');
+      // Error silencioso
     }
   };
 
@@ -169,30 +162,19 @@ const AdminDocumentos = () => {
     setUploading(true);
     setUploadError('');
     setUploadSuccess('');
-    console.log('📤 Iniciando subida de documento a Cloudinary...');
-    console.log('📄 Archivo:', file.name, 'Tamaño:', file.size, 'bytes', 'Tipo:', file.type);
     try {
       const formData = new FormData();
       formData.append('document', file);
       formData.append('is_global', isGlobal);
       formData.append('roles', JSON.stringify(selectedRoles));
       const token = localStorage.getItem('authToken');
-      console.log('🌐 Enviando a:', `${API_URL}/api/documents`);
       const res = await fetch(`${API_URL}/api/documents`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
       const data = await res.json();
-      console.log('📤 Respuesta del servidor:', data);
       if (data.success) {
-        console.log('✅ Documento subido exitosamente a Cloudinary');
-        if (data.cloudinaryUrl) {
-          console.log('☁️ URL de Cloudinary:', data.cloudinaryUrl);
-          console.log('🆔 Public ID:', data.publicId);
-        }
-        alert('✅ Documento subido exitosamente a Cloudinary\n\n' + 
-              (data.cloudinaryUrl ? `URL: ${data.cloudinaryUrl}` : ''));
         setUploadSuccess('Documento subido exitosamente a Cloudinary');
         setFile(null);
         setSelectedRoles([]);
@@ -263,12 +245,6 @@ const AdminDocumentos = () => {
     setUploading(true);
     setUploadError('');
     setUploadSuccess('');
-    if (editFile) {
-      console.log('📤 Iniciando actualización de documento en Cloudinary...');
-      console.log('📄 Nuevo archivo:', editFile.name, 'Tamaño:', editFile.size, 'bytes', 'Tipo:', editFile.type);
-    } else {
-      console.log('📝 Actualizando solo metadatos del documento (sin cambiar archivo)');
-    }
     try {
       const formData = new FormData();
       formData.append('name', editName);
@@ -276,25 +252,13 @@ const AdminDocumentos = () => {
       formData.append('roles', JSON.stringify(editSelectedRoles));
       if (editFile) formData.append('document', editFile);
       const token = localStorage.getItem('authToken');
-      console.log('🌐 Enviando a:', `${API_URL}/api/documents/${editingDoc.id}`);
       const res = await fetch(`${API_URL}/api/documents/${editingDoc.id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
       const data = await res.json();
-      console.log('📤 Respuesta del servidor (edición):', data);
       if (data.success) {
-        if (editFile) {
-          console.log('✅ Documento actualizado exitosamente en Cloudinary');
-          if (data.cloudinaryUrl) {
-            console.log('☁️ Nueva URL de Cloudinary:', data.cloudinaryUrl);
-          }
-          alert('✅ Documento actualizado exitosamente en Cloudinary\n\n' + 
-                (data.cloudinaryUrl ? `Nueva URL: ${data.cloudinaryUrl}` : ''));
-        } else {
-          console.log('✅ Documento actualizado exitosamente (sin cambiar archivo)');
-        }
         setUploadSuccess(editFile ? 'Documento actualizado exitosamente en Cloudinary' : 'Documento actualizado exitosamente');
         fetchDocuments();
         setTimeout(() => {
