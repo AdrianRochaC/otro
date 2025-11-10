@@ -800,7 +800,7 @@ const AdminDocumentos = () => {
                         alignItems: 'center'
                       }}>
                         <a
-                          href={`${API_URL}/uploads/documents/${doc.filename}`}
+                          href={doc.filename.startsWith('http') ? doc.filename : `${API_URL}/uploads/documents/${doc.filename}`}
                           target="_blank"
                           rel="noopener noreferrer"
                           className="btn-secondary"

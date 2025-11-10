@@ -589,18 +589,16 @@ const videoAnalysisUpload = multer({
   }
 });
 
-// Configuración de Multer para documentos
-const documentStorage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    cb(null, documentsDir);
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    cb(null, Date.now() + '-' + file.fieldname + ext);
-  }
-});
+// Importar servicio de Cloudinary
+const { 
+  uploadDocumentToCloudinary, 
+  deleteDocumentFromCloudinary,
+  extractPublicIdFromUrl 
+} = require('./config/cloudinary.js');
+
+// Configuración de Multer para documentos (en memoria para Cloudinary)
 const documentUpload = multer({
-  storage: documentStorage,
+  storage: multer.memoryStorage(),
   fileFilter: function (req, file, cb) {
     // Permitir solo PDF, Word, Excel
     const allowedTypes = [
@@ -623,20 +621,39 @@ const documentUpload = multer({
 app.use('/uploads/documents', express.static(documentsDir));
 
 
-// Endpoint para subir documento (con asignación múltiple)
+// Endpoint para subir documento (con asignación múltiple) - Cloudinary
 app.post('/api/documents', verifyToken, documentUpload.single('document'), async (req, res) => {
   try {
     if (!req.file) {
       return res.status(400).json({ success: false, message: 'No se subió ningún archivo.' });
     }
+    
     const { is_global, roles, users } = req.body;
+    
+    // Subir a Cloudinary
+    console.log('☁️ Subiendo documento a Cloudinary...');
+    const cloudinaryResult = await uploadDocumentToCloudinary(
+      req.file.buffer,
+      req.file.originalname,
+      req.file.mimetype
+    );
+    
     const connection = await createConnection();
-    // Insertar documento
+    
+    // Insertar documento con URL de Cloudinary
     const [result] = await connection.execute(
       `INSERT INTO documents (name, filename, mimetype, size, user_id, is_global) VALUES (?, ?, ?, ?, ?, ?)`,
-      [req.file.originalname, req.file.filename, req.file.mimetype, req.file.size, req.user.id, is_global === 'true' || is_global === true]
+      [
+        req.file.originalname, 
+        cloudinaryResult.url, // Guardar URL de Cloudinary en lugar del filename local
+        req.file.mimetype, 
+        cloudinaryResult.bytes || req.file.size, 
+        req.user.id, 
+        is_global === 'true' || is_global === true
+      ]
     );
     const documentId = result.insertId;
+    
     // Insertar targets (roles)
     if (roles) {
       const rolesArr = Array.isArray(roles) ? roles : JSON.parse(roles);
@@ -647,6 +664,7 @@ app.post('/api/documents', verifyToken, documentUpload.single('document'), async
         );
       }
     }
+    
     // Insertar targets (usuarios)
     if (users) {
       const usersArr = Array.isArray(users) ? users : JSON.parse(users);
@@ -657,10 +675,13 @@ app.post('/api/documents', verifyToken, documentUpload.single('document'), async
         );
       }
     }
+    
     await connection.end();
+    console.log('✅ Documento subido exitosamente a Cloudinary');
     res.json({ success: true, message: 'Documento subido exitosamente.' });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error interno del servidor.' });
+    console.error('❌ Error subiendo documento:', error);
+    res.status(500).json({ success: false, message: 'Error interno del servidor: ' + error.message });
   }
 });
 
@@ -727,7 +748,7 @@ app.get('/api/documents/:id/targets', verifyToken, async (req, res) => {
   }
 });
 
-// Endpoint para actualizar un documento
+// Endpoint para actualizar un documento - Cloudinary
 app.put('/api/documents/:id', verifyToken, documentUpload.single('document'), async (req, res) => {
   try {
     const docId = req.params.id;
@@ -750,13 +771,41 @@ app.put('/api/documents/:id', verifyToken, documentUpload.single('document'), as
       return res.status(404).json({ success: false, message: 'Documento no encontrado' });
     }
 
+    const oldDoc = existingDoc[0];
+    let cloudinaryUrl = oldDoc.filename; // Mantener la URL actual si no hay archivo nuevo
+    
+    // Si se sube un archivo nuevo, subirlo a Cloudinary y eliminar el anterior
+    if (req.file) {
+      // Eliminar el archivo anterior de Cloudinary si existe
+      if (oldDoc.filename && oldDoc.filename.includes('cloudinary.com')) {
+        try {
+          const publicId = extractPublicIdFromUrl(oldDoc.filename);
+          if (publicId) {
+            await deleteDocumentFromCloudinary(publicId, 'raw');
+            console.log('🗑️ Archivo anterior eliminado de Cloudinary');
+          }
+        } catch (deleteError) {
+          console.warn('⚠️ No se pudo eliminar el archivo anterior de Cloudinary:', deleteError.message);
+        }
+      }
+      
+      // Subir nuevo archivo a Cloudinary
+      console.log('☁️ Subiendo nuevo documento a Cloudinary...');
+      const cloudinaryResult = await uploadDocumentToCloudinary(
+        req.file.buffer,
+        req.file.originalname,
+        req.file.mimetype
+      );
+      cloudinaryUrl = cloudinaryResult.url;
+    }
+    
     // Actualizar el documento
     let updateQuery = 'UPDATE documents SET name = ?';
     let updateParams = [name];
     
     if (req.file) {
       updateQuery += ', filename = ?, mimetype = ?, size = ?';
-      updateParams.push(req.file.filename, req.file.mimetype, req.file.size);
+      updateParams.push(cloudinaryUrl, req.file.mimetype, req.file.size);
     }
     
     updateQuery += ' WHERE id = ?';
@@ -786,11 +835,11 @@ app.put('/api/documents/:id', verifyToken, documentUpload.single('document'), as
     res.json({ success: true, message: 'Documento actualizado exitosamente' });
   } catch (error) {
     console.error('Error actualizando documento:', error);
-    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    res.status(500).json({ success: false, message: 'Error interno del servidor: ' + error.message });
   }
 });
 
-// Endpoint para eliminar un documento
+// Endpoint para eliminar un documento - Cloudinary
 app.delete('/api/documents/:id', verifyToken, async (req, res) => {
   try {
     const docId = req.params.id;
@@ -807,17 +856,32 @@ app.delete('/api/documents/:id', verifyToken, async (req, res) => {
       return res.status(404).json({ success: false, message: 'Documento no encontrado' });
     }
 
+    const doc = existingDoc[0];
+    
+    // Eliminar de Cloudinary si es una URL de Cloudinary
+    if (doc.filename && doc.filename.includes('cloudinary.com')) {
+      try {
+        const publicId = extractPublicIdFromUrl(doc.filename);
+        if (publicId) {
+          await deleteDocumentFromCloudinary(publicId, 'raw');
+          console.log('🗑️ Documento eliminado de Cloudinary');
+        }
+      } catch (cloudinaryError) {
+        console.warn('⚠️ No se pudo eliminar de Cloudinary (continuando con eliminación de BD):', cloudinaryError.message);
+      }
+    }
+    
     // Eliminar targets primero (por las foreign keys)
     await connection.execute('DELETE FROM document_targets WHERE document_id = ?', [docId]);
     
-    // Eliminar el documento
+    // Eliminar el documento de la BD
     await connection.execute('DELETE FROM documents WHERE id = ?', [docId]);
     
     await connection.end();
     res.json({ success: true, message: 'Documento eliminado exitosamente' });
   } catch (error) {
     console.error('Error eliminando documento:', error);
-    res.status(500).json({ success: false, message: 'Error interno del servidor' });
+    res.status(500).json({ success: false, message: 'Error interno del servidor: ' + error.message });
   }
 });
 
