@@ -92,10 +92,49 @@ Esto instalará el paquete `cloudinary` que ya está incluido en `package.json`.
 - Estos documentos seguirán funcionando si el servidor tiene acceso a la carpeta `uploads/documents/`
 - Para migrar documentos antiguos, puedes actualizarlos manualmente desde el panel de administración
 
+## Dónde Revisar los Documentos Subidos
+
+### En el Dashboard de Cloudinary
+
+1. **Inicia sesión** en tu cuenta de [Cloudinary](https://cloudinary.com/console)
+2. Ve a la sección **"Media Library"** en el menú lateral
+3. Busca la carpeta **`documents/`** - todos los documentos se almacenan ahí
+4. Podrás ver:
+   - Nombre del archivo
+   - Tamaño
+   - Fecha de subida
+   - URL del documento
+   - Vista previa (si es una imagen)
+
+### En la Consola del Navegador
+
+Cuando subas un documento, verás en la consola del navegador (F12):
+- `📤 Iniciando subida de documento a Cloudinary...`
+- `📄 Archivo: [nombre] Tamaño: [tamaño] bytes Tipo: [tipo]`
+- `🌐 Enviando a: [URL del endpoint]`
+- `📤 Respuesta del servidor: [datos de la respuesta]`
+- `✅ Documento subido exitosamente a Cloudinary`
+- `☁️ URL de Cloudinary: [URL completa]`
+- `🆔 Public ID: [ID público]`
+
+### En el Alert del Navegador
+
+Después de subir exitosamente, verás un alert con:
+- Mensaje de confirmación
+- URL completa del documento en Cloudinary
+
+### En los Logs del Servidor (Render/Backend)
+
+En los logs del servidor verás:
+- `☁️ Subiendo documento a Cloudinary...`
+- `✅ Documento subido a Cloudinary: [URL]`
+- `📄 URL de Cloudinary: [URL]`
+
 ## Notas Importantes
 
 - **Persistencia**: Los documentos ahora tienen persistencia completa en Cloudinary
 - **Backup**: Cloudinary mantiene automáticamente copias de seguridad de tus archivos
 - **CDN**: Los documentos se sirven a través de la CDN de Cloudinary para mejor rendimiento
 - **Seguridad**: Las URLs de Cloudinary son públicas por defecto. Si necesitas privacidad adicional, considera configurar firmas de URL en Cloudinary
+- **Organización**: Todos los documentos se guardan en la carpeta `documents/` en Cloudinary para fácil organización
 

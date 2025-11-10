@@ -678,7 +678,13 @@ app.post('/api/documents', verifyToken, documentUpload.single('document'), async
     
     await connection.end();
     console.log('✅ Documento subido exitosamente a Cloudinary');
-    res.json({ success: true, message: 'Documento subido exitosamente.' });
+    console.log('📄 URL de Cloudinary:', cloudinaryResult.url);
+    res.json({ 
+      success: true, 
+      message: 'Documento subido exitosamente a Cloudinary.',
+      cloudinaryUrl: cloudinaryResult.url,
+      publicId: cloudinaryResult.public_id
+    });
   } catch (error) {
     console.error('❌ Error subiendo documento:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor: ' + error.message });
@@ -832,7 +838,15 @@ app.put('/api/documents/:id', verifyToken, documentUpload.single('document'), as
     }
     
     await connection.end();
-    res.json({ success: true, message: 'Documento actualizado exitosamente' });
+    console.log('✅ Documento actualizado exitosamente en Cloudinary');
+    if (req.file) {
+      console.log('📄 Nueva URL de Cloudinary:', cloudinaryUrl);
+    }
+    res.json({ 
+      success: true, 
+      message: req.file ? 'Documento actualizado exitosamente en Cloudinary' : 'Documento actualizado exitosamente',
+      cloudinaryUrl: req.file ? cloudinaryUrl : undefined
+    });
   } catch (error) {
     console.error('Error actualizando documento:', error);
     res.status(500).json({ success: false, message: 'Error interno del servidor: ' + error.message });

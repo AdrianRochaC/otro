@@ -111,20 +111,31 @@ const AdminDocumentos = () => {
     setUploading(true);
     setUploadError('');
     setUploadSuccess('');
+    console.log('📤 Iniciando subida de documento a Cloudinary...');
+    console.log('📄 Archivo:', file.name, 'Tamaño:', file.size, 'bytes', 'Tipo:', file.type);
     try {
       const formData = new FormData();
       formData.append('document', file);
       formData.append('is_global', isGlobal);
       formData.append('roles', JSON.stringify(selectedRoles));
       const token = localStorage.getItem('authToken');
+      console.log('🌐 Enviando a:', `${API_URL}/api/documents`);
       const res = await fetch(`${API_URL}/api/documents`, {
         method: 'POST',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
       const data = await res.json();
+      console.log('📤 Respuesta del servidor:', data);
       if (data.success) {
-        setUploadSuccess('Documento subido exitosamente');
+        console.log('✅ Documento subido exitosamente a Cloudinary');
+        if (data.cloudinaryUrl) {
+          console.log('☁️ URL de Cloudinary:', data.cloudinaryUrl);
+          console.log('🆔 Public ID:', data.publicId);
+        }
+        alert('✅ Documento subido exitosamente a Cloudinary\n\n' + 
+              (data.cloudinaryUrl ? `URL: ${data.cloudinaryUrl}` : ''));
+        setUploadSuccess('Documento subido exitosamente a Cloudinary');
         setFile(null);
         setSelectedRoles([]);
         setIsGlobal(false);
@@ -134,6 +145,7 @@ const AdminDocumentos = () => {
           setUploadSuccess('');
         }, 1200);
       } else {
+        console.error('❌ Error al subir documento:', data.message);
         setUploadError(data.message || 'Error al subir documento');
       }
     } catch (err) {
@@ -193,6 +205,12 @@ const AdminDocumentos = () => {
     setUploading(true);
     setUploadError('');
     setUploadSuccess('');
+    if (editFile) {
+      console.log('📤 Iniciando actualización de documento en Cloudinary...');
+      console.log('📄 Nuevo archivo:', editFile.name, 'Tamaño:', editFile.size, 'bytes', 'Tipo:', editFile.type);
+    } else {
+      console.log('📝 Actualizando solo metadatos del documento (sin cambiar archivo)');
+    }
     try {
       const formData = new FormData();
       formData.append('name', editName);
@@ -200,14 +218,26 @@ const AdminDocumentos = () => {
       formData.append('roles', JSON.stringify(editSelectedRoles));
       if (editFile) formData.append('document', editFile);
       const token = localStorage.getItem('authToken');
+      console.log('🌐 Enviando a:', `${API_URL}/api/documents/${editingDoc.id}`);
       const res = await fetch(`${API_URL}/api/documents/${editingDoc.id}`, {
         method: 'PUT',
         headers: { Authorization: `Bearer ${token}` },
         body: formData
       });
       const data = await res.json();
+      console.log('📤 Respuesta del servidor (edición):', data);
       if (data.success) {
-        setUploadSuccess('Documento actualizado exitosamente');
+        if (editFile) {
+          console.log('✅ Documento actualizado exitosamente en Cloudinary');
+          if (data.cloudinaryUrl) {
+            console.log('☁️ Nueva URL de Cloudinary:', data.cloudinaryUrl);
+          }
+          alert('✅ Documento actualizado exitosamente en Cloudinary\n\n' + 
+                (data.cloudinaryUrl ? `Nueva URL: ${data.cloudinaryUrl}` : ''));
+        } else {
+          console.log('✅ Documento actualizado exitosamente (sin cambiar archivo)');
+        }
+        setUploadSuccess(editFile ? 'Documento actualizado exitosamente en Cloudinary' : 'Documento actualizado exitosamente');
         fetchDocuments();
         setTimeout(() => {
           setEditModalOpen(false);

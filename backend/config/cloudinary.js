@@ -1,10 +1,27 @@
 const cloudinary = require('cloudinary').v2;
 
+// Validar configuración de Cloudinary
+const cloudName = process.env.CLOUDINARY_CLOUD_NAME;
+const apiKey = process.env.CLOUDINARY_API_KEY;
+const apiSecret = process.env.CLOUDINARY_API_SECRET;
+
+console.log('🔍 === CONFIGURACIÓN DE CLOUDINARY ===');
+console.log('☁️ Cloud Name configurado:', cloudName ? '✅ Sí (' + cloudName + ')' : '❌ No');
+console.log('🔑 API Key configurado:', apiKey ? '✅ Sí' : '❌ No');
+console.log('🔐 API Secret configurado:', apiSecret ? '✅ Sí' : '❌ No');
+
+if (!cloudName || !apiKey || !apiSecret) {
+  console.warn('⚠️ ADVERTENCIA: Variables de Cloudinary no configuradas completamente');
+  console.warn('💡 Configura CLOUDINARY_CLOUD_NAME, CLOUDINARY_API_KEY y CLOUDINARY_API_SECRET en Render.com');
+} else {
+  console.log('✅ Todas las variables de Cloudinary están configuradas');
+}
+
 // Configuración de Cloudinary
 cloudinary.config({
-  cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
-  api_key: process.env.CLOUDINARY_API_KEY,
-  api_secret: process.env.CLOUDINARY_API_SECRET
+  cloud_name: cloudName,
+  api_key: apiKey,
+  api_secret: apiSecret
 });
 
 /**
@@ -16,6 +33,19 @@ cloudinary.config({
  */
 async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
   return new Promise((resolve, reject) => {
+    // Validar configuración antes de subir
+    if (!process.env.CLOUDINARY_CLOUD_NAME || !process.env.CLOUDINARY_API_KEY || !process.env.CLOUDINARY_API_SECRET) {
+      const error = new Error('Cloudinary no está configurado. Verifica las variables de entorno.');
+      console.error('❌ Error de configuración:', error.message);
+      reject(error);
+      return;
+    }
+    
+    console.log('☁️ Iniciando subida a Cloudinary...');
+    console.log('📄 Archivo:', originalName);
+    console.log('📊 Tamaño:', fileBuffer.length, 'bytes');
+    console.log('📋 Tipo MIME:', mimeType);
+    
     // Determinar el resource_type según el tipo de archivo
     let resourceType = 'raw'; // Por defecto para documentos
     
@@ -25,10 +55,14 @@ async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
       resourceType = 'video';
     }
     
+    console.log('📦 Resource Type:', resourceType);
+    
     // Crear nombre único para el archivo
     const timestamp = Date.now();
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
     const publicId = `documents/${timestamp}_${sanitizedName}`;
+    
+    console.log('🆔 Public ID generado:', publicId);
     
     const uploadOptions = {
       resource_type: resourceType,
@@ -39,15 +73,22 @@ async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
       overwrite: false
     };
     
+    console.log('⚙️ Opciones de subida:', JSON.stringify(uploadOptions, null, 2));
+    
     // Subir el archivo
     const uploadStream = cloudinary.uploader.upload_stream(
       uploadOptions,
       (error, result) => {
         if (error) {
           console.error('❌ Error subiendo a Cloudinary:', error);
+          console.error('📚 Detalles del error:', JSON.stringify(error, null, 2));
           reject(error);
         } else {
-          console.log('✅ Documento subido a Cloudinary:', result.secure_url);
+          console.log('✅ Documento subido exitosamente a Cloudinary');
+          console.log('🌐 URL segura:', result.secure_url);
+          console.log('🆔 Public ID:', result.public_id);
+          console.log('📁 Carpeta:', result.folder || 'documents');
+          console.log('📊 Tamaño subido:', result.bytes, 'bytes');
           resolve({
             url: result.secure_url,
             public_id: result.public_id,
