@@ -34,6 +34,64 @@ const AdminDocumentos = () => {
     fetchDocuments();
   }, []);
 
+  // Función para descargar documentos (maneja Cloudinary y archivos locales)
+  const handleDownload = async (doc) => {
+    try {
+      console.log('📥 Iniciando descarga de documento:', doc.name);
+      
+      // Si es una URL de Cloudinary, descargar usando fetch
+      if (doc.filename && doc.filename.startsWith('http')) {
+        console.log('☁️ Descargando desde Cloudinary:', doc.filename);
+        
+        const response = await fetch(doc.filename);
+        if (!response.ok) {
+          throw new Error('Error al descargar el archivo');
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        const link = document.createElement('a');
+        link.href = url;
+        
+        // Obtener la extensión del archivo desde el mimetype o el nombre
+        let extension = '';
+        if (doc.mimetype) {
+          const mimeParts = doc.mimetype.split('/');
+          if (mimeParts[1]) {
+            extension = '.' + mimeParts[1];
+            // Ajustar extensiones comunes
+            if (extension === '.vnd.openxmlformats-officedocument.wordprocessingml.document') {
+              extension = '.docx';
+            } else if (extension === '.vnd.openxmlformats-officedocument.spreadsheetml.sheet') {
+              extension = '.xlsx';
+            } else if (extension === '.msword') {
+              extension = '.doc';
+            } else if (extension === '.vnd.ms-excel') {
+              extension = '.xls';
+            }
+          }
+        }
+        
+        // Usar el nombre del documento con la extensión correcta
+        const fileName = doc.name.endsWith(extension) ? doc.name : doc.name + extension;
+        link.download = fileName;
+        
+        document.body.appendChild(link);
+        link.click();
+        document.body.removeChild(link);
+        window.URL.revokeObjectURL(url);
+        
+        console.log('✅ Documento descargado:', fileName);
+      } else {
+        // Para archivos locales, usar el enlace directo
+        window.open(`${API_URL}/uploads/documents/${doc.filename}`, '_blank');
+      }
+    } catch (error) {
+      console.error('❌ Error al descargar documento:', error);
+      alert('Error al descargar el documento. Por favor, intenta nuevamente.');
+    }
+  };
+
   // Cargar cargos al abrir el modal
   useEffect(() => {
     if (modalOpen) {
@@ -829,10 +887,8 @@ const AdminDocumentos = () => {
                         gap: '8px',
                         alignItems: 'center'
                       }}>
-                        <a
-                          href={doc.filename.startsWith('http') ? doc.filename : `${API_URL}/uploads/documents/${doc.filename}`}
-                          target="_blank"
-                          rel="noopener noreferrer"
+                        <button
+                          onClick={() => handleDownload(doc)}
                           className="btn-secondary"
                           style={{ 
                             padding: '8px 16px',
@@ -840,11 +896,18 @@ const AdminDocumentos = () => {
                             textDecoration: 'none',
                             display: 'inline-flex',
                             alignItems: 'center',
-                            gap: '6px'
+                            gap: '6px',
+                            background: 'var(--gradient-primary)',
+                            color: 'white',
+                            border: 'none',
+                            borderRadius: '8px',
+                            fontWeight: '600',
+                            cursor: 'pointer',
+                            transition: 'all 0.2s ease'
                           }}
                         >
                           📄 Ver/Descargar
-                        </a>
+                        </button>
                         <button 
                           className="btn-edit" 
                           title="Editar" 
