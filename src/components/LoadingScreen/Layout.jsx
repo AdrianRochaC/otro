@@ -18,6 +18,7 @@ const Layout = ({ children }) => {
   const [unreadCount, setUnreadCount] = useState(0);
   const [collapsed, setCollapsed] = useState(false);
   const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
+  const [isMobile, setIsMobile] = useState(window.innerWidth <= 768);
 
   useEffect(() => {
     // Obtener cantidad de notificaciones no leídas solo si hay usuario logueado
@@ -43,7 +44,9 @@ const Layout = ({ children }) => {
   useEffect(() => {
     const handleResize = () => {
       const small = window.innerWidth <= 1024;
+      const mobile = window.innerWidth <= 768;
       setIsSmallScreen(small);
+      setIsMobile(mobile);
       
       // En pantallas pequeñas, colapsar automáticamente el menú
       if (small && !collapsed) {
@@ -150,10 +153,69 @@ const Layout = ({ children }) => {
         </>
       ) : (
         <>
+          {/* Botón hamburguesa para móviles */}
+          {isMobile && collapsed && (
+            <button
+              style={{
+                position: 'fixed',
+                top: '1rem',
+                left: '1rem',
+                zIndex: 1001,
+                background: 'var(--bg-card)',
+                border: '1px solid var(--border-primary)',
+                borderRadius: '8px',
+                padding: '0.5rem 0.7rem',
+                cursor: 'pointer',
+                fontSize: '1.5rem',
+                color: 'var(--text-primary)',
+                boxShadow: 'var(--shadow-medium)',
+                transition: 'all 0.3s ease'
+              }}
+              onClick={() => setCollapsed(false)}
+              aria-label="Abrir menú"
+              onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+              onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+            >
+              ☰
+              {unreadCount > 0 && (
+                <span style={{
+                  position:'absolute',
+                  top:5,
+                  right:5,
+                  width:10,
+                  height:10,
+                  background:'#e74c3c',
+                  borderRadius:'50%',
+                  display:'inline-block',
+                  border:'2px solid var(--bg-card)',
+                  zIndex:2
+                }}></span>
+              )}
+            </button>
+          )}
+
+          {/* Overlay para móviles cuando el menú está abierto */}
+          {isMobile && !collapsed && (
+            <div
+              style={{
+                position: 'fixed',
+                top: 0,
+                left: 0,
+                width: '100vw',
+                height: '100vh',
+                background: 'rgba(0,0,0,0.5)',
+                backdropFilter: 'blur(8px)',
+                zIndex: 999,
+                animation: 'fadeIn 0.3s ease'
+              }}
+              onClick={() => setCollapsed(true)}
+            />
+          )}
+
           <div style={{
-            minWidth: collapsed ? '56px' : (isSmallScreen ? '180px' : '220px'),
-            maxWidth: collapsed ? '56px' : (isSmallScreen ? '200px' : '270px'),
-            width: collapsed ? '56px' : (isSmallScreen ? '180px' : '220px'),
+            minWidth: collapsed ? (isMobile ? '0px' : '56px') : (isSmallScreen ? '180px' : '220px'),
+            maxWidth: collapsed ? (isMobile ? '0px' : '56px') : (isSmallScreen ? '200px' : '270px'),
+            width: collapsed ? (isMobile ? '0px' : '56px') : (isSmallScreen ? '180px' : '220px'),
             height: '100vh',
             boxShadow: 'var(--shadow-card)',
             background: 'var(--bg-menu)',
@@ -162,60 +224,70 @@ const Layout = ({ children }) => {
             top: 0,
             left: 0,
             zIndex: 1000,
-            display: 'flex',
+            display: isMobile && collapsed ? 'none' : 'flex',
             flexDirection: 'column',
             alignItems: 'flex-start',
             transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
-            borderRight: '1px solid var(--border-primary)'
+            borderRight: '1px solid var(--border-primary)',
+            overflow: 'hidden'
           }}>
-            <div style={{width:'100%',display:'flex',justifyContent:'flex-end',alignItems:'center'}}>
-              <button
-                style={{
-                  background: 'none',
-                  border: 'none',
-                  fontSize: '1.7rem',
-                  color: 'var(--text-primary)',
-                  margin: '1.2rem 1.2rem 0 0',
-                  cursor: 'pointer',
-                  outline: 'none',
-                  transition: 'all 0.3s ease',
-                  position: 'relative'
-                }}
-                onClick={() => setCollapsed(c => !c)}
-                aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
-                onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
-                onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
-              >
-                {collapsed ? (
-                  <>
-                    {'☰'}
-                    {unreadCount > 0 && (
-                      <span style={{
-                        position:'absolute',
-                        top:2,
-                        right:2,
-                        width:13,
-                        height:13,
-                        background:'#e74c3c',
-                        borderRadius:'50%',
-                        display:'inline-block',
-                        border:'2px solid var(--bg-menu)',
-                        zIndex:2
-                      }}></span>
-                    )}
-                  </>
-                ) : '✕'}
-              </button>
-            </div>
+            {!isMobile && (
+              <div style={{width:'100%',display:'flex',justifyContent:'flex-end',alignItems:'center'}}>
+                <button
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.7rem',
+                    color: 'var(--text-primary)',
+                    margin: '1.2rem 1.2rem 0 0',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    transition: 'all 0.3s ease',
+                    position: 'relative'
+                  }}
+                  onClick={() => setCollapsed(c => !c)}
+                  aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
+                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
+            {isMobile && !collapsed && (
+              <div style={{width:'100%',display:'flex',justifyContent:'flex-end',alignItems:'center'}}>
+                <button
+                  style={{
+                    background: 'none',
+                    border: 'none',
+                    fontSize: '1.7rem',
+                    color: 'var(--text-primary)',
+                    margin: '1.2rem 1.2rem 0 0',
+                    cursor: 'pointer',
+                    outline: 'none',
+                    transition: 'all 0.3s ease',
+                    position: 'relative'
+                  }}
+                  onClick={() => setCollapsed(true)}
+                  aria-label="Cerrar menú"
+                  onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
+                  onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
+                >
+                  ✕
+                </button>
+              </div>
+            )}
             {!collapsed && (
-              <HomeMenuList isAdmin={isAdmin} unreadCount={unreadCount} showNotifications={true} />
+              <HomeMenuList isAdmin={isAdmin} unreadCount={unreadCount} showNotifications={true} onNavigate={isMobile ? () => setCollapsed(true) : undefined} />
             )}
           </div>
         </>
       )}
       <main className="main-content" style={location.pathname !== '/home' ? {
-        marginLeft: collapsed ? '56px' : (isSmallScreen ? '180px' : '220px'), 
-        paddingTop:'2rem', 
+        marginLeft: isMobile ? '0' : (collapsed ? '56px' : (isSmallScreen ? '180px' : '220px')), 
+        paddingTop:'2rem',
+        paddingLeft: isMobile ? '1rem' : undefined,
+        paddingRight: isMobile ? '1rem' : undefined,
         transition:'margin-left 0.22s cubic-bezier(.4,0,.2,1)'
       } : {}}>
         {children}

@@ -988,3 +988,24 @@ li {
   padding: calc(0.5rem * var(--spacing-base)) calc(1rem * var(--spacing-base));
   margin-bottom: calc(0.5rem * var(--spacing-base));
 }
+
+/* Animaciones */
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideInRight {
+  from {
+    transform: translateX(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateX(0);
+    opacity: 1;
+  }
+}

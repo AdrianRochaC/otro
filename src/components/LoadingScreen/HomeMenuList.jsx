@@ -1,5 +1,5 @@
-import React, { useState } from "react";
-import { useNavigate } from "react-router-dom";
+import React, { useState, useEffect } from "react";
+import { useNavigate, useLocation } from "react-router-dom";
 import { BookOpenCheck, ClipboardList, Users2, BarChart3, User, Settings, Home } from "lucide-react";
 import { FaGraduationCap, FaClipboardList, FaUser, FaBell, FaCog, FaHome, FaFileAlt, FaUsers } from "react-icons/fa";
 import PersonalizationModal from '../PersonalizationModal';
@@ -10,6 +10,8 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
   const [notifications, setNotifications] = useState([]);
   const [loading, setLoading] = useState(false);
   const [showPersonalization, setShowPersonalization] = useState(false);
+  const location = useLocation();
+  const [isSmallScreen, setIsSmallScreen] = useState(window.innerWidth <= 1024);
 
   let options = isAdmin
     ? [
@@ -41,6 +43,24 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
   }
 
   const navigate = useNavigate();
+
+  // Detectar cambios en el tamaño de pantalla
+  useEffect(() => {
+    const handleResize = () => {
+      setIsSmallScreen(window.innerWidth <= 1024);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+
+  // Función para verificar si una ruta está activa
+  const isActive = (path) => {
+    if (path === '/home') {
+      return location.pathname === '/home';
+    }
+    // Para otras rutas, verificar si la ruta actual comienza con la ruta del menú
+    return location.pathname === path || location.pathname.startsWith(path + '/');
+  };
 
   const clearUserPreferencesAndStyles = () => {
     // Elimina todas las preferencias personalizadas
@@ -104,7 +124,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
     <>
       <nav style={{
         padding:'1.5rem 0', 
-        minWidth: window.innerWidth <= 1024 ? 180 : 220, 
+        minWidth: isSmallScreen ? 180 : 220, 
         height:'100%', 
         display:'flex', 
         flexDirection:'column', 
@@ -112,16 +132,36 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
         background: 'var(--bg-menu)',
         color: 'var(--text-primary)'
       }}>
+        {/* Logo de la empresa */}
+        <div style={{
+          display:'flex',
+          justifyContent:'center',
+          alignItems:'center',
+          padding:'1rem 1.2rem 1.5rem 1.2rem',
+          borderBottom:'1px solid var(--border-primary)',
+          marginBottom:'1rem'
+        }}>
+          <img 
+            src="/daviivr.png" 
+            alt="Logo Empresa" 
+            style={{
+              maxWidth: isSmallScreen ? '120px' : '140px',
+              height: 'auto',
+              objectFit: 'contain'
+            }}
+          />
+        </div>
 
-        <div>
+        <div style={{flex: 1, overflowY: 'auto'}}>
           <ul style={{
             listStyle:'none',
             margin:0,
             padding:0,
             display:'flex',
             flexDirection:'column',
-            gap: window.innerWidth <= 1024 ? '1rem' : '1.2rem',
-            marginTop:'2.5rem'
+            gap: isSmallScreen ? '0.8rem' : '1rem',
+            paddingLeft:'0.5rem',
+            paddingRight:'0.5rem'
           }}>
             {options.map(opt => (
               <li key={opt.to} style={{position:'relative'}}>
@@ -131,22 +171,32 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                       style={{
                         display:'flex',
                         alignItems:'center',
-                        gap: window.innerWidth <= 1024 ? '0.8rem' : '1rem',
-                        background:'none',
+                        gap: isSmallScreen ? '0.8rem' : '1rem',
+                        background: isActive('/notificaciones') ? 'var(--gradient-primary)' : 'none',
                         border:'none',
-                        fontSize: window.innerWidth <= 1024 ? '1rem' : '1.08rem',
-                        color:'var(--text-primary)',
+                        fontSize: isSmallScreen ? '0.95rem' : '1.05rem',
+                        color: isActive('/notificaciones') ? 'var(--text-white)' : 'var(--text-primary)',
                         cursor:'pointer',
-                        padding: window.innerWidth <= 1024 ? '0.4rem 1rem' : '0.5rem 1.2rem',
+                        padding: isSmallScreen ? '0.5rem 0.9rem' : '0.6rem 1.1rem',
                         width:'100%',
                         textAlign:'left',
                         borderRadius:'8px',
                         transition:'all 0.3s ease',
-                        position:'relative'
+                        position:'relative',
+                        fontWeight: isActive('/notificaciones') ? '600' : '500',
+                        boxShadow: isActive('/notificaciones') ? 'var(--shadow-medium)' : 'none'
                       }}
                       onClick={handleNotifClick}
-                      onMouseEnter={e => e.currentTarget.style.background='var(--bg-card-hover)'}
-                      onMouseLeave={e => e.currentTarget.style.background='none'}
+                      onMouseEnter={e => {
+                        if (!isActive('/notificaciones')) {
+                          e.currentTarget.style.background='var(--bg-card-hover)';
+                        }
+                      }}
+                      onMouseLeave={e => {
+                        if (!isActive('/notificaciones')) {
+                          e.currentTarget.style.background='none';
+                        }
+                      }}
                     >
                       {opt.icon}
                       {unreadCount > 0 && (
@@ -259,25 +309,47 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                     style={{
                       display:'flex',
                       alignItems:'center',
-                      gap: window.innerWidth <= 1024 ? '0.8rem' : '1rem',
-                      background:'none',
+                      gap: isSmallScreen ? '0.8rem' : '1rem',
+                      background: isActive(opt.to) ? 'var(--gradient-primary)' : 'none',
                       border:'none',
-                      fontSize: window.innerWidth <= 1024 ? '1rem' : '1.08rem',
-                      color:'var(--text-primary)',
+                      fontSize: isSmallScreen ? '0.95rem' : '1.05rem',
+                      color: isActive(opt.to) ? 'var(--text-white)' : 'var(--text-primary)',
                       cursor:'pointer',
-                      padding: window.innerWidth <= 1024 ? '0.4rem 1rem' : '0.5rem 1.2rem',
+                      padding: isSmallScreen ? '0.5rem 0.9rem' : '0.6rem 1.1rem',
                       width:'100%',
                       textAlign:'left',
                       borderRadius:'8px',
                       transition:'all 0.3s ease',
-                      position:'relative'
+                      position:'relative',
+                      fontWeight: isActive(opt.to) ? '600' : '500',
+                      boxShadow: isActive(opt.to) ? 'var(--shadow-medium)' : 'none'
                     }}
                     onClick={() => { navigate(opt.to); if(onNavigate) onNavigate(); }}
-                    onMouseEnter={e => e.currentTarget.style.background='var(--bg-card-hover)'}
-                    onMouseLeave={e => e.currentTarget.style.background='none'}
+                    onMouseEnter={e => {
+                      if (!isActive(opt.to)) {
+                        e.currentTarget.style.background='var(--bg-card-hover)';
+                      }
+                    }}
+                    onMouseLeave={e => {
+                      if (!isActive(opt.to)) {
+                        e.currentTarget.style.background='none';
+                      }
+                    }}
                   >
                     {opt.icon}
                     <span>{opt.label}</span>
+                    {isActive(opt.to) && (
+                      <span style={{
+                        position:'absolute',
+                        left:0,
+                        top:'50%',
+                        transform:'translateY(-50%)',
+                        width:'4px',
+                        height:'60%',
+                        background:'var(--text-white)',
+                        borderRadius:'0 4px 4px 0'
+                      }}></span>
+                    )}
                   </button>
                 )}
               </li>
@@ -289,18 +361,19 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                 style={{
                   display:'flex',
                   alignItems:'center',
-                  gap: window.innerWidth <= 1024 ? '0.8rem' : '1rem',
+                  gap: isSmallScreen ? '0.8rem' : '1rem',
                   background:'none',
                   border:'none',
-                  fontSize: window.innerWidth <= 1024 ? '1rem' : '1.08rem',
+                  fontSize: isSmallScreen ? '0.95rem' : '1.05rem',
                   color:'var(--text-primary)',
                   cursor:'pointer',
-                  padding: window.innerWidth <= 1024 ? '0.4rem 1rem' : '0.5rem 1.2rem',
+                  padding: isSmallScreen ? '0.5rem 0.9rem' : '0.6rem 1.1rem',
                   width:'100%',
                   textAlign:'left',
                   borderRadius:'8px',
                   transition:'all 0.3s ease',
-                  position:'relative'
+                  position:'relative',
+                  fontWeight:'500'
                 }}
                 onClick={() => setShowPersonalization(true)}
                 onMouseEnter={e => e.currentTarget.style.background='var(--bg-card-hover)'}
