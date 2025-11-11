@@ -4,6 +4,7 @@ import { BookOpenCheck, ClipboardList, Users2, BarChart3, User, Settings, Home }
 import { FaGraduationCap, FaClipboardList, FaUser, FaBell, FaCog, FaHome, FaFileAlt, FaUsers } from "react-icons/fa";
 import PersonalizationModal from '../PersonalizationModal';
 import { BACKEND_URL } from '../../utils/api';
+import Modal from '../Modal';
 
 const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) => {
   const [showNotifDropdown, setShowNotifDropdown] = useState(false);
@@ -118,6 +119,18 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
       headers: { Authorization: `Bearer ${token}` }
     });
     setNotifications((prev) => prev.map(n => n.id === id ? { ...n, is_read: 1 } : n));
+    // Recargar notificaciones para actualizar el contador
+    if (showNotifDropdown) {
+      setLoading(true);
+      fetch(`${BACKEND_URL}/api/notifications`, {
+        headers: { Authorization: `Bearer ${token}` }
+      })
+        .then(res => res.json())
+        .then(data => {
+          if (data.success) setNotifications(data.notifications);
+        })
+        .finally(() => setLoading(false));
+    }
   };
 
   return (
@@ -226,94 +239,6 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                       )}
                       <span>{opt.label}</span>
                     </button>
-                    {showNotifDropdown && (
-                      <div style={{
-                        position:'absolute',
-                        left:'100%',
-                        top:0,
-                        minWidth:'260px',
-                        maxHeight:'340px',
-                        overflowY:'auto',
-                        background:'var(--bg-card)',
-                        boxShadow:'var(--shadow-card)',
-                        borderRadius:'12px',
-                        padding:'1.2rem 1.2rem',
-                        border:'1px solid var(--border-primary)',
-                        zIndex:1000,
-                        animation:'slideInRight 0.3s ease-out'
-                      }}>
-                        <h4 style={{
-                          margin:'0 0 1rem 0',
-                          fontSize:'1.1rem',
-                          color:'var(--text-primary)'
-                        }}>Notificaciones</h4>
-                        {loading ? (
-                          <div style={{color:'var(--text-secondary)'}}>Cargando...</div>
-                        ) : notifications.length === 0 ? (
-                          <div style={{color:'var(--text-secondary)'}}>Sin notificaciones</div>
-                        ) : (
-                          <ul style={{
-                            listStyle:'none',
-                            margin:0,
-                            padding:0,
-                            display:'flex',
-                            flexDirection:'column',
-                            gap:'0.7rem'
-                          }}>
-                            {notifications.map(n => (
-                              <li key={n.id} style={{
-                                background:n.is_read ? 'var(--bg-card)' : 'var(--gradient-info)',
-                                borderRadius:'10px',
-                                padding:'0.7rem 0.8rem',
-                                boxShadow:'var(--shadow-light)',
-                                border:'1px solid var(--border-primary)',
-                                display:'flex',
-                                flexDirection:'column',
-                                gap:'0.3rem'
-                              }}>
-                                <div style={{
-                                  fontSize:'1.01rem',
-                                  color:'var(--text-primary)',
-                                  fontWeight:'500',
-                                  letterSpacing:'0.01em'
-                                }}>{n.message}</div>
-                                <div style={{
-                                  fontSize:'0.97rem',
-                                  color:'var(--text-secondary)'
-                                }}>{new Date(n.created_at).toLocaleString()}</div>
-                                {!n.is_read && (
-                                  <button
-                                    style={{
-                                      marginTop:'0.3rem',
-                                      background:'var(--gradient-primary)',
-                                      color:'var(--text-white)',
-                                      border:'none',
-                                      borderRadius:'8px',
-                                      cursor:'pointer',
-                                      fontSize:'0.98rem',
-                                      padding:'4px 12px',
-                                      alignSelf:'flex-end',
-                                      transition:'all 0.3s ease'
-                                    }}
-                                    onClick={() => handleMarkAsRead(n.id)}
-                                    onMouseEnter={e => {
-                                      e.target.style.background = 'var(--gradient-primary-hover)';
-                                      e.target.style.transform = 'translateY(-1px)';
-                                    }}
-                                    onMouseLeave={e => {
-                                      e.target.style.background = 'var(--gradient-primary)';
-                                      e.target.style.transform = 'translateY(0)';
-                                    }}
-                                  >
-                                    Marcar como leída
-                                  </button>
-                                )}
-                              </li>
-                            ))}
-                          </ul>
-                        )}
-                      </div>
-                    )}
                   </>
                 ) : (
                   <button
@@ -441,6 +366,153 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
         isOpen={showPersonalization} 
         onClose={() => setShowPersonalization(false)} 
       />
+
+      {/* Modal de Notificaciones */}
+      <Modal 
+        isOpen={showNotifDropdown} 
+        onClose={() => setShowNotifDropdown(false)}
+        title={`Notificaciones ${unreadCount > 0 ? `(${unreadCount})` : ''}`}
+      >
+        <div style={{
+          maxHeight: '70vh',
+          overflowY: 'auto',
+          paddingRight: '0.5rem'
+        }}>
+          {loading ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '3rem 1rem',
+              color: 'var(--text-secondary)'
+            }}>
+              <div style={{
+                width: '40px',
+                height: '40px',
+                border: '3px solid var(--border-secondary)',
+                borderTop: '3px solid var(--text-primary)',
+                borderRadius: '50%',
+                animation: 'spin 1s linear infinite',
+                marginBottom: '1rem'
+              }}></div>
+              <p>Cargando notificaciones...</p>
+            </div>
+          ) : notifications.length === 0 ? (
+            <div style={{
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              justifyContent: 'center',
+              padding: '3rem 1rem',
+              color: 'var(--text-secondary)',
+              textAlign: 'center'
+            }}>
+              <FaBell size={48} style={{ marginBottom: '1rem', opacity: 0.5 }} />
+              <p style={{ fontSize: '1.1rem' }}>No tienes notificaciones</p>
+            </div>
+          ) : (
+            <ul style={{
+              listStyle: 'none',
+              margin: 0,
+              padding: 0,
+              display: 'flex',
+              flexDirection: 'column',
+              gap: '1rem'
+            }}>
+              {notifications.map(n => (
+                <li key={n.id} style={{
+                  background: n.is_read ? 'var(--bg-card)' : 'var(--gradient-info)',
+                  borderRadius: '12px',
+                  padding: '1rem 1.2rem',
+                  boxShadow: 'var(--shadow-light)',
+                  border: '1px solid var(--border-primary)',
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.5rem',
+                  transition: 'all 0.3s ease',
+                  position: 'relative'
+                }}
+                onMouseEnter={e => {
+                  e.currentTarget.style.transform = 'translateY(-2px)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-medium)';
+                }}
+                onMouseLeave={e => {
+                  e.currentTarget.style.transform = 'translateY(0)';
+                  e.currentTarget.style.boxShadow = 'var(--shadow-light)';
+                }}
+                >
+                  {!n.is_read && (
+                    <span style={{
+                      position: 'absolute',
+                      top: '0.8rem',
+                      right: '0.8rem',
+                      width: '10px',
+                      height: '10px',
+                      background: '#e74c3c',
+                      borderRadius: '50%',
+                      display: 'inline-block'
+                    }}></span>
+                  )}
+                  <div style={{
+                    fontSize: '1.05rem',
+                    color: 'var(--text-primary)',
+                    fontWeight: n.is_read ? '500' : '600',
+                    letterSpacing: '0.01em',
+                    lineHeight: '1.5',
+                    paddingRight: !n.is_read ? '1.5rem' : '0'
+                  }}>{n.message}</div>
+                  <div style={{
+                    fontSize: '0.9rem',
+                    color: 'var(--text-secondary)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    gap: '0.5rem'
+                  }}>
+                    <span>{new Date(n.created_at).toLocaleString('es-ES', {
+                      year: 'numeric',
+                      month: 'short',
+                      day: 'numeric',
+                      hour: '2-digit',
+                      minute: '2-digit'
+                    })}</span>
+                  </div>
+                  {!n.is_read && (
+                    <button
+                      style={{
+                        marginTop: '0.5rem',
+                        background: 'var(--gradient-primary)',
+                        color: 'var(--text-white)',
+                        border: 'none',
+                        borderRadius: '8px',
+                        cursor: 'pointer',
+                        fontSize: '0.95rem',
+                        padding: '0.5rem 1rem',
+                        alignSelf: 'flex-start',
+                        transition: 'all 0.3s ease',
+                        fontWeight: '500'
+                      }}
+                      onClick={() => handleMarkAsRead(n.id)}
+                      onMouseEnter={e => {
+                        e.target.style.background = 'var(--gradient-primary-hover)';
+                        e.target.style.transform = 'translateY(-1px)';
+                        e.target.style.boxShadow = 'var(--shadow-medium)';
+                      }}
+                      onMouseLeave={e => {
+                        e.target.style.background = 'var(--gradient-primary)';
+                        e.target.style.transform = 'translateY(0)';
+                        e.target.style.boxShadow = 'none';
+                      }}
+                    >
+                      Marcar como leída
+                    </button>
+                  )}
+                </li>
+              ))}
+            </ul>
+          )}
+        </div>
+      </Modal>
     </>
   );
 };

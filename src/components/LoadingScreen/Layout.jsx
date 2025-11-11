@@ -260,7 +260,25 @@ const Layout = ({ children }) => {
                   onMouseEnter={(e) => e.target.style.transform = 'scale(1.1)'}
                   onMouseLeave={(e) => e.target.style.transform = 'scale(1)'}
                 >
-                  ✕
+                  {collapsed ? (
+                    <>
+                      ☰
+                      {unreadCount > 0 && (
+                        <span style={{
+                          position:'absolute',
+                          top:2,
+                          right:2,
+                          width:13,
+                          height:13,
+                          background:'#e74c3c',
+                          borderRadius:'50%',
+                          display:'inline-block',
+                          border:'2px solid var(--bg-menu)',
+                          zIndex:2
+                        }}></span>
+                      )}
+                    </>
+                  ) : '✕'}
                 </button>
               </div>
             )}
