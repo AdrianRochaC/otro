@@ -213,37 +213,47 @@ const Layout = ({ children }) => {
           )}
 
           <div style={{
-            minWidth: collapsed ? (isMobile ? '0px' : '56px') : (isSmallScreen ? '180px' : '220px'),
-            maxWidth: collapsed ? (isMobile ? '0px' : '56px') : (isSmallScreen ? '200px' : '270px'),
             width: collapsed ? (isMobile ? '0px' : '56px') : (isSmallScreen ? '180px' : '220px'),
             height: '100vh',
             boxShadow: 'var(--shadow-card)',
             background: 'var(--bg-menu)',
             padding: 0,
+            margin: 0,
             position: 'fixed',
             top: 0,
             left: 0,
             zIndex: 1000,
             display: isMobile && collapsed ? 'none' : 'flex',
             flexDirection: 'column',
-            alignItems: 'flex-start',
+            alignItems: 'stretch',
             transition: 'all 0.22s cubic-bezier(.4,0,.2,1)',
             borderRight: '1px solid var(--border-primary)',
-            overflow: 'hidden'
+            overflow: 'hidden',
+            boxSizing: 'border-box'
           }}>
             {!isMobile && (
-              <div style={{width:'100%',display:'flex',justifyContent:'flex-end',alignItems:'center'}}>
+              <div style={{
+                width:'100%',
+                display:'flex',
+                justifyContent:'flex-end',
+                alignItems:'center',
+                padding:'0.8rem 0.8rem 0 0',
+                flexShrink: 0
+              }}>
                 <button
                   style={{
                     background: 'none',
                     border: 'none',
                     fontSize: '1.7rem',
                     color: 'var(--text-primary)',
-                    margin: '1.2rem 1.2rem 0 0',
                     cursor: 'pointer',
                     outline: 'none',
                     transition: 'all 0.3s ease',
-                    position: 'relative'
+                    position: 'relative',
+                    padding: '0.3rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                   onClick={() => setCollapsed(c => !c)}
                   aria-label={collapsed ? 'Expandir menú' : 'Colapsar menú'}
@@ -255,18 +265,28 @@ const Layout = ({ children }) => {
               </div>
             )}
             {isMobile && !collapsed && (
-              <div style={{width:'100%',display:'flex',justifyContent:'flex-end',alignItems:'center'}}>
+              <div style={{
+                width:'100%',
+                display:'flex',
+                justifyContent:'flex-end',
+                alignItems:'center',
+                padding:'0.8rem 0.8rem 0 0',
+                flexShrink: 0
+              }}>
                 <button
                   style={{
                     background: 'none',
                     border: 'none',
                     fontSize: '1.7rem',
                     color: 'var(--text-primary)',
-                    margin: '1.2rem 1.2rem 0 0',
                     cursor: 'pointer',
                     outline: 'none',
                     transition: 'all 0.3s ease',
-                    position: 'relative'
+                    position: 'relative',
+                    padding: '0.3rem',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center'
                   }}
                   onClick={() => setCollapsed(true)}
                   aria-label="Cerrar menú"

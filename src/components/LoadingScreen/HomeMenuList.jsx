@@ -123,45 +123,56 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
   return (
     <>
       <nav style={{
-        padding:'1.5rem 0', 
-        minWidth: isSmallScreen ? 180 : 220, 
-        height:'100%', 
+        padding:'0', 
+        width:'100%',
+        height:'100vh', 
         display:'flex', 
         flexDirection:'column', 
         justifyContent:'space-between',
         background: 'var(--bg-menu)',
-        color: 'var(--text-primary)'
+        color: 'var(--text-primary)',
+        overflowY: 'auto',
+        overflowX: 'hidden',
+        boxSizing: 'border-box'
       }}>
         {/* Logo de la empresa */}
         <div style={{
           display:'flex',
           justifyContent:'center',
           alignItems:'center',
-          padding:'1rem 1.2rem 1.5rem 1.2rem',
+          padding:'1rem 0.8rem 1.2rem 0.8rem',
           borderBottom:'1px solid var(--border-primary)',
-          marginBottom:'1rem'
+          flexShrink: 0
         }}>
           <img 
             src="/daviivr.png" 
             alt="Logo Empresa" 
             style={{
-              maxWidth: isSmallScreen ? '120px' : '140px',
+              maxWidth: isSmallScreen ? '110px' : '130px',
+              width: '100%',
               height: 'auto',
               objectFit: 'contain'
             }}
           />
         </div>
 
-        <div style={{flex: 1, overflowY: 'auto'}}>
+        <div style={{
+          flex: 1, 
+          overflowY: 'auto',
+          overflowX: 'hidden',
+          minHeight: 0,
+          paddingTop: '0.5rem'
+        }}>
           <ul style={{
             listStyle:'none',
             margin:0,
             padding:0,
             display:'flex',
             flexDirection:'column',
-            gap: isSmallScreen ? '0.8rem' : '1rem',
+            gap: isSmallScreen ? '0.7rem' : '0.9rem',
             paddingLeft:'0.5rem',
-            paddingRight:'0.5rem'
+            paddingRight:'0.5rem',
+            paddingBottom: '1rem'
           }}>
             {options.map(opt => (
               <li key={opt.to} style={{position:'relative'}}>
@@ -388,25 +399,28 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
         
         {/* Botón cerrar sesión abajo */}
         <div style={{
-          marginTop:'2.5rem',
-          padding:'1.2rem 0 0 0',
+          marginTop:'auto',
+          padding:'1.2rem 0.8rem 1.2rem 0.8rem',
           borderTop:'1.5px solid var(--border-primary)',
           display:'flex',
-          justifyContent:'center'
+          justifyContent:'center',
+          flexShrink: 0
         }}>
           <button
             className="logout-btn"
             style={{
               background:'var(--gradient-danger)',
               color:'var(--text-white)',
-              padding:'0.6rem 1.5rem',
+              padding: isSmallScreen ? '0.5rem 1.2rem' : '0.6rem 1.5rem',
               borderRadius:'8px',
               fontWeight:600,
               border:'none',
               cursor:'pointer',
-              fontSize:'1rem',
+              fontSize: isSmallScreen ? '0.9rem' : '1rem',
               transition:'all 0.3s ease',
-              boxShadow:'var(--shadow-light)'
+              boxShadow:'var(--shadow-light)',
+              width: '100%',
+              maxWidth: '100%'
             }}
             onClick={handleLogout}
             onMouseEnter={e => {
