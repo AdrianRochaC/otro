@@ -141,7 +141,11 @@ const Documentos = () => {
         {!loading && documents.length > 0 && (
           <div style={{
             position: 'relative',
-            marginBottom: '24px'
+            marginBottom: '28px',
+            padding: '4px',
+            background: 'linear-gradient(135deg, rgba(168, 224, 99, 0.2) 0%, rgba(86, 171, 47, 0.15) 100%)',
+            borderRadius: '16px',
+            boxShadow: '0 4px 16px rgba(168, 224, 99, 0.2)'
           }}>
             <input
               type="text"
@@ -150,37 +154,39 @@ const Documentos = () => {
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
                 width: '100%',
-                padding: '16px 20px 16px 50px',
-                fontSize: '1.05rem',
-                borderRadius: '14px',
-                border: '2px solid var(--border-color)',
-                background: 'var(--bg-secondary)',
-                color: 'var(--text-primary)',
+                padding: '18px 24px 18px 56px',
+                fontSize: '1.1rem',
+                borderRadius: '12px',
+                border: '2px solid #a8e063',
+                background: 'rgba(30, 32, 44, 0.95)',
+                color: '#ffffff',
                 outline: 'none',
                 transition: 'all 0.3s ease',
                 boxSizing: 'border-box',
                 fontWeight: '500',
-                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
+                boxShadow: '0 2px 12px rgba(168, 224, 99, 0.3)'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = '#a8e063';
-                e.target.style.boxShadow = '0 0 0 4px rgba(168, 224, 99, 0.2), 0 4px 12px rgba(168, 224, 99, 0.15)';
-                e.target.style.background = 'var(--bg-primary)';
+                e.target.style.borderColor = '#b8f073';
+                e.target.style.boxShadow = '0 0 0 4px rgba(168, 224, 99, 0.3), 0 6px 20px rgba(168, 224, 99, 0.4)';
+                e.target.style.background = 'rgba(30, 32, 44, 1)';
+                e.target.style.transform = 'scale(1.01)';
               }}
               onBlur={(e) => {
-                e.target.style.borderColor = 'var(--border-color)';
-                e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
-                e.target.style.background = 'var(--bg-secondary)';
+                e.target.style.borderColor = '#a8e063';
+                e.target.style.boxShadow = '0 2px 12px rgba(168, 224, 99, 0.3)';
+                e.target.style.background = 'rgba(30, 32, 44, 0.95)';
+                e.target.style.transform = 'scale(1)';
               }}
             />
             <span style={{
               position: 'absolute',
-              left: '18px',
+              left: '22px',
               top: '50%',
               transform: 'translateY(-50%)',
-              fontSize: '1.3rem',
+              fontSize: '1.5rem',
               pointerEvents: 'none',
-              opacity: 0.7
+              filter: 'drop-shadow(0 0 4px rgba(168, 224, 99, 0.6))'
             }}>
               🔍
             </span>
@@ -189,28 +195,32 @@ const Documentos = () => {
                 onClick={() => setSearchTerm('')}
                 style={{
                   position: 'absolute',
-                  right: '14px',
+                  right: '18px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  background: 'rgba(168, 224, 99, 0.1)',
+                  background: 'linear-gradient(135deg, #a8e063 0%, #56ab2f 100%)',
                   border: 'none',
-                  fontSize: '1.1rem',
+                  fontSize: '1.2rem',
                   cursor: 'pointer',
-                  color: '#a8e063',
-                  padding: '6px 8px',
-                  borderRadius: '6px',
+                  color: '#ffffff',
+                  padding: '8px 10px',
+                  borderRadius: '8px',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
-                  transition: 'all 0.2s ease'
+                  transition: 'all 0.2s ease',
+                  boxShadow: '0 2px 8px rgba(168, 224, 99, 0.4)',
+                  fontWeight: 'bold'
                 }}
                 onMouseEnter={(e) => {
-                  e.target.style.background = 'rgba(168, 224, 99, 0.2)';
-                  e.target.style.transform = 'translateY(-50%) scale(1.1)';
+                  e.target.style.background = 'linear-gradient(135deg, #b8f073 0%, #66bb3f 100%)';
+                  e.target.style.transform = 'translateY(-50%) scale(1.15)';
+                  e.target.style.boxShadow = '0 4px 12px rgba(168, 224, 99, 0.5)';
                 }}
                 onMouseLeave={(e) => {
-                  e.target.style.background = 'rgba(168, 224, 99, 0.1)';
+                  e.target.style.background = 'linear-gradient(135deg, #a8e063 0%, #56ab2f 100%)';
                   e.target.style.transform = 'translateY(-50%) scale(1)';
+                  e.target.style.boxShadow = '0 2px 8px rgba(168, 224, 99, 0.4)';
                 }}
                 aria-label="Limpiar búsqueda"
               >
