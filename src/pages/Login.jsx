@@ -81,7 +81,8 @@ const Login = () => {
               className="login-logo"
             />
             <h2 className="login-brand-title">
-              Capacitaciones <span>Davivir</span>
+              Capacitaciones
+              <span>Davivir</span>
             </h2>
             <p className="login-brand-subtitle">
               Sistema de gestión y capacitación
