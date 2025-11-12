@@ -50,38 +50,7 @@
   overflow: hidden;
 }
 
-.login-logo-section::before {
-  content: '';
-  position: absolute;
-  top: -30%;
-  right: -30%;
-  width: 150%;
-  height: 150%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.08) 0%, transparent 60%);
-  animation: pulse 10s ease-in-out infinite;
-}
 
-.login-logo-section::after {
-  content: '';
-  position: absolute;
-  bottom: -20%;
-  left: -20%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
-  animation: pulse 12s ease-in-out infinite reverse;
-}
-
-@keyframes pulse {
-  0%, 100% {
-    transform: scale(1) rotate(0deg);
-    opacity: 0.4;
-  }
-  50% {
-    transform: scale(1.1) rotate(5deg);
-    opacity: 0.2;
-  }
-}
 
 .login-logo-content {
   text-align: center;
@@ -156,37 +125,20 @@
   position: relative;
 }
 
-.login-form-section::before {
-  content: '';
-  position: absolute;
-  bottom: -20%;
-  left: -20%;
-  width: 120%;
-  height: 120%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.05) 0%, transparent 60%);
-  animation: pulse 12s ease-in-out infinite reverse;
-}
-
-.login-form-section::after {
-  content: '';
-  position: absolute;
-  top: -15%;
-  right: -15%;
-  width: 100%;
-  height: 100%;
-  background: radial-gradient(circle, rgba(255, 255, 255, 0.03) 0%, transparent 60%);
-  animation: pulse 14s ease-in-out infinite;
-}
 
 .login-container {
-  background: #13327c;
+  background: rgba(19, 50, 124, 0.85);
   padding: 3rem 2.8rem;
   max-width: 420px;
   width: 100%;
   border-radius: 20px;
-  box-shadow: 0 10px 32px rgba(0, 0, 0, 0.3);
+  box-shadow: 
+    0 10px 32px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  border: 1px solid rgba(255, 255, 255, 0.1);
   z-index: 1;
   position: relative;
+  backdrop-filter: blur(10px);
 }
 
 .login-container h1 {
