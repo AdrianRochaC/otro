@@ -145,37 +145,42 @@ const Documentos = () => {
           }}>
             <input
               type="text"
-              placeholder="🔍 Buscar documento por nombre..."
+              placeholder="Buscar documento por nombre..."
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
               style={{
                 width: '100%',
-                padding: '14px 16px 14px 48px',
-                fontSize: '1rem',
-                borderRadius: '12px',
+                padding: '16px 20px 16px 50px',
+                fontSize: '1.05rem',
+                borderRadius: '14px',
                 border: '2px solid var(--border-color)',
                 background: 'var(--bg-secondary)',
                 color: 'var(--text-primary)',
                 outline: 'none',
                 transition: 'all 0.3s ease',
-                boxSizing: 'border-box'
+                boxSizing: 'border-box',
+                fontWeight: '500',
+                boxShadow: '0 2px 8px rgba(0, 0, 0, 0.1)'
               }}
               onFocus={(e) => {
-                e.target.style.borderColor = 'var(--gradient-primary)';
-                e.target.style.boxShadow = '0 0 0 3px rgba(167, 139, 250, 0.1)';
+                e.target.style.borderColor = '#a8e063';
+                e.target.style.boxShadow = '0 0 0 4px rgba(168, 224, 99, 0.2), 0 4px 12px rgba(168, 224, 99, 0.15)';
+                e.target.style.background = 'var(--bg-primary)';
               }}
               onBlur={(e) => {
                 e.target.style.borderColor = 'var(--border-color)';
-                e.target.style.boxShadow = 'none';
+                e.target.style.boxShadow = '0 2px 8px rgba(0, 0, 0, 0.1)';
+                e.target.style.background = 'var(--bg-secondary)';
               }}
             />
             <span style={{
               position: 'absolute',
-              left: '16px',
+              left: '18px',
               top: '50%',
               transform: 'translateY(-50%)',
-              fontSize: '1.2rem',
-              pointerEvents: 'none'
+              fontSize: '1.3rem',
+              pointerEvents: 'none',
+              opacity: 0.7
             }}>
               🔍
             </span>
@@ -184,18 +189,28 @@ const Documentos = () => {
                 onClick={() => setSearchTerm('')}
                 style={{
                   position: 'absolute',
-                  right: '12px',
+                  right: '14px',
                   top: '50%',
                   transform: 'translateY(-50%)',
-                  background: 'none',
+                  background: 'rgba(168, 224, 99, 0.1)',
                   border: 'none',
-                  fontSize: '1.2rem',
+                  fontSize: '1.1rem',
                   cursor: 'pointer',
-                  color: 'var(--text-secondary)',
-                  padding: '4px',
+                  color: '#a8e063',
+                  padding: '6px 8px',
+                  borderRadius: '6px',
                   display: 'flex',
                   alignItems: 'center',
-                  justifyContent: 'center'
+                  justifyContent: 'center',
+                  transition: 'all 0.2s ease'
+                }}
+                onMouseEnter={(e) => {
+                  e.target.style.background = 'rgba(168, 224, 99, 0.2)';
+                  e.target.style.transform = 'translateY(-50%) scale(1.1)';
+                }}
+                onMouseLeave={(e) => {
+                  e.target.style.background = 'rgba(168, 224, 99, 0.1)';
+                  e.target.style.transform = 'translateY(-50%) scale(1)';
                 }}
                 aria-label="Limpiar búsqueda"
               >
