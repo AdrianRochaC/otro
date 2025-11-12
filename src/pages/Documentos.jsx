@@ -5,6 +5,8 @@ const API_URL = BACKEND_URL;
 
 const Documentos = () => {
   const [documents, setDocuments] = useState([]);
+  const [filteredDocuments, setFilteredDocuments] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -18,8 +20,10 @@ const Documentos = () => {
           headers: { Authorization: `Bearer ${token}` }
         });
         const data = await res.json();
-        if (data.success) setDocuments(data.documents);
-        else setError('No se pudieron cargar los documentos');
+        if (data.success) {
+          setDocuments(data.documents);
+          setFilteredDocuments(data.documents);
+        } else setError('No se pudieron cargar los documentos');
       } catch (err) {
         setError('Error al cargar documentos');
       } finally {
@@ -28,6 +32,18 @@ const Documentos = () => {
     };
     fetchDocuments();
   }, []);
+
+  // Filtrar documentos cuando cambia el término de búsqueda
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredDocuments(documents);
+    } else {
+      const filtered = documents.filter(doc =>
+        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredDocuments(filtered);
+    }
+  }, [searchTerm, documents]);
 
   // Función para descargar documentos (maneja Cloudinary y archivos locales)
   const handleDownload = async (doc) => {
@@ -122,6 +138,72 @@ const Documentos = () => {
             Documentos asignados a tu rol y perfil
           </p>
         </div>
+        {!loading && documents.length > 0 && (
+          <div style={{
+            position: 'relative',
+            marginBottom: '24px'
+          }}>
+            <input
+              type="text"
+              placeholder="🔍 Buscar documento por nombre..."
+              value={searchTerm}
+              onChange={(e) => setSearchTerm(e.target.value)}
+              style={{
+                width: '100%',
+                padding: '14px 16px 14px 48px',
+                fontSize: '1rem',
+                borderRadius: '12px',
+                border: '2px solid var(--border-color)',
+                background: 'var(--bg-secondary)',
+                color: 'var(--text-primary)',
+                outline: 'none',
+                transition: 'all 0.3s ease',
+                boxSizing: 'border-box'
+              }}
+              onFocus={(e) => {
+                e.target.style.borderColor = 'var(--gradient-primary)';
+                e.target.style.boxShadow = '0 0 0 3px rgba(167, 139, 250, 0.1)';
+              }}
+              onBlur={(e) => {
+                e.target.style.borderColor = 'var(--border-color)';
+                e.target.style.boxShadow = 'none';
+              }}
+            />
+            <span style={{
+              position: 'absolute',
+              left: '16px',
+              top: '50%',
+              transform: 'translateY(-50%)',
+              fontSize: '1.2rem',
+              pointerEvents: 'none'
+            }}>
+              🔍
+            </span>
+            {searchTerm && (
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{
+                  position: 'absolute',
+                  right: '12px',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  fontSize: '1.2rem',
+                  cursor: 'pointer',
+                  color: 'var(--text-secondary)',
+                  padding: '4px',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center'
+                }}
+                aria-label="Limpiar búsqueda"
+              >
+                ✕
+              </button>
+            )}
+          </div>
+        )}
         {loading ? (
           <div style={{ 
             padding: 48, 
@@ -155,6 +237,48 @@ const Documentos = () => {
             fontWeight: '500'
           }}>
             ❌ {error}
+          </div>
+        ) : filteredDocuments.length === 0 && searchTerm ? (
+          <div style={{ 
+            padding: 48, 
+            textAlign: 'center', 
+            color: 'var(--text-muted)',
+            fontSize: '1.1rem',
+            display: 'flex',
+            flexDirection: 'column',
+            alignItems: 'center',
+            gap: '16px'
+          }}>
+            <div style={{
+              fontSize: '3rem',
+              opacity: 0.5
+            }}>
+              🔍
+            </div>
+            <p style={{ margin: 0 }}>No se encontraron documentos</p>
+            <p style={{ 
+              margin: 0, 
+              fontSize: '0.9rem',
+              opacity: 0.7
+            }}>
+              No hay documentos que coincidan con "{searchTerm}"
+            </p>
+            <button
+              onClick={() => setSearchTerm('')}
+              style={{
+                marginTop: '8px',
+                padding: '10px 20px',
+                background: 'var(--gradient-primary)',
+                color: 'white',
+                border: 'none',
+                borderRadius: '8px',
+                cursor: 'pointer',
+                fontWeight: '600',
+                fontSize: '0.9rem'
+              }}
+            >
+              Limpiar búsqueda
+            </button>
           </div>
         ) : documents.length === 0 ? (
           <div style={{ 
@@ -249,7 +373,7 @@ const Documentos = () => {
                 </tr>
               </thead>
               <tbody>
-                {documents.map((doc, index) => (
+                {filteredDocuments.map((doc, index) => (
                   <tr key={doc.id} style={{ 
                     borderBottom: '1px solid var(--border-color, #333)',
                     background: index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)',

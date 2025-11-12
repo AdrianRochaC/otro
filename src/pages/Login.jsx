@@ -71,34 +71,55 @@ const Login = () => {
 
   return (
     <div className="login-wrapper">
-      <h2 className="login-title">
-        Bienvenido a <span>Capacitaciones Davivir</span>
-      </h2>
-      <div className="login-container">
-        <h1>Iniciar Sesión</h1>
-        <form className="login-form" onSubmit={handleLogin}>
-          <label>Email</label>
-          <input
-            type="email"
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            required
-            disabled={loading}
-          />
+      <div className="login-split-container">
+        {/* Lado izquierdo - Logo */}
+        <div className="login-logo-section">
+          <div className="login-logo-content">
+            <img 
+              src="/daviivr.png" 
+              alt="Logo Davivir" 
+              className="login-logo"
+            />
+            <h2 className="login-brand-title">
+              Capacitaciones <span>Davivir</span>
+            </h2>
+            <p className="login-brand-subtitle">
+              Sistema de gestión y capacitación
+            </p>
+          </div>
+        </div>
 
-          <label>Contraseña</label>
-          <input
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            disabled={loading}
-          />
+        {/* Lado derecho - Formulario */}
+        <div className="login-form-section">
+          <div className="login-container">
+            <h1>Iniciar Sesión</h1>
+            <form className="login-form" onSubmit={handleLogin}>
+              <label>Email</label>
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Ingresa tu email"
+              />
 
-          <button type="submit" disabled={loading}>
-            {loading ? "Ingresando..." : "Ingresar"}
-          </button>
-        </form>
+              <label>Contraseña</label>
+              <input
+                type="password"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                required
+                disabled={loading}
+                placeholder="Ingresa tu contraseña"
+              />
+
+              <button type="submit" disabled={loading}>
+                {loading ? "Ingresando..." : "Ingresar"}
+              </button>
+            </form>
+          </div>
+        </div>
       </div>
     </div>
   );
