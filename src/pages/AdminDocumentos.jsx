@@ -501,7 +501,25 @@ const AdminDocumentos = () => {
               </div>
             )}
             <button className="btn-primary" type="submit" disabled={uploading} style={{ width: '100%' }}>
-              {uploading ? 'Subiendo...' : 'Subir documento'}
+              {uploading ? (
+                <>
+                  <span style={{ display: 'inline-block', marginRight: '8px' }}>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                      display: 'inline-block',
+                      verticalAlign: 'middle'
+                    }}></div>
+                  </span>
+                  Subiendo...
+                </>
+              ) : (
+                'Subir documento'
+              )}
             </button>
           </form>
         </Modal>
@@ -643,7 +661,25 @@ const AdminDocumentos = () => {
               </div>
             )}
             <button className="btn-primary" type="submit" disabled={uploading} style={{ width: '100%' }}>
-              {uploading ? 'Guardando...' : 'Guardar cambios'}
+              {uploading ? (
+                <>
+                  <span style={{ display: 'inline-block', marginRight: '8px' }}>
+                    <div style={{
+                      width: '16px',
+                      height: '16px',
+                      border: '2px solid rgba(255,255,255,0.3)',
+                      borderTop: '2px solid white',
+                      borderRadius: '50%',
+                      animation: 'spin 0.8s linear infinite',
+                      display: 'inline-block',
+                      verticalAlign: 'middle'
+                    }}></div>
+                  </span>
+                  Guardando...
+                </>
+              ) : (
+                'Guardar cambios'
+              )}
             </button>
           </form>
         </Modal>

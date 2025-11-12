@@ -8,6 +8,7 @@ const AdminBitacora = () => {
   const [usuarios, setUsuarios] = useState([]);
   const [loading, setLoading] = useState(true);
   const [loadingUsuarios, setLoadingUsuarios] = useState(false);
+  const [submitting, setSubmitting] = useState(false);
   const [showModal, setShowModal] = useState(false);
   const [editingTarea, setEditingTarea] = useState(null);
   const [formData, setFormData] = useState({
@@ -67,6 +68,9 @@ const AdminBitacora = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return; // Prevenir múltiples clics
+    
+    setSubmitting(true);
     const url = editingTarea
       ? `${BACKEND_URL}/api/bitacora/${editingTarea.id}`
       : `${BACKEND_URL}/api/bitacora`;
@@ -106,6 +110,8 @@ const AdminBitacora = () => {
     } catch (error) {
       console.error('Error en la petición:', error);
       alert("❌ Error de conexión: " + error.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -370,8 +376,26 @@ const AdminBitacora = () => {
               </div>
 
               <div className="form-actions">
-                <button type="submit" className="btn-primary">
-                  {editingTarea ? "💾 Actualizar" : "✨ Crear"}
+                <button type="submit" className="btn-primary" disabled={submitting}>
+                  {submitting ? (
+                    <>
+                      <span style={{ display: 'inline-block', marginRight: '8px' }}>
+                        <div style={{
+                          width: '16px',
+                          height: '16px',
+                          border: '2px solid rgba(255,255,255,0.3)',
+                          borderTop: '2px solid white',
+                          borderRadius: '50%',
+                          animation: 'spin 0.8s linear infinite',
+                          display: 'inline-block',
+                          verticalAlign: 'middle'
+                        }}></div>
+                      </span>
+                      {editingTarea ? "Guardando..." : "Creando..."}
+                    </>
+                  ) : (
+                    editingTarea ? "💾 Actualizar" : "✨ Crear"
+                  )}
                 </button>
                 <button
                   type="button"

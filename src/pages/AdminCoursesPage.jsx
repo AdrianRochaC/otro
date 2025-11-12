@@ -25,6 +25,7 @@ const AdminCoursesPage = () => {
   const [videoFile, setVideoFile] = useState(null); // Nuevo estado para archivo
   const [useFile, setUseFile] = useState(false); // Nuevo estado para alternar entre link y archivo
   const [loading, setLoading] = useState(false); // Estado para IA
+  const [submitting, setSubmitting] = useState(false); // Estado para submit del formulario
   const [aiStatus, setAiStatus] = useState({}); // Estado para IA
 
   const API_URL_INTERNAL_INTERNAL = `${BACKEND_URL}/api`;
@@ -117,6 +118,7 @@ const AdminCoursesPage = () => {
 
   const handleSubmit = async (e) => {
     e.preventDefault();
+    if (submitting) return; // Prevenir múltiples clics
     
     // Para edición, no validar video si ya existe uno
     const hasExistingVideo = editingCourse && (videoUrl || videoFile);
@@ -126,6 +128,8 @@ const AdminCoursesPage = () => {
       alert("Completa todos los campos y elige un link o archivo de video.");
       return;
     }
+    
+    setSubmitting(true);
 
     let formData = new FormData();
     formData.append("title", title);
@@ -221,6 +225,8 @@ const AdminCoursesPage = () => {
     } catch (err) {
       console.error('Error al crear el curso:', err);
       alert('Error al crear el curso: ' + err.message);
+    } finally {
+      setSubmitting(false);
     }
   };
 
@@ -797,8 +803,26 @@ const AdminCoursesPage = () => {
           </div>
         )}
 
-        <button type="submit">
-          {editingCourse ? "Guardar Cambios" : "Agregar Curso"}
+        <button type="submit" disabled={submitting}>
+          {submitting ? (
+            <>
+              <span style={{ display: 'inline-block', marginRight: '8px' }}>
+                <div style={{
+                  width: '16px',
+                  height: '16px',
+                  border: '2px solid rgba(255,255,255,0.3)',
+                  borderTop: '2px solid white',
+                  borderRadius: '50%',
+                  animation: 'spin 0.8s linear infinite',
+                  display: 'inline-block',
+                  verticalAlign: 'middle'
+                }}></div>
+              </span>
+              {editingCourse ? "Guardando..." : "Creando..."}
+            </>
+          ) : (
+            editingCourse ? "Guardar Cambios" : "Agregar Curso"
+          )}
         </button>
 
         {editingCourse && (
