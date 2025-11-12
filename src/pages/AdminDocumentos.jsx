@@ -13,6 +13,8 @@ const AdminDocumentos = () => {
   const [uploadError, setUploadError] = useState('');
   const [uploadSuccess, setUploadSuccess] = useState('');
   const [documents, setDocuments] = useState([]);
+  const [filteredDocuments, setFilteredDocuments] = useState([]);
+  const [searchTerm, setSearchTerm] = useState('');
   const [loadingDocs, setLoadingDocs] = useState(false);
   // Estados para cargos (roles)
   const [roles, setRoles] = useState([]);
@@ -33,6 +35,18 @@ const AdminDocumentos = () => {
   useEffect(() => {
     fetchDocuments();
   }, []);
+
+  // Filtrar documentos cuando cambia el término de búsqueda
+  useEffect(() => {
+    if (searchTerm.trim() === '') {
+      setFilteredDocuments(documents);
+    } else {
+      const filtered = documents.filter(doc =>
+        doc.name.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+      setFilteredDocuments(filtered);
+    }
+  }, [searchTerm, documents]);
 
   // Función para descargar documentos (maneja Cloudinary y archivos locales)
   const handleDownload = async (doc) => {
@@ -124,8 +138,10 @@ const AdminDocumentos = () => {
         headers: { Authorization: `Bearer ${token}` }
       });
       const data = await res.json();
-      if (data.success) setDocuments(data.documents);
-      else setUploadError('No se pudieron cargar los documentos');
+      if (data.success) {
+        setDocuments(data.documents);
+        setFilteredDocuments(data.documents);
+      } else setUploadError('No se pudieron cargar los documentos');
     } catch (err) {
       setUploadError('Error al cargar documentos');
     } finally {
@@ -690,6 +706,97 @@ const AdminDocumentos = () => {
               {documents.length} documento{documents.length !== 1 ? 's' : ''}
             </span>
           </h2>
+          {!loadingDocs && documents.length > 0 && (
+            <div style={{
+              position: 'relative',
+              marginBottom: '28px',
+              padding: '4px',
+              background: 'linear-gradient(135deg, rgba(168, 224, 99, 0.2) 0%, rgba(86, 171, 47, 0.15) 100%)',
+              borderRadius: '16px',
+              boxShadow: '0 4px 16px rgba(168, 224, 99, 0.2)'
+            }}>
+              <input
+                type="text"
+                placeholder="Buscar documento por nombre..."
+                value={searchTerm}
+                onChange={(e) => setSearchTerm(e.target.value)}
+                style={{
+                  width: '100%',
+                  padding: '18px 24px 18px 56px',
+                  fontSize: '1.1rem',
+                  borderRadius: '12px',
+                  border: '2px solid #a8e063',
+                  background: 'rgba(30, 32, 44, 0.95)',
+                  color: '#ffffff',
+                  outline: 'none',
+                  transition: 'all 0.3s ease',
+                  boxSizing: 'border-box',
+                  fontWeight: '500',
+                  boxShadow: '0 2px 12px rgba(168, 224, 99, 0.3)'
+                }}
+                onFocus={(e) => {
+                  e.target.style.borderColor = '#b8f073';
+                  e.target.style.boxShadow = '0 0 0 4px rgba(168, 224, 99, 0.3), 0 6px 20px rgba(168, 224, 99, 0.4)';
+                  e.target.style.background = 'rgba(30, 32, 44, 1)';
+                  e.target.style.transform = 'scale(1.01)';
+                }}
+                onBlur={(e) => {
+                  e.target.style.borderColor = '#a8e063';
+                  e.target.style.boxShadow = '0 2px 12px rgba(168, 224, 99, 0.3)';
+                  e.target.style.background = 'rgba(30, 32, 44, 0.95)';
+                  e.target.style.transform = 'scale(1)';
+                }}
+              />
+              <span style={{
+                position: 'absolute',
+                left: '22px',
+                top: '50%',
+                transform: 'translateY(-50%)',
+                fontSize: '1.5rem',
+                pointerEvents: 'none',
+                filter: 'drop-shadow(0 0 4px rgba(168, 224, 99, 0.6))'
+              }}>
+                🔍
+              </span>
+              {searchTerm && (
+                <button
+                  onClick={() => setSearchTerm('')}
+                  style={{
+                    position: 'absolute',
+                    right: '18px',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'linear-gradient(135deg, #a8e063 0%, #56ab2f 100%)',
+                    border: 'none',
+                    fontSize: '1.2rem',
+                    cursor: 'pointer',
+                    color: '#ffffff',
+                    padding: '8px 10px',
+                    borderRadius: '8px',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 2px 8px rgba(168, 224, 99, 0.4)',
+                    fontWeight: 'bold'
+                  }}
+                  onMouseEnter={(e) => {
+                    e.target.style.background = 'linear-gradient(135deg, #b8f073 0%, #66bb3f 100%)';
+                    e.target.style.transform = 'translateY(-50%) scale(1.15)';
+                    e.target.style.boxShadow = '0 4px 12px rgba(168, 224, 99, 0.5)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.target.style.background = 'linear-gradient(135deg, #a8e063 0%, #56ab2f 100%)';
+                    e.target.style.transform = 'translateY(-50%) scale(1)';
+                    e.target.style.boxShadow = '0 2px 8px rgba(168, 224, 99, 0.4)';
+                  }}
+                  aria-label="Limpiar búsqueda"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+          )}
           {loadingDocs ? (
             <div style={{ 
               padding: 48, 
@@ -710,6 +817,48 @@ const AdminDocumentos = () => {
                 animation: 'spin 1s linear infinite'
               }}></div>
               Cargando documentos...
+            </div>
+          ) : filteredDocuments.length === 0 && searchTerm ? (
+            <div style={{ 
+              padding: 48, 
+              textAlign: 'center', 
+              color: 'var(--text-muted)',
+              fontSize: '1.1rem',
+              display: 'flex',
+              flexDirection: 'column',
+              alignItems: 'center',
+              gap: '16px'
+            }}>
+              <div style={{
+                fontSize: '3rem',
+                opacity: 0.5
+              }}>
+                🔍
+              </div>
+              <p style={{ margin: 0 }}>No se encontraron documentos</p>
+              <p style={{ 
+                margin: 0, 
+                fontSize: '0.9rem',
+                opacity: 0.7
+              }}>
+                No hay documentos que coincidan con "{searchTerm}"
+              </p>
+              <button
+                onClick={() => setSearchTerm('')}
+                style={{
+                  marginTop: '8px',
+                  padding: '10px 20px',
+                  background: 'var(--gradient-primary)',
+                  color: 'white',
+                  border: 'none',
+                  borderRadius: '8px',
+                  cursor: 'pointer',
+                  fontWeight: '600',
+                  fontSize: '0.9rem'
+                }}
+              >
+                Limpiar búsqueda
+              </button>
             </div>
           ) : documents.length === 0 ? (
             <div style={{ 
@@ -804,7 +953,7 @@ const AdminDocumentos = () => {
                   </tr>
                 </thead>
                 <tbody>
-                  {documents.map((doc, index) => (
+                  {filteredDocuments.map((doc, index) => (
                     <tr key={doc.id} style={{ 
                       borderBottom: '1px solid var(--border-color, #333)',
                       background: index % 2 === 0 ? 'var(--bg-primary)' : 'var(--bg-secondary)',
