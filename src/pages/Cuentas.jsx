@@ -243,6 +243,15 @@ const Cuentas = () => {
   };
 
   const handleToggleUserStatus = async (userId, currentStatus) => {
+    // Buscar el usuario en la lista
+    const user = users.find(u => u.id === userId);
+    
+    // Prevenir desactivar la cuenta de Admin del Sistema
+    if (user && (user.email === 'admin@proyecto.com' || user.nombre === 'Admin del Sistema')) {
+      alert('⚠️ No se puede desactivar la cuenta de administrador del sistema.');
+      return;
+    }
+    
     setSaving(true);
     try {
       const token = getAuthToken();
@@ -517,7 +526,8 @@ const Cuentas = () => {
                   <button 
                     className={`btn ${selectedUser.activo ? 'btn-warning' : 'btn-success'}`}
                     onClick={() => handleToggleUserStatus(selectedUser.id, selectedUser.activo)}
-                    disabled={saving}
+                    disabled={saving || selectedUser.email === 'admin@proyecto.com' || selectedUser.nombre === 'Admin del Sistema'}
+                    title={selectedUser.email === 'admin@proyecto.com' || selectedUser.nombre === 'Admin del Sistema' ? 'No se puede desactivar la cuenta de administrador del sistema' : ''}
                   >
                     {selectedUser.activo ? '⏸️ Desactivar' : '▶️ Activar'}
                   </button>

@@ -1596,7 +1596,36 @@ app.put('/api/users/:id/toggle-status', verifyToken, async (req, res) => {
     const { activo } = req.body;
 
     const connection = await createConnection();
+    
+    // Obtener información del usuario antes de actualizar
+    const [users] = await connection.execute(
+      'SELECT id, nombre, email, activo FROM usuarios WHERE id = ?',
+      [id]
+    );
 
+    if (users.length === 0) {
+      await connection.end();
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    const user = users[0];
+
+    // Prevenir desactivar la cuenta de Admin del Sistema
+    if (user.email === 'admin@proyecto.com' || user.nombre === 'Admin del Sistema') {
+      // Si se intenta desactivar, bloquear
+      if (activo === false || activo === 0) {
+        await connection.end();
+        return res.status(403).json({
+          success: false,
+          message: 'No se puede desactivar la cuenta de administrador del sistema'
+        });
+      }
+      // Si ya está activo y se intenta activar, permitir (aunque ya esté activo)
+    }
+    
     // Actualizar estado del usuario
     const [result] = await connection.execute(
       'UPDATE usuarios SET activo = ? WHERE id = ?',
