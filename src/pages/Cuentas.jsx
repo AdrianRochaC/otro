@@ -1,7 +1,6 @@
 // src/pages/Cuentas.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
-import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Cuentas.css";
 import { BACKEND_URL } from '../utils/api';
 
@@ -25,9 +24,6 @@ const Cuentas = () => {
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
-  const [currentPassword, setCurrentPassword] = useState("");
-  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
-  const [loadingCurrentPassword, setLoadingCurrentPassword] = useState(false);
   const [passwordValidation, setPasswordValidation] = useState({
     length: false,
     uppercase: false,
@@ -122,8 +118,6 @@ const Cuentas = () => {
     setIsEditing(false);
     setShowPasswordModal(false);
     setNewPassword("");
-    setCurrentPassword("");
-    setShowCurrentPassword(false);
     setPasswordValidation({
       length: false,
       uppercase: false,
@@ -131,31 +125,6 @@ const Cuentas = () => {
       number: false,
       noSpaces: false
     });
-  };
-
-  const fetchCurrentPassword = async () => {
-    if (!selectedUser) return;
-    
-    setLoadingCurrentPassword(true);
-    try {
-      const token = getAuthToken();
-      const response = await fetch(`${BACKEND_URL}/api/users/${selectedUser.id}/current-password`, {
-        headers: {
-          'Authorization': `Bearer ${token}`
-        }
-      });
-      
-      if (response.ok) {
-        // Limpiar el campo para que el admin pueda escribir la contraseña si la conoce
-        setCurrentPassword("");
-      } else {
-        setCurrentPassword("");
-      }
-    } catch (error) {
-      setCurrentPassword("");
-    } finally {
-      setLoadingCurrentPassword(false);
-    }
   };
 
   const handleEditToggle = () => {
@@ -542,10 +511,7 @@ const Cuentas = () => {
                   <button className="btn btn-primary" onClick={handleEditToggle}>
                     ✏️ Editar
                   </button>
-                  <button className="btn btn-outline" onClick={() => {
-                    setShowPasswordModal(true);
-                    fetchCurrentPassword();
-                  }}>
+                  <button className="btn btn-outline" onClick={() => setShowPasswordModal(true)}>
                     🔐 Cambiar Contraseña
                   </button>
                   <button 
@@ -580,35 +546,7 @@ const Cuentas = () => {
               <button className="modal-close" onClick={() => setShowPasswordModal(false)}>❌</button>
             </div>
             <div className="modal-body">
-              {/* Campo para ver/ingresar la contraseña actual */}
               <div className="form-group">
-                <label>Contraseña Actual (Opcional - solo para referencia)</label>
-                <div className="password-input-wrapper">
-                  <input
-                    type={showCurrentPassword ? "text" : "password"}
-                    value={currentPassword}
-                    onChange={(e) => setCurrentPassword(e.target.value)}
-                    placeholder={loadingCurrentPassword ? "Cargando..." : "Escribe la contraseña si la conoces, o déjala vacía"}
-                    style={{
-                      backgroundColor: 'var(--bg-input)',
-                      cursor: 'text'
-                    }}
-                  />
-                  <button
-                    type="button"
-                    className="password-toggle-btn"
-                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
-                    aria-label={showCurrentPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                  >
-                    {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
-                  </button>
-                </div>
-                <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block' }}>
-                  ℹ️ Este campo es solo para referencia. La contraseña real está almacenada de forma segura (hasheada) y no se puede recuperar. Si el usuario olvidó su contraseña, establece una nueva abajo.
-                </small>
-              </div>
-
-              <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>Nueva Contraseña para {selectedUser.nombre}</label>
                 <input
                   type="password"

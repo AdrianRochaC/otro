@@ -263,48 +263,6 @@
   box-shadow: 0 0 0 2px rgba(16, 185, 129, 0.1);
 }
 
-/* Wrapper para el input de contraseña con botón de toggle */
-.password-input-wrapper {
-  position: relative;
-  display: flex;
-  align-items: center;
-}
-
-.password-input-wrapper input {
-  padding-right: 3rem;
-}
-
-.password-toggle-btn {
-  position: absolute;
-  right: 0.75rem;
-  background: transparent;
-  border: none;
-  color: var(--text-secondary);
-  cursor: pointer;
-  padding: 0.5rem;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  border-radius: var(--radius-small);
-  font-size: 1.1rem;
-}
-
-.password-toggle-btn:hover:not(:disabled) {
-  color: var(--text-primary);
-  background: var(--bg-card-hover);
-}
-
-.password-toggle-btn:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
-.password-toggle-btn:focus {
-  outline: 2px solid var(--border-focus);
-  outline-offset: 2px;
-}
-
 .checkbox-label {
   display: flex;
   align-items: center;

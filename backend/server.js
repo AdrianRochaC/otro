@@ -93,35 +93,29 @@ async function verifyToken(req, res, next) {
 // Middleware CORS configurado para desarrollo y producción (compatible con versiones antiguas)
 var corsOptions = {
   origin: function (origin, callback) {
-    console.log('🔍 CORS - Origin recibido:', origin);
     
     // Permitir requests sin origin (como mobile apps o curl)
     if (!origin) {
-      console.log('✅ CORS - Permitiendo request sin origin');
       return callback(null, true);
     }
     
     // Permitir localhost para desarrollo
     if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
-      console.log('✅ CORS - Permitiendo localhost:', origin);
       return callback(null, true);
     }
     
-    // Permitir cualquier dominio de Render (incluyendo farmeoan.onrender.com)
+    // Permitir cualquier dominio de Render
     if (origin.indexOf('onrender.com') !== -1) {
-      console.log('✅ CORS - Permitiendo dominio de Render:', origin);
       return callback(null, true);
     }
     
     // Permitir farmeoa.com
     if (origin.indexOf('farmeoa.com') !== -1) {
-      console.log('✅ CORS - Permitiendo farmeoa.com:', origin);
       return callback(null, true);
     }
     
     // Para desarrollo, permitir cualquier origen
     if (process.env.NODE_ENV !== 'production') {
-      console.log('✅ CORS - Modo desarrollo, permitiendo:', origin);
       return callback(null, true);
     }
     
@@ -130,7 +124,6 @@ var corsOptions = {
     
     // Verificar si el origen está en la lista exacta
     if (allowedOrigins.indexOf(origin) !== -1) {
-      console.log('✅ CORS - Origen en lista permitida:', origin);
       return callback(null, true);
     }
     
@@ -141,40 +134,18 @@ var corsOptions = {
         var pattern = allowedOrigin.replace(/\*/g, '.*');
         var regex = new RegExp('^' + pattern + '$');
         if (regex.test(origin)) {
-          console.log('✅ CORS - Origen coincide con patrón:', origin);
           return callback(null, true);
         }
       }
     }
     
-    console.log('❌ CORS - Origen NO permitido:', origin);
     callback(new Error('No permitido por CORS'));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
   credentials: true,
-  optionsSuccessStatus: 200,
-  preflightContinue: false
+  optionsSuccessStatus: 200
 };
-
-// Manejar peticiones OPTIONS explícitamente ANTES del middleware de CORS
-app.options('*', (req, res) => {
-  const origin = req.headers.origin;
-  console.log('🔍 OPTIONS preflight recibido desde:', origin);
-  
-  if (origin && (origin.includes('onrender.com') || origin.includes('farmeoa.com') || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
-    res.header('Access-Control-Allow-Origin', origin);
-    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
-    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
-    res.header('Access-Control-Allow-Credentials', 'true');
-    res.header('Access-Control-Max-Age', '86400');
-    console.log('✅ OPTIONS handler: Permitiendo preflight para:', origin);
-    return res.status(200).end();
-  }
-  
-  // Si no hay origin o no coincide, aún responder 200 para evitar errores
-  res.status(200).end();
-});
 
 app.use(cors(corsOptions));
 
@@ -222,10 +193,10 @@ app.use((req, res, next) => {
     console.log('CORS BACKUP: Permitiendo request sin origin');
   }
   
-  // Manejar peticiones OPTIONS (preflight) - DEBE responder antes de continuar
+  // Manejar peticiones OPTIONS
   if (req.method === 'OPTIONS') {
-    console.log('✅ CORS BACKUP: Respondiendo a OPTIONS preflight para:', origin);
-    return res.status(200).end();
+    console.log('CORS BACKUP: Respondiendo a OPTIONS');
+    return res.sendStatus(200);
   }
   
   next();
@@ -1561,43 +1532,6 @@ app.put('/api/users/:id', verifyToken, async (req, res) => {
     res.json({
       success: true,
       message: 'Usuario actualizado exitosamente'
-    });
-
-  } catch (error) {
-    res.status(500).json({
-      success: false,
-      message: 'Error interno del servidor'
-    });
-  }
-});
-
-// Obtener contraseña actual de usuario (solo para admin)
-app.get('/api/users/:id/current-password', verifyToken, async (req, res) => {
-  try {
-    const { id } = req.params;
-    const connection = await createConnection();
-
-    // Obtener contraseña hasheada actual
-    const [users] = await connection.execute(
-      'SELECT password FROM usuarios WHERE id = ?',
-      [id]
-    );
-
-    await connection.end();
-
-    if (users.length === 0) {
-      return res.status(404).json({
-        success: false,
-        message: 'Usuario no encontrado'
-      });
-    }
-
-    // Nota: La contraseña está hasheada, no se puede mostrar en texto plano
-    // Pero devolvemos un indicador de que existe
-    res.json({
-      success: true,
-      hasPassword: !!users[0].password,
-      message: 'La contraseña está almacenada de forma segura (hasheada)'
     });
 
   } catch (error) {

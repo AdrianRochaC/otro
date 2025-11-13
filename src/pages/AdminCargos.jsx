@@ -125,12 +125,6 @@ const AdminCargos = () => {
       return;
     }
 
-    // Verificar si el cargo ya existe
-    if (cargoExists(nombre.trim())) {
-      alert('⚠️ Este cargo ya está creado. No se puede crear nuevamente.');
-      return;
-    }
-
     try {
       const token = localStorage.getItem('authToken');
       
@@ -250,21 +244,27 @@ const AdminCargos = () => {
     setDropdownOpen(false);
   };
 
-  // Función para verificar si un cargo ya existe
-  const cargoExists = (cargoNombre) => {
-    return cargos.some(cargo => 
-      cargo.nombre.toLowerCase() === cargoNombre.toLowerCase()
-    );
-  };
-
   // Función para combinar cargos predefinidos con los existentes
   const getCombinedCargos = () => {
-    // Solo devolver cargos predefinidos que NO estén creados
-    const availableCargos = CARGOS_PREDEFINIDOS.filter(predefined => 
-      !cargoExists(predefined.nombre)
-    );
+    // Convertir cargos existentes al formato de los predefinidos
+    const existingCargos = cargos.map(cargo => ({
+      nombre: cargo.nombre,
+      descripcion: cargo.descripcion
+    }));
     
-    return availableCargos;
+    // Combinar predefinidos con existentes, evitando duplicados
+    const combined = [...CARGOS_PREDEFINIDOS];
+    
+    existingCargos.forEach(existingCargo => {
+      const exists = combined.some(predefined => 
+        predefined.nombre.toLowerCase() === existingCargo.nombre.toLowerCase()
+      );
+      if (!exists) {
+        combined.push(existingCargo);
+      }
+    });
+    
+    return combined;
   };
 
   // Función para manejar el input y mostrar la lista
@@ -280,15 +280,12 @@ const AdminCargos = () => {
         cargo.nombre.toLowerCase().includes(value.toLowerCase())
       );
       setFilteredCargos(filtered);
-      // Si hay texto, mostrar el dropdown solo si hay resultados
-      setShowDropdown(filtered.length > 0);
-      setDropdownOpen(filtered.length > 0);
     } else {
-      // Si no hay texto, mostrar todos los cargos disponibles
+      // Si no hay texto, mostrar todos los cargos
       setFilteredCargos(allCargos);
-      setShowDropdown(true);
-      setDropdownOpen(true);
     }
+    setShowDropdown(true);
+    setDropdownOpen(true);
   };
 
   // Función para mostrar la lista cuando se hace focus en el input
@@ -303,12 +300,6 @@ const AdminCargos = () => {
 
   // Función para seleccionar un cargo de la lista
   const selectCargo = (cargo) => {
-    // Verificar si el cargo ya existe
-    if (cargoExists(cargo.nombre)) {
-      alert('⚠️ Este cargo ya está creado. No se puede crear nuevamente.');
-      return;
-    }
-    
     setNombre(cargo.nombre);
     setDescripcion(cargo.descripcion);
     setShowDropdown(false);
@@ -496,7 +487,7 @@ const AdminCargos = () => {
             <div className="form-group">
               <label htmlFor="nombre">Nombre del Cargo *</label>
               <small className="form-help">
-                💡 Escribe para buscar en la lista o crear un nuevo cargo. Los cargos ya creados aparecen en amarillo y no se pueden seleccionar.
+                💡 Haz clic en el campo para ver todos los cargos disponibles o escribe para filtrar
               </small>
               <div className="dropdown-container">
                 <input
@@ -506,30 +497,27 @@ const AdminCargos = () => {
                   onChange={handleNombreChange}
                   onFocus={handleInputFocus}
                   onBlur={closeDropdown}
-                  placeholder="Escribe para buscar o crear un nuevo cargo"
+                  placeholder="Haz clic para ver la lista de cargos"
                   required
                   autoComplete="off"
                 />
                 {showDropdown && filteredCargos.length > 0 && (
                   <div className="dropdown-list">
                     {filteredCargos.map((cargo, index) => {
-                      // Verificar si el cargo ya existe
-                      const exists = cargoExists(cargo.nombre);
+                      // Verificar si es un cargo predefinido
+                      const isPredefined = CARGOS_PREDEFINIDOS.some(predefined => 
+                        predefined.nombre.toLowerCase() === cargo.nombre.toLowerCase()
+                      );
                       
                       return (
                         <div
                           key={index}
-                          className={`dropdown-item ${exists ? 'existing-disabled' : 'available'}`}
-                          onClick={() => !exists && selectCargo(cargo)}
-                          style={{
-                            cursor: exists ? 'not-allowed' : 'pointer',
-                            opacity: exists ? 0.6 : 1
-                          }}
+                          className={`dropdown-item ${isPredefined ? 'predefined' : 'existing'}`}
+                          onClick={() => selectCargo(cargo)}
                         >
                           <div className="cargo-name">
                             {cargo.nombre}
-                            {exists && <span className="cargo-badge-existing">Ya creado</span>}
-                            {!exists && <span className="cargo-badge-available">Disponible</span>}
+                            {isPredefined && <span className="cargo-badge">Predefinido</span>}
                           </div>
                         </div>
                       );
