@@ -424,46 +424,25 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                 // Determinar colores según el tema para mejor contraste
                 const getUnreadStyles = () => {
                   const colorScheme = document.documentElement.getAttribute('data-color-scheme');
-                  const theme = document.documentElement.getAttribute('data-theme');
                   
-                  // Para temas pastel y otros con bajo contraste, usar colores oscuros
+                  // Para tema pastel, usar texto oscuro
                   if (colorScheme === 'pastel') {
                     return {
-                      background: 'var(--bg-card)',
-                      border: '2px solid var(--border-focus)',
-                      borderLeft: '4px solid var(--border-focus)',
-                      messageColor: '#2d3748',
-                      dateColor: '#4a5568'
-                    };
-                  }
-                  
-                  if (colorScheme === 'neon') {
-                    return {
-                      background: 'var(--bg-card)',
-                      border: '2px solid var(--border-focus)',
-                      borderLeft: '4px solid var(--border-focus)',
-                      messageColor: '#ffffff',
-                      dateColor: '#e2e8f0'
-                    };
-                  }
-                  
-                  if (colorScheme === 'vibrant' || colorScheme === 'monochrome' || colorScheme === 'earth') {
-                    return {
-                      background: 'var(--bg-card)',
+                      background: 'var(--gradient-primary)',
                       border: '2px solid var(--border-focus)',
                       borderLeft: '4px solid var(--border-focus)',
                       messageColor: '#1a1a1a',
-                      dateColor: '#4a5568'
+                      dateColor: '#2d3748'
                     };
                   }
                   
-                  // Tema por defecto
+                  // Para otros temas, usar texto blanco con sombra
                   return {
-                    background: 'var(--bg-card)',
+                    background: 'var(--gradient-primary)',
                     border: '2px solid var(--border-focus)',
                     borderLeft: '4px solid var(--border-focus)',
-                    messageColor: 'var(--text-primary)',
-                    dateColor: 'var(--text-secondary)'
+                    messageColor: '#ffffff',
+                    dateColor: 'rgba(255, 255, 255, 0.9)'
                   };
                 };
                 
@@ -471,11 +450,11 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                 
                 return (
                 <li key={n.id} style={{
-                  background: n.is_read ? 'var(--bg-card)' : (unreadStyles?.background || 'var(--bg-card)'),
+                  background: n.is_read ? 'var(--bg-card)' : (unreadStyles?.background || 'var(--gradient-primary)'),
                   borderRadius: '12px',
                   padding: '1rem 1.2rem',
                   boxShadow: 'var(--shadow-light)',
-                  border: n.is_read ? '1px solid var(--border-primary)' : (unreadStyles?.border || '1px solid var(--border-primary)'),
+                  border: n.is_read ? '1px solid var(--border-primary)' : (unreadStyles?.border || '2px solid var(--border-focus)'),
                   borderLeft: !n.is_read ? (unreadStyles?.borderLeft || '4px solid var(--border-focus)') : undefined,
                   display: 'flex',
                   flexDirection: 'column',
@@ -506,18 +485,20 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                   )}
                   <div style={{
                     fontSize: '1.05rem',
-                    color: n.is_read ? 'var(--text-primary)' : (unreadStyles?.messageColor || 'var(--text-primary)'),
+                    color: n.is_read ? 'var(--text-primary)' : (unreadStyles?.messageColor || '#ffffff'),
                     fontWeight: n.is_read ? '500' : '600',
                     letterSpacing: '0.01em',
                     lineHeight: '1.5',
-                    paddingRight: !n.is_read ? '1.5rem' : '0'
+                    paddingRight: !n.is_read ? '1.5rem' : '0',
+                    textShadow: !n.is_read && unreadStyles?.messageColor === '#ffffff' ? '0 1px 2px rgba(0, 0, 0, 0.2)' : 'none'
                   }}>{n.message}</div>
                   <div style={{
                     fontSize: '0.9rem',
-                    color: n.is_read ? 'var(--text-secondary)' : (unreadStyles?.dateColor || 'var(--text-secondary)'),
+                    color: n.is_read ? 'var(--text-secondary)' : (unreadStyles?.dateColor || 'rgba(255, 255, 255, 0.9)'),
                     display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem'
+                    gap: '0.5rem',
+                    textShadow: !n.is_read && unreadStyles?.dateColor?.includes('255') ? '0 1px 2px rgba(0, 0, 0, 0.2)' : 'none'
                   }}>
                     <span>{new Date(n.created_at).toLocaleString('es-ES', {
                       year: 'numeric',

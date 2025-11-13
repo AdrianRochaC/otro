@@ -32,26 +32,11 @@
 }
 
 .notification-card.unread {
-  background: var(--bg-card);
+  background: var(--gradient-primary);
   border: 2px solid var(--border-focus);
   border-left: 4px solid var(--border-focus);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   position: relative;
-}
-
-/* Fondo destacado para notificaciones sin leer con mejor contraste */
-.notification-card.unread::before {
-  content: '';
-  position: absolute;
-  top: 0;
-  left: 0;
-  right: 0;
-  bottom: 0;
-  background: var(--gradient-info);
-  opacity: 0.15;
-  border-radius: 8px;
-  z-index: 0;
-  pointer-events: none;
 }
 
 .notification-card.unread > * {
@@ -78,42 +63,52 @@
 }
 
 /* Texto con mejor contraste para notificaciones sin leer */
+/* Por defecto, texto blanco para contrastar con el gradiente del tema */
 .notification-card.unread .notification-message {
-  color: var(--text-primary);
+  color: #ffffff !important;
   font-weight: 600;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
 }
 
-/* Asegurar contraste en temas pastel y otros temas personalizados */
+.notification-card.unread .notification-date {
+  color: rgba(255, 255, 255, 0.9) !important;
+  font-weight: 500;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.2);
+}
+
+/* Asegurar contraste en temas pastel - usar texto oscuro */
 [data-color-scheme="pastel"] .notification-card.unread .notification-message,
 [data-color-scheme="pastel"] .notification-card.unread .notification-date {
-  color: #2d3748 !important;
+  color: #1a1a1a !important;
+  text-shadow: none !important;
 }
 
+/* Tema neon - texto blanco con sombra */
 [data-color-scheme="neon"] .notification-card.unread .notification-message,
 [data-color-scheme="neon"] .notification-card.unread .notification-date {
   color: #ffffff !important;
-  text-shadow: 0 0 4px rgba(0, 0, 0, 0.5);
+  text-shadow: 0 0 4px rgba(0, 0, 0, 0.7), 0 1px 2px rgba(0, 0, 0, 0.5) !important;
 }
 
+/* Tema vibrant - texto oscuro */
 [data-color-scheme="vibrant"] .notification-card.unread .notification-message,
 [data-color-scheme="vibrant"] .notification-card.unread .notification-date {
-  color: #1a1a1a !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 3px rgba(0, 0, 0, 0.5) !important;
 }
 
+/* Tema monochrome - texto oscuro */
 [data-color-scheme="monochrome"] .notification-card.unread .notification-message,
 [data-color-scheme="monochrome"] .notification-card.unread .notification-date {
-  color: #1a1a1a !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.3) !important;
 }
 
+/* Tema earth - texto claro */
 [data-color-scheme="earth"] .notification-card.unread .notification-message,
 [data-color-scheme="earth"] .notification-card.unread .notification-date {
-  color: #1a1a1a !important;
-}
-
-/* Tema oscuro - usar texto claro */
-[data-theme="dark"] .notification-card.unread .notification-message,
-[data-theme="dark"] .notification-card.unread .notification-date {
-  color: var(--text-primary) !important;
+  color: #ffffff !important;
+  text-shadow: 0 1px 2px rgba(0, 0, 0, 0.4) !important;
 }
 
 .notification-card.read .notification-message {
@@ -126,10 +121,6 @@
   font-weight: 400;
 }
 
-.notification-card.unread .notification-date {
-  color: var(--text-secondary);
-  font-weight: 500;
-}
 
 .notification-card.read .notification-date {
   color: var(--text-secondary);
