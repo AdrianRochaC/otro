@@ -1,6 +1,7 @@
 // src/pages/Cuentas.jsx
 import React, { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Cuentas.css";
 import { BACKEND_URL } from '../utils/api';
 
@@ -24,6 +25,9 @@ const Cuentas = () => {
 
   const [showPasswordModal, setShowPasswordModal] = useState(false);
   const [newPassword, setNewPassword] = useState("");
+  const [currentPassword, setCurrentPassword] = useState("");
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
+  const [loadingCurrentPassword, setLoadingCurrentPassword] = useState(false);
   const [passwordValidation, setPasswordValidation] = useState({
     length: false,
     uppercase: false,
@@ -118,6 +122,8 @@ const Cuentas = () => {
     setIsEditing(false);
     setShowPasswordModal(false);
     setNewPassword("");
+    setCurrentPassword("");
+    setShowCurrentPassword(false);
     setPasswordValidation({
       length: false,
       uppercase: false,
@@ -125,6 +131,33 @@ const Cuentas = () => {
       number: false,
       noSpaces: false
     });
+  };
+
+  const fetchCurrentPassword = async () => {
+    if (!selectedUser) return;
+    
+    setLoadingCurrentPassword(true);
+    try {
+      const token = getAuthToken();
+      const response = await fetch(`${BACKEND_URL}/api/users/${selectedUser.id}/current-password`, {
+        headers: {
+          'Authorization': `Bearer ${token}`
+        }
+      });
+      
+      if (response.ok) {
+        const data = await response.json();
+        // Como la contraseña está hasheada, no podemos mostrarla
+        // Pero podemos indicar que existe
+        setCurrentPassword("••••••••");
+      } else {
+        setCurrentPassword("No disponible");
+      }
+    } catch (error) {
+      setCurrentPassword("Error al cargar");
+    } finally {
+      setLoadingCurrentPassword(false);
+    }
   };
 
   const handleEditToggle = () => {
@@ -511,7 +544,10 @@ const Cuentas = () => {
                   <button className="btn btn-primary" onClick={handleEditToggle}>
                     ✏️ Editar
                   </button>
-                  <button className="btn btn-outline" onClick={() => setShowPasswordModal(true)}>
+                  <button className="btn btn-outline" onClick={() => {
+                    setShowPasswordModal(true);
+                    fetchCurrentPassword();
+                  }}>
                     🔐 Cambiar Contraseña
                   </button>
                   <button 
@@ -546,7 +582,37 @@ const Cuentas = () => {
               <button className="modal-close" onClick={() => setShowPasswordModal(false)}>❌</button>
             </div>
             <div className="modal-body">
+              {/* Campo para ver la contraseña actual */}
               <div className="form-group">
+                <label>Contraseña Actual</label>
+                <div className="password-input-wrapper">
+                  <input
+                    type={showCurrentPassword ? "text" : "password"}
+                    value={currentPassword}
+                    readOnly
+                    placeholder={loadingCurrentPassword ? "Cargando..." : "La contraseña está almacenada de forma segura"}
+                    style={{
+                      backgroundColor: 'var(--bg-input)',
+                      cursor: 'not-allowed',
+                      opacity: 0.8
+                    }}
+                  />
+                  <button
+                    type="button"
+                    className="password-toggle-btn"
+                    onClick={() => setShowCurrentPassword(!showCurrentPassword)}
+                    aria-label={showCurrentPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+                    disabled={!currentPassword || currentPassword === "No disponible" || currentPassword === "Error al cargar"}
+                  >
+                    {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
+                  </button>
+                </div>
+                <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block' }}>
+                  ℹ️ La contraseña está almacenada de forma segura (hasheada). Si el usuario olvidó su contraseña, puedes establecer una nueva abajo.
+                </small>
+              </div>
+
+              <div className="form-group" style={{ marginTop: '1.5rem' }}>
                 <label>Nueva Contraseña para {selectedUser.nombre}</label>
                 <input
                   type="password"

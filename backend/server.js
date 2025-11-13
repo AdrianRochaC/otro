@@ -1542,6 +1542,43 @@ app.put('/api/users/:id', verifyToken, async (req, res) => {
   }
 });
 
+// Obtener contraseña actual de usuario (solo para admin)
+app.get('/api/users/:id/current-password', verifyToken, async (req, res) => {
+  try {
+    const { id } = req.params;
+    const connection = await createConnection();
+
+    // Obtener contraseña hasheada actual
+    const [users] = await connection.execute(
+      'SELECT password FROM usuarios WHERE id = ?',
+      [id]
+    );
+
+    await connection.end();
+
+    if (users.length === 0) {
+      return res.status(404).json({
+        success: false,
+        message: 'Usuario no encontrado'
+      });
+    }
+
+    // Nota: La contraseña está hasheada, no se puede mostrar en texto plano
+    // Pero devolvemos un indicador de que existe
+    res.json({
+      success: true,
+      hasPassword: !!users[0].password,
+      message: 'La contraseña está almacenada de forma segura (hasheada)'
+    });
+
+  } catch (error) {
+    res.status(500).json({
+      success: false,
+      message: 'Error interno del servidor'
+    });
+  }
+});
+
 // Cambiar contraseña de usuario
 app.put('/api/users/:id/reset-password', verifyToken, async (req, res) => {
   try {
