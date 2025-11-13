@@ -146,15 +146,13 @@ const Cuentas = () => {
       });
       
       if (response.ok) {
-        const data = await response.json();
-        // Como la contraseña está hasheada, no podemos mostrarla
-        // Pero podemos indicar que existe
-        setCurrentPassword("••••••••");
+        // Limpiar el campo para que el admin pueda escribir la contraseña si la conoce
+        setCurrentPassword("");
       } else {
-        setCurrentPassword("No disponible");
+        setCurrentPassword("");
       }
     } catch (error) {
-      setCurrentPassword("Error al cargar");
+      setCurrentPassword("");
     } finally {
       setLoadingCurrentPassword(false);
     }
@@ -582,19 +580,18 @@ const Cuentas = () => {
               <button className="modal-close" onClick={() => setShowPasswordModal(false)}>❌</button>
             </div>
             <div className="modal-body">
-              {/* Campo para ver la contraseña actual */}
+              {/* Campo para ver/ingresar la contraseña actual */}
               <div className="form-group">
-                <label>Contraseña Actual</label>
+                <label>Contraseña Actual (Opcional - solo para referencia)</label>
                 <div className="password-input-wrapper">
                   <input
                     type={showCurrentPassword ? "text" : "password"}
                     value={currentPassword}
-                    readOnly
-                    placeholder={loadingCurrentPassword ? "Cargando..." : "La contraseña está almacenada de forma segura"}
+                    onChange={(e) => setCurrentPassword(e.target.value)}
+                    placeholder={loadingCurrentPassword ? "Cargando..." : "Escribe la contraseña si la conoces, o déjala vacía"}
                     style={{
                       backgroundColor: 'var(--bg-input)',
-                      cursor: 'not-allowed',
-                      opacity: 0.8
+                      cursor: 'text'
                     }}
                   />
                   <button
@@ -602,13 +599,12 @@ const Cuentas = () => {
                     className="password-toggle-btn"
                     onClick={() => setShowCurrentPassword(!showCurrentPassword)}
                     aria-label={showCurrentPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
-                    disabled={!currentPassword || currentPassword === "No disponible" || currentPassword === "Error al cargar"}
                   >
                     {showCurrentPassword ? <FaEyeSlash /> : <FaEye />}
                   </button>
                 </div>
                 <small style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.5rem', display: 'block' }}>
-                  ℹ️ La contraseña está almacenada de forma segura (hasheada). Si el usuario olvidó su contraseña, puedes establecer una nueva abajo.
+                  ℹ️ Este campo es solo para referencia. La contraseña real está almacenada de forma segura (hasheada) y no se puede recuperar. Si el usuario olvidó su contraseña, establece una nueva abajo.
                 </small>
               </div>
 
