@@ -1719,29 +1719,6 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
       );
     }
 
-    // === CREAR ENTRADA EN BITÁCORA GLOBAL ===
-    // Calcular fecha correctamente: 30 días desde hoy
-    const today = new Date();
-    const deadlineDate = new Date(today);
-    deadlineDate.setDate(today.getDate() + 30);
-    // Formatear como YYYY-MM-DD para MySQL usando zona horaria local
-    const year = deadlineDate.getFullYear();
-    const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
-    const day = String(deadlineDate.getDate()).padStart(2, '0');
-    const deadlineFormatted = `${year}-${month}-${day}`;
-    
-    await connection.execute(
-      `INSERT INTO bitacora_global (titulo, descripcion, estado, asignados, deadline) 
-       VALUES (?, ?, ?, ?, ?)`,
-      [
-        `Nuevo Curso: ${title}`,
-        `Se ha creado un nuevo curso de capacitación para el cargo: ${cargoNombre}. ${description}`,
-        'verde',
-        cargoNombre,
-        deadlineFormatted
-      ]
-    );
-
     // === NOTIFICAR A USUARIOS DEL CARGO ===
     const [usersToNotify] = await connection.execute(
       'SELECT id FROM usuarios WHERE cargo_id = ? AND activo = 1',
