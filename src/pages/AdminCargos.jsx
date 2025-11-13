@@ -259,12 +259,23 @@ const AdminCargos = () => {
 
   // Función para combinar cargos predefinidos con los existentes
   const getCombinedCargos = () => {
-    // Solo devolver cargos predefinidos que NO estén creados
+    // Convertir cargos existentes al formato de los predefinidos
+    const existingCargos = cargos.map(cargo => ({
+      nombre: cargo.nombre,
+      descripcion: cargo.descripcion,
+      isCreated: true // Marcar como ya creado
+    }));
+    
+    // Obtener cargos predefinidos que NO estén creados
     const availableCargos = CARGOS_PREDEFINIDOS.filter(predefined => 
       !cargoExists(predefined.nombre)
-    );
+    ).map(cargo => ({
+      ...cargo,
+      isCreated: false // Marcar como disponible
+    }));
     
-    return availableCargos;
+    // Combinar disponibles y ya creados
+    return [...availableCargos, ...existingCargos];
   };
 
   // Función para manejar el input y mostrar la lista
@@ -513,8 +524,8 @@ const AdminCargos = () => {
                 {showDropdown && filteredCargos.length > 0 && (
                   <div className="dropdown-list">
                     {filteredCargos.map((cargo, index) => {
-                      // Verificar si el cargo ya existe
-                      const exists = cargoExists(cargo.nombre);
+                      // Verificar si el cargo ya existe (usar isCreated si está disponible, sino verificar)
+                      const exists = cargo.isCreated !== undefined ? cargo.isCreated : cargoExists(cargo.nombre);
                       
                       return (
                         <div
