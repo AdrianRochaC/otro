@@ -34,14 +34,23 @@ const AdminBitacora = () => {
       });
       const data = await response.json();
       if (data.success) {
-        // Filtrar solo usuarios activos y excluir admin/Admin del sistema
+        // Filtrar solo usuarios activos y excluir admin/Admin del Sistema (por rol y nombre)
         const usuariosActivos = (data.users || []).filter(usuario => {
           if (usuario.activo !== 1) return false;
-          const rolLower = (usuario.rol || '').toLowerCase();
-          return rolLower !== 'admin' && 
-                 rolLower !== 'admin del sistema' &&
-                 rolLower !== 'administrador' &&
-                 rolLower !== 'administrador del sistema';
+          
+          // Filtrar por rol
+          const rolLower = (usuario.rol || '').toLowerCase().trim();
+          const esAdminPorRol = rolLower.includes('admin') || rolLower.includes('administrador');
+          
+          // Filtrar por nombre de usuario - "Admin del Sistema" exacto o variantes
+          const nombreLower = (usuario.nombre || '').toLowerCase().trim();
+          const nombreExacto = usuario.nombre || '';
+          const esAdminPorNombre = nombreLower.includes('admin') || 
+                                   nombreLower.includes('administrador') ||
+                                   nombreExacto === 'Admin del Sistema' ||
+                                   nombreLower === 'admin del sistema';
+          
+          return !esAdminPorRol && !esAdminPorNombre;
         });
         setUsuarios(usuariosActivos);
       } else {

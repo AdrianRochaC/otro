@@ -53,11 +53,10 @@ const AdminCoursesPage = () => {
         if (data.success) {
           // Filtrar cargos que sean "admin" o "Admin del sistema"
           const cargosFiltrados = data.cargos.filter(cargo => {
-            const nombreLower = cargo.nombre.toLowerCase();
-            return nombreLower !== 'admin' && 
-                   nombreLower !== 'admin del sistema' &&
-                   nombreLower !== 'administrador' &&
-                   nombreLower !== 'administrador del sistema';
+            const nombreLower = cargo.nombre.toLowerCase().trim();
+            // Filtrar cualquier variante de admin
+            return !nombreLower.includes('admin') && 
+                   !nombreLower.includes('administrador');
           });
           setCargos(cargosFiltrados);
           // Establecer el primer cargo como seleccionado por defecto
