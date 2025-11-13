@@ -432,7 +432,20 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                       border: '2px solid var(--border-focus)',
                       borderLeft: '4px solid var(--border-focus)',
                       messageColor: '#1a1a1a',
-                      dateColor: '#2d3748'
+                      dateColor: '#2d3748',
+                      textShadow: 'none'
+                    };
+                  }
+                  
+                  // Para tema neon, usar texto negro con efecto neon
+                  if (colorScheme === 'neon') {
+                    return {
+                      background: 'var(--gradient-primary)',
+                      border: '2px solid var(--border-focus)',
+                      borderLeft: '4px solid var(--border-focus)',
+                      messageColor: '#000000',
+                      dateColor: '#000000',
+                      textShadow: '0 0 8px rgba(0, 255, 136, 0.8), 0 0 12px rgba(0, 255, 136, 0.6), 0 2px 4px rgba(0, 0, 0, 0.3)'
                     };
                   }
                   
@@ -442,7 +455,8 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                     border: '2px solid var(--border-focus)',
                     borderLeft: '4px solid var(--border-focus)',
                     messageColor: '#ffffff',
-                    dateColor: 'rgba(255, 255, 255, 0.9)'
+                    dateColor: 'rgba(255, 255, 255, 0.9)',
+                    textShadow: '0 1px 2px rgba(0, 0, 0, 0.2)'
                   };
                 };
                 
@@ -486,11 +500,11 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                   <div style={{
                     fontSize: '1.05rem',
                     color: n.is_read ? 'var(--text-primary)' : (unreadStyles?.messageColor || '#ffffff'),
-                    fontWeight: n.is_read ? '500' : '600',
+                    fontWeight: n.is_read ? '500' : (unreadStyles?.textShadow ? '700' : '600'),
                     letterSpacing: '0.01em',
                     lineHeight: '1.5',
                     paddingRight: !n.is_read ? '1.5rem' : '0',
-                    textShadow: !n.is_read && unreadStyles?.messageColor === '#ffffff' ? '0 1px 2px rgba(0, 0, 0, 0.2)' : 'none'
+                    textShadow: !n.is_read ? (unreadStyles?.textShadow || '0 1px 2px rgba(0, 0, 0, 0.2)') : 'none'
                   }}>{n.message}</div>
                   <div style={{
                     fontSize: '0.9rem',
@@ -498,7 +512,8 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem',
-                    textShadow: !n.is_read && unreadStyles?.dateColor?.includes('255') ? '0 1px 2px rgba(0, 0, 0, 0.2)' : 'none'
+                    textShadow: !n.is_read ? (unreadStyles?.textShadow || '0 1px 2px rgba(0, 0, 0, 0.2)') : 'none',
+                    fontWeight: !n.is_read && unreadStyles?.textShadow ? '600' : '400'
                   }}>
                     <span>{new Date(n.created_at).toLocaleString('es-ES', {
                       year: 'numeric',
