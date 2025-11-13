@@ -1724,8 +1724,11 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
     const today = new Date();
     const deadlineDate = new Date(today);
     deadlineDate.setDate(today.getDate() + 30);
-    // Formatear como YYYY-MM-DD para MySQL
-    const deadlineFormatted = deadlineDate.toISOString().split('T')[0];
+    // Formatear como YYYY-MM-DD para MySQL usando zona horaria local
+    const year = deadlineDate.getFullYear();
+    const month = String(deadlineDate.getMonth() + 1).padStart(2, '0');
+    const day = String(deadlineDate.getDate()).padStart(2, '0');
+    const deadlineFormatted = `${year}-${month}-${day}`;
     
     await connection.execute(
       `INSERT INTO bitacora_global (titulo, descripcion, estado, asignados, deadline) 
