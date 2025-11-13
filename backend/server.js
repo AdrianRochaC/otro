@@ -93,29 +93,35 @@ async function verifyToken(req, res, next) {
 // Middleware CORS configurado para desarrollo y producción (compatible con versiones antiguas)
 var corsOptions = {
   origin: function (origin, callback) {
+    console.log('🔍 CORS - Origin recibido:', origin);
     
     // Permitir requests sin origin (como mobile apps o curl)
     if (!origin) {
+      console.log('✅ CORS - Permitiendo request sin origin');
       return callback(null, true);
     }
     
     // Permitir localhost para desarrollo
     if (origin.indexOf('localhost') !== -1 || origin.indexOf('127.0.0.1') !== -1) {
+      console.log('✅ CORS - Permitiendo localhost:', origin);
       return callback(null, true);
     }
     
-    // Permitir cualquier dominio de Render
+    // Permitir cualquier dominio de Render (incluyendo farmeoan.onrender.com)
     if (origin.indexOf('onrender.com') !== -1) {
+      console.log('✅ CORS - Permitiendo dominio de Render:', origin);
       return callback(null, true);
     }
     
     // Permitir farmeoa.com
     if (origin.indexOf('farmeoa.com') !== -1) {
+      console.log('✅ CORS - Permitiendo farmeoa.com:', origin);
       return callback(null, true);
     }
     
     // Para desarrollo, permitir cualquier origen
     if (process.env.NODE_ENV !== 'production') {
+      console.log('✅ CORS - Modo desarrollo, permitiendo:', origin);
       return callback(null, true);
     }
     
@@ -124,6 +130,7 @@ var corsOptions = {
     
     // Verificar si el origen está en la lista exacta
     if (allowedOrigins.indexOf(origin) !== -1) {
+      console.log('✅ CORS - Origen en lista permitida:', origin);
       return callback(null, true);
     }
     
@@ -134,18 +141,40 @@ var corsOptions = {
         var pattern = allowedOrigin.replace(/\*/g, '.*');
         var regex = new RegExp('^' + pattern + '$');
         if (regex.test(origin)) {
+          console.log('✅ CORS - Origen coincide con patrón:', origin);
           return callback(null, true);
         }
       }
     }
     
+    console.log('❌ CORS - Origen NO permitido:', origin);
     callback(new Error('No permitido por CORS'));
   },
-  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With'],
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS', 'PATCH'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'X-Requested-With', 'Accept', 'Origin'],
   credentials: true,
-  optionsSuccessStatus: 200
+  optionsSuccessStatus: 200,
+  preflightContinue: false
 };
+
+// Manejar peticiones OPTIONS explícitamente ANTES del middleware de CORS
+app.options('*', (req, res) => {
+  const origin = req.headers.origin;
+  console.log('🔍 OPTIONS preflight recibido desde:', origin);
+  
+  if (origin && (origin.includes('onrender.com') || origin.includes('farmeoa.com') || origin.includes('localhost') || origin.includes('127.0.0.1'))) {
+    res.header('Access-Control-Allow-Origin', origin);
+    res.header('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS, PATCH');
+    res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, X-Requested-With, Accept, Origin');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    res.header('Access-Control-Max-Age', '86400');
+    console.log('✅ OPTIONS handler: Permitiendo preflight para:', origin);
+    return res.status(200).end();
+  }
+  
+  // Si no hay origin o no coincide, aún responder 200 para evitar errores
+  res.status(200).end();
+});
 
 app.use(cors(corsOptions));
 
@@ -193,10 +222,10 @@ app.use((req, res, next) => {
     console.log('CORS BACKUP: Permitiendo request sin origin');
   }
   
-  // Manejar peticiones OPTIONS
+  // Manejar peticiones OPTIONS (preflight) - DEBE responder antes de continuar
   if (req.method === 'OPTIONS') {
-    console.log('CORS BACKUP: Respondiendo a OPTIONS');
-    return res.sendStatus(200);
+    console.log('✅ CORS BACKUP: Respondiendo a OPTIONS preflight para:', origin);
+    return res.status(200).end();
   }
   
   next();

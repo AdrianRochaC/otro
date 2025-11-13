@@ -43,6 +43,7 @@ const appConfig = {
       'http://farmeoa.com:3001',
       'https://otro-frontend.onrender.com',
       'https://otro-k5x5.onrender.com',
+      'https://farmeoan.onrender.com',
       'http://localhost:5173',
       'http://localhost:3000',
       'http://127.0.0.1:5173',
