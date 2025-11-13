@@ -420,13 +420,63 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
               flexDirection: 'column',
               gap: '1rem'
             }}>
-              {notifications.map(n => (
+              {notifications.map(n => {
+                // Determinar colores según el tema para mejor contraste
+                const getUnreadStyles = () => {
+                  const colorScheme = document.documentElement.getAttribute('data-color-scheme');
+                  const theme = document.documentElement.getAttribute('data-theme');
+                  
+                  // Para temas pastel y otros con bajo contraste, usar colores oscuros
+                  if (colorScheme === 'pastel') {
+                    return {
+                      background: 'var(--bg-card)',
+                      border: '2px solid var(--border-focus)',
+                      borderLeft: '4px solid var(--border-focus)',
+                      messageColor: '#2d3748',
+                      dateColor: '#4a5568'
+                    };
+                  }
+                  
+                  if (colorScheme === 'neon') {
+                    return {
+                      background: 'var(--bg-card)',
+                      border: '2px solid var(--border-focus)',
+                      borderLeft: '4px solid var(--border-focus)',
+                      messageColor: '#ffffff',
+                      dateColor: '#e2e8f0'
+                    };
+                  }
+                  
+                  if (colorScheme === 'vibrant' || colorScheme === 'monochrome' || colorScheme === 'earth') {
+                    return {
+                      background: 'var(--bg-card)',
+                      border: '2px solid var(--border-focus)',
+                      borderLeft: '4px solid var(--border-focus)',
+                      messageColor: '#1a1a1a',
+                      dateColor: '#4a5568'
+                    };
+                  }
+                  
+                  // Tema por defecto
+                  return {
+                    background: 'var(--bg-card)',
+                    border: '2px solid var(--border-focus)',
+                    borderLeft: '4px solid var(--border-focus)',
+                    messageColor: 'var(--text-primary)',
+                    dateColor: 'var(--text-secondary)'
+                  };
+                };
+                
+                const unreadStyles = !n.is_read ? getUnreadStyles() : null;
+                
+                return (
                 <li key={n.id} style={{
-                  background: n.is_read ? 'var(--bg-card)' : 'var(--gradient-info)',
+                  background: n.is_read ? 'var(--bg-card)' : (unreadStyles?.background || 'var(--bg-card)'),
                   borderRadius: '12px',
                   padding: '1rem 1.2rem',
                   boxShadow: 'var(--shadow-light)',
-                  border: '1px solid var(--border-primary)',
+                  border: n.is_read ? '1px solid var(--border-primary)' : (unreadStyles?.border || '1px solid var(--border-primary)'),
+                  borderLeft: !n.is_read ? (unreadStyles?.borderLeft || '4px solid var(--border-focus)') : undefined,
                   display: 'flex',
                   flexDirection: 'column',
                   gap: '0.5rem',
@@ -449,14 +499,14 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                       right: '0.8rem',
                       width: '10px',
                       height: '10px',
-                      background: '#e74c3c',
+                      background: 'var(--text-danger)',
                       borderRadius: '50%',
                       display: 'inline-block'
                     }}></span>
                   )}
                   <div style={{
                     fontSize: '1.05rem',
-                    color: 'var(--text-primary)',
+                    color: n.is_read ? 'var(--text-primary)' : (unreadStyles?.messageColor || 'var(--text-primary)'),
                     fontWeight: n.is_read ? '500' : '600',
                     letterSpacing: '0.01em',
                     lineHeight: '1.5',
@@ -464,7 +514,7 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                   }}>{n.message}</div>
                   <div style={{
                     fontSize: '0.9rem',
-                    color: 'var(--text-secondary)',
+                    color: n.is_read ? 'var(--text-secondary)' : (unreadStyles?.dateColor || 'var(--text-secondary)'),
                     display: 'flex',
                     alignItems: 'center',
                     gap: '0.5rem'
@@ -508,7 +558,8 @@ const HomeMenuList = ({ isAdmin, onNavigate, unreadCount, showNotifications }) =
                     </button>
                   )}
                 </li>
-              ))}
+                );
+              })}
             </ul>
           )}
         </div>
