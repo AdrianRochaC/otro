@@ -34,8 +34,15 @@ const AdminBitacora = () => {
       });
       const data = await response.json();
       if (data.success) {
-        // Filtrar solo usuarios activos
-        const usuariosActivos = (data.users || []).filter(usuario => usuario.activo === 1);
+        // Filtrar solo usuarios activos y excluir admin/Admin del sistema
+        const usuariosActivos = (data.users || []).filter(usuario => {
+          if (usuario.activo !== 1) return false;
+          const rolLower = (usuario.rol || '').toLowerCase();
+          return rolLower !== 'admin' && 
+                 rolLower !== 'admin del sistema' &&
+                 rolLower !== 'administrador' &&
+                 rolLower !== 'administrador del sistema';
+        });
         setUsuarios(usuariosActivos);
       } else {
         console.error('Error al obtener usuarios:', data.message);

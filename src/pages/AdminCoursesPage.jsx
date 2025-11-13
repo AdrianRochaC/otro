@@ -51,10 +51,18 @@ const AdminCoursesPage = () => {
       if (response.ok) {
         const data = await response.json();
         if (data.success) {
-          setCargos(data.cargos);
+          // Filtrar cargos que sean "admin" o "Admin del sistema"
+          const cargosFiltrados = data.cargos.filter(cargo => {
+            const nombreLower = cargo.nombre.toLowerCase();
+            return nombreLower !== 'admin' && 
+                   nombreLower !== 'admin del sistema' &&
+                   nombreLower !== 'administrador' &&
+                   nombreLower !== 'administrador del sistema';
+          });
+          setCargos(cargosFiltrados);
           // Establecer el primer cargo como seleccionado por defecto
-          if (data.cargos.length > 0) {
-            setCargoId(data.cargos[0].id);
+          if (cargosFiltrados.length > 0) {
+            setCargoId(cargosFiltrados[0].id);
           }
         }
       }

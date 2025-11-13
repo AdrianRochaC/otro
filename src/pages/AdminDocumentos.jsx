@@ -118,8 +118,16 @@ const AdminDocumentos = () => {
       const cargosData = await cargosRes.json();
       
       if (cargosData.success) {
-        // Extraer solo los nombres de los cargos
-        const rolesFromDB = cargosData.cargos.map(cargo => cargo.nombre);
+        // Extraer solo los nombres de los cargos y filtrar admin/Admin del sistema
+        const rolesFromDB = cargosData.cargos
+          .map(cargo => cargo.nombre)
+          .filter(rol => {
+            const rolLower = rol.toLowerCase();
+            return rolLower !== 'admin' && 
+                   rolLower !== 'admin del sistema' &&
+                   rolLower !== 'administrador' &&
+                   rolLower !== 'administrador del sistema';
+          });
         setRoles(rolesFromDB);
       }
     } catch (err) {
