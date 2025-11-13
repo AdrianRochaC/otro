@@ -745,3 +745,25 @@
     transform: rotate(360deg);
   }
 }
+
+/* Estilos para el icono del calendario en input date */
+.modal-content input[type="date"]::-webkit-calendar-picker-indicator {
+  cursor: pointer;
+  filter: invert(0);
+  opacity: 0.8;
+  transition: opacity 0.3s ease;
+}
+
+.modal-content input[type="date"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
+}
+
+/* Tema claro: icono negro */
+:root .modal-content input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(0);
+}
+
+/* Tema oscuro: icono blanco */
+[data-theme="dark"] .modal-content input[type="date"]::-webkit-calendar-picker-indicator {
+  filter: invert(1);
+}

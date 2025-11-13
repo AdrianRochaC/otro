@@ -1,4 +1,5 @@
 import React, { useState, useEffect } from "react";
+import { FaEye, FaEyeSlash } from "react-icons/fa";
 import "./Register.css";
 import { BACKEND_URL } from '../utils/api';
 
@@ -8,6 +9,7 @@ const Register = () => {
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
   const [cargos, setCargos] = useState([]);
   const [selectedCargoId, setSelectedCargoId] = useState("");
   const [loading, setLoading] = useState(true);
@@ -182,14 +184,24 @@ const Register = () => {
             <span className="label-icon">🔒</span>
             Contraseña
           </label>
-          <input
-            id="password"
-            type="password"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número"
-            required
-          />
+          <div className="password-input-wrapper">
+            <input
+              id="password"
+              type={showPassword ? "text" : "password"}
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              placeholder="Mínimo 8 caracteres, 1 mayúscula, 1 minúscula, 1 número"
+              required
+            />
+            <button
+              type="button"
+              className="password-toggle-btn"
+              onClick={() => setShowPassword(!showPassword)}
+              aria-label={showPassword ? "Ocultar contraseña" : "Mostrar contraseña"}
+            >
+              {showPassword ? <FaEyeSlash /> : <FaEye />}
+            </button>
+          </div>
           
           {/* Indicadores de validación de contraseña */}
           {password && (
