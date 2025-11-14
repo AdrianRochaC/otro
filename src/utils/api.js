@@ -7,6 +7,11 @@ const getBackendURL = () => {
     return "http://localhost:3001";
   }
   
+  // Si estamos en Render - FRONTEND PRINCIPAL (farmeoan.onrender.com)
+  if (window.location.hostname === 'farmeoan.onrender.com') {
+    return "https://otro-k5x5.onrender.com";
+  }
+  
   // Si estamos en farmeoa.com (PRODUCCIÓN PRINCIPAL)
   if (window.location.hostname === 'farmeoa.com' || 
       window.location.hostname === 'www.farmeoa.com') {
@@ -19,13 +24,8 @@ const getBackendURL = () => {
     return "https://api.farmeoa.com";
   }
   
-  // Si estamos en Render - FRONTEND
+  // Si estamos en Render - FRONTEND (otro-frontend)
   if (window.location.hostname === 'otro-frontend.onrender.com') {
-    return "https://otro-k5x5.onrender.com";
-  }
-  
-  // Si estamos en Render - FRONTEND NUEVO
-  if (window.location.hostname === 'farmeoan.onrender.com') {
     return "https://otro-k5x5.onrender.com";
   }
   
