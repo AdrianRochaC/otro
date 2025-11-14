@@ -241,12 +241,15 @@ const AdminCoursesPage = () => {
           setUploadSuccess('');
         }, 2000);
       } else {
-        setUploadError(data.message || 'Error al crear el curso');
+        const errorMsg = data.message || data.error || 'Error al crear el curso';
+        setUploadError(errorMsg);
+        console.error('❌ Error al crear el curso:', data);
+        setTimeout(() => setUploadError(''), 5000);
       }
     } catch (err) {
-      console.error('Error al crear el curso:', err);
-      setUploadError('Error al crear el curso: ' + err.message);
-      setTimeout(() => setUploadError(''), 3000);
+      console.error('❌ Error al crear el curso:', err);
+      setUploadError('Error al crear el curso: ' + (err.message || 'Error desconocido'));
+      setTimeout(() => setUploadError(''), 5000);
     } finally {
       setSubmitting(false);
     }

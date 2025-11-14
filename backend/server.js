@@ -1682,14 +1682,19 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
       if (req.file.mimetype === 'video/mp4' || req.file.originalname.toLowerCase().endsWith('.mp4')) {
         // Subir a Cloudinary (igual que documentos)
         console.log('☁️ Subiendo video MP4 a Cloudinary...');
-        const cloudinaryResult = await uploadDocumentToCloudinary(
-          req.file.buffer,
-          req.file.originalname,
-          req.file.mimetype
-        );
-        finalVideoUrl = cloudinaryResult.url;
-        console.log('✅ Video MP4 subido exitosamente a Cloudinary');
-        console.log('📄 URL de Cloudinary:', cloudinaryResult.url);
+        try {
+          const cloudinaryResult = await uploadDocumentToCloudinary(
+            req.file.buffer,
+            req.file.originalname,
+            req.file.mimetype
+          );
+          finalVideoUrl = cloudinaryResult.url;
+          console.log('✅ Video MP4 subido exitosamente a Cloudinary');
+          console.log('📄 URL de Cloudinary:', cloudinaryResult.url);
+        } catch (cloudinaryError) {
+          console.error('❌ Error subiendo video a Cloudinary:', cloudinaryError);
+          throw new Error('Error al subir video a Cloudinary: ' + cloudinaryError.message);
+        }
       } else {
         // Para otros tipos de video, guardar localmente (compatibilidad)
         const fs = require('fs');
@@ -1774,7 +1779,14 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
       publicId: req.file && finalVideoUrl.includes('cloudinary.com') ? finalVideoUrl.match(/\/v\d+\/(.+?)(?:\.[^.]+)?$/)?.[1] : undefined
     });
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Error interno al crear curso' });
+    console.error('❌ === ERROR AL CREAR CURSO ===');
+    console.error('💥 Error:', error.message);
+    console.error('📚 Stack:', error.stack);
+    res.status(500).json({ 
+      success: false, 
+      message: 'Error interno al crear curso: ' + error.message,
+      error: error.message
+    });
   }
 });
 
