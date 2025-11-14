@@ -46,29 +46,35 @@ async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
     console.log('📊 Tamaño:', fileBuffer.length, 'bytes');
     console.log('📋 Tipo MIME:', mimeType);
     
+    // Detectar si es un video por MIME type o por extensión
+    const isVideo = mimeType.startsWith('video/') || 
+                    originalName.toLowerCase().match(/\.(mp4|avi|mov|wmv|mkv|flv|webm)$/);
+    
     // Determinar el resource_type según el tipo de archivo
     let resourceType = 'raw'; // Por defecto para documentos y videos MP4
     
     if (mimeType.startsWith('image/')) {
       resourceType = 'image';
-    } else if (mimeType.startsWith('video/')) {
+    } else if (isVideo) {
       // Los videos MP4 se guardan como archivos (raw) para persistencia
       // Similar a los documentos, no como videos procesados
       resourceType = 'raw';
     }
     
     console.log('📦 Resource Type:', resourceType);
+    console.log('🎬 Es video:', isVideo ? '✅ Sí' : '❌ No');
     
     // Crear nombre único para el archivo
     const timestamp = Date.now();
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
     
     // Determinar carpeta según el tipo de archivo
-    const folder = mimeType.startsWith('video/') ? 'videos' : 'documents';
+    const folder = isVideo ? 'videos' : 'documents';
     const publicId = `${folder}/${timestamp}_${sanitizedName}`;
     
     console.log('🆔 Public ID generado:', publicId);
-    console.log('📁 Carpeta:', folder);
+    console.log('📁 Carpeta seleccionada:', folder);
+    console.log('📂 Ruta completa en Cloudinary:', publicId);
     
     const uploadOptions = {
       resource_type: resourceType,
@@ -90,16 +96,20 @@ async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
           console.error('📚 Detalles del error:', JSON.stringify(error, null, 2));
           reject(error);
         } else {
-          console.log('✅ Documento subido exitosamente a Cloudinary');
+          const uploadedFolder = result.public_id.split('/')[0] || folder;
+          console.log('✅ Archivo subido exitosamente a Cloudinary');
           console.log('🌐 URL segura:', result.secure_url);
           console.log('🆔 Public ID:', result.public_id);
-          console.log('📁 Carpeta:', result.folder || 'documents');
+          console.log('📁 Carpeta en Cloudinary:', uploadedFolder);
+          console.log('📂 Ruta completa:', result.public_id);
           console.log('📊 Tamaño subido:', result.bytes, 'bytes');
+          console.log('📋 Formato:', result.format || 'N/A');
           resolve({
             url: result.secure_url,
             public_id: result.public_id,
             format: result.format,
-            bytes: result.bytes
+            bytes: result.bytes,
+            folder: uploadedFolder
           });
         }
       }
