@@ -22,9 +22,10 @@ const getBackendURL = () => {
     return "https://otro-k5x5.onrender.com";
   }
   
-  // Si estamos en farmeoa.com
-  if (window.location.hostname === 'farmeoa.com') {
-    return "https://farmeoa.com:3001";
+  // Si estamos en farmeoa.com (Frontend en Dongee, Backend en Render)
+  if (window.location.hostname === 'farmeoa.com' || 
+      window.location.hostname === 'www.farmeoa.com') {
+    return "https://otro-k5x5.onrender.com";
   }
   
   // Para otros hosting con carpetas separadas:
