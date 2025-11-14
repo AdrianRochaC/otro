@@ -112,7 +112,30 @@ const AdminCoursesPage = () => {
   };
 
   const handleFileChange = (e) => {
-    setVideoFile(e.target.files[0]);
+    const file = e.target.files[0];
+    if (!file) return;
+    
+    const fileSizeMB = file.size / (1024 * 1024);
+    const maxSizeMB = 100; // Límite del plan gratuito de Cloudinary
+    
+    // Validar tamaño del archivo
+    if (fileSizeMB > maxSizeMB) {
+      alert(`⚠️ El archivo de video es demasiado grande (${fileSizeMB.toFixed(2)} MB).\n\nEl tamaño máximo permitido es ${maxSizeMB} MB para el plan gratuito de Cloudinary.\n\nPor favor, reduce el tamaño del video o actualiza tu plan de Cloudinary.`);
+      e.target.value = ''; // Limpiar el input
+      setVideoFile(null);
+      return;
+    }
+    
+    // Validar que sea MP4
+    if (file.type !== 'video/mp4' && !file.name.toLowerCase().endsWith('.mp4')) {
+      alert('⚠️ Solo se permiten archivos de video MP4 para subir a Cloudinary.');
+      e.target.value = '';
+      setVideoFile(null);
+      return;
+    }
+    
+    setVideoFile(file);
+    setUploadError(''); // Limpiar errores anteriores
   };
 
   // Nuevo handler para alternar entre enlace y archivo
@@ -691,7 +714,17 @@ const AdminCoursesPage = () => {
               marginBottom: "1rem"
             }}
           />
-          {videoFile && <p style={{ color: '#2962ff', marginTop: 0 }}>Archivo seleccionado: {videoFile.name}</p>}
+          {videoFile && (
+            <div style={{ marginTop: '0.5rem' }}>
+              <p style={{ color: '#2962ff', marginTop: 0, marginBottom: '0.25rem' }}>
+                Archivo seleccionado: {videoFile.name}
+              </p>
+              <p style={{ color: '#888', fontSize: '0.85rem', marginTop: 0 }}>
+                Tamaño: {(videoFile.size / (1024 * 1024)).toFixed(2)} MB 
+                (Máximo: 100 MB para plan gratuito de Cloudinary)
+              </p>
+            </div>
+          )}
         </div>
 
         <label>Cargo/Departamento:</label>

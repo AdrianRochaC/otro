@@ -1680,8 +1680,22 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
     if (req.file) {
       // Verificar si es un video MP4
       if (req.file.mimetype === 'video/mp4' || req.file.originalname.toLowerCase().endsWith('.mp4')) {
-        // Subir a Cloudinary (igual que documentos)
+        const fileSizeMB = req.file.size / (1024 * 1024);
+        const maxSizeMB = 100; // Límite del plan gratuito de Cloudinary
+        
         console.log('☁️ Subiendo video MP4 a Cloudinary...');
+        console.log('📊 Tamaño del archivo:', fileSizeMB.toFixed(2), 'MB');
+        console.log('📏 Límite máximo:', maxSizeMB, 'MB (plan gratuito de Cloudinary)');
+        
+        // Validar tamaño antes de subir
+        if (fileSizeMB > maxSizeMB) {
+          return res.status(400).json({
+            success: false,
+            message: `El archivo de video es demasiado grande (${fileSizeMB.toFixed(2)} MB). El tamaño máximo permitido es ${maxSizeMB} MB para el plan gratuito de Cloudinary. Por favor, reduce el tamaño del video o actualiza tu plan de Cloudinary.`
+          });
+        }
+        
+        // Subir a Cloudinary (igual que documentos)
         try {
           const cloudinaryResult = await uploadDocumentToCloudinary(
             req.file.buffer,
@@ -1693,6 +1707,16 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
           console.log('📄 URL de Cloudinary:', cloudinaryResult.url);
         } catch (cloudinaryError) {
           console.error('❌ Error subiendo video a Cloudinary:', cloudinaryError);
+          
+          // Si el error es por tamaño de archivo, mostrar mensaje claro
+          if (cloudinaryError.message && cloudinaryError.message.includes('File size too large')) {
+            return res.status(400).json({
+              success: false,
+              message: `El archivo de video es demasiado grande (${fileSizeMB.toFixed(2)} MB). El tamaño máximo permitido es ${maxSizeMB} MB para el plan gratuito de Cloudinary. Por favor, reduce el tamaño del video o actualiza tu plan de Cloudinary.`
+            });
+          }
+          
+          // Para otros errores, lanzar el error
           throw new Error('Error al subir video a Cloudinary: ' + cloudinaryError.message);
         }
       } else {
