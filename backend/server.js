@@ -1675,50 +1675,21 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
   try {
     const { title, description, videoUrl, cargoId, attempts = 1, timeLimit = 30 } = req.body;
     let finalVideoUrl = videoUrl;
-    let cloudinaryInfo = null; // Para guardar info de Cloudinary y mostrarla en la respuesta
 
-    // Si se subió un archivo de video MP4, subirlo a Cloudinary
+    // Si se subió un archivo de video MP4, subirlo a Cloudinary (igual que documentos)
     if (req.file) {
       // Verificar si es un video MP4
       if (req.file.mimetype === 'video/mp4' || req.file.originalname.toLowerCase().endsWith('.mp4')) {
+        // Subir a Cloudinary (igual que documentos)
         console.log('☁️ Subiendo video MP4 a Cloudinary...');
-        try {
-          const cloudinaryResult = await uploadDocumentToCloudinary(
-            req.file.buffer,
-            req.file.originalname,
-            req.file.mimetype
-          );
-          finalVideoUrl = cloudinaryResult.url;
-          cloudinaryInfo = {
-            folder: cloudinaryResult.folder || 'videos',
-            publicId: cloudinaryResult.public_id,
-            url: cloudinaryResult.url,
-            sizeMB: (cloudinaryResult.bytes / (1024 * 1024)).toFixed(2)
-          };
-          
-          // Logs detallados para mostrar dónde se guardó
-          console.log('═══════════════════════════════════════════════════════');
-          console.log('✅ VIDEO MP4 SUBIDO EXITOSAMENTE A CLOUDINARY');
-          console.log('═══════════════════════════════════════════════════════');
-          console.log('📄 Archivo:', req.file.originalname);
-          console.log('📁 CARPETA EN CLOUDINARY:', cloudinaryInfo.folder);
-          console.log('🆔 Public ID:', cloudinaryInfo.publicId);
-          console.log('🌐 URL:', cloudinaryInfo.url);
-          console.log('📊 Tamaño:', cloudinaryInfo.sizeMB, 'MB');
-          console.log('═══════════════════════════════════════════════════════');
-        } catch (cloudinaryError) {
-          console.error('❌ Error subiendo video a Cloudinary:', cloudinaryError);
-          // Fallback: guardar localmente si Cloudinary falla
-          const fs = require('fs');
-          if (!fs.existsSync(videosDir)) {
-            fs.mkdirSync(videosDir, { recursive: true });
-          }
-          const filename = Date.now() + '-' + req.file.fieldname + path.extname(req.file.originalname);
-          const filepath = path.join(videosDir, filename);
-          fs.writeFileSync(filepath, req.file.buffer);
-          finalVideoUrl = `/uploads/videos/${filename}`;
-          console.log('⚠️ Video guardado localmente como fallback:', finalVideoUrl);
-        }
+        const cloudinaryResult = await uploadDocumentToCloudinary(
+          req.file.buffer,
+          req.file.originalname,
+          req.file.mimetype
+        );
+        finalVideoUrl = cloudinaryResult.url;
+        console.log('✅ Video MP4 subido exitosamente a Cloudinary');
+        console.log('📄 URL de Cloudinary:', cloudinaryResult.url);
       } else {
         // Para otros tipos de video, guardar localmente (compatibilidad)
         const fs = require('fs');
@@ -1794,18 +1765,13 @@ app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, re
 
     await connection.end();
 
-    // Mensaje con información de Cloudinary si aplica
-    let successMessage = 'Curso creado exitosamente';
-    if (cloudinaryInfo) {
-      successMessage += `\n📁 Video guardado en Cloudinary (carpeta: ${cloudinaryInfo.folder})`;
-    }
-
     res.status(201).json({ 
       success: true, 
-      message: successMessage,
+      message: 'Curso creado exitosamente',
       courseId,
       cargoNombre,
-      cloudinaryInfo: cloudinaryInfo // Incluir info de Cloudinary para mostrar en frontend
+      cloudinaryUrl: req.file && finalVideoUrl.includes('cloudinary.com') ? finalVideoUrl : undefined,
+      publicId: req.file && finalVideoUrl.includes('cloudinary.com') ? finalVideoUrl.match(/\/v\d+\/(.+?)(?:\.[^.]+)?$/)?.[1] : undefined
     });
   } catch (error) {
     res.status(500).json({ success: false, message: 'Error interno al crear curso' });

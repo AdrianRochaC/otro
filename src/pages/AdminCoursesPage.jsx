@@ -27,6 +27,8 @@ const AdminCoursesPage = () => {
   const [loading, setLoading] = useState(false); // Estado para IA
   const [submitting, setSubmitting] = useState(false); // Estado para submit del formulario
   const [aiStatus, setAiStatus] = useState({}); // Estado para IA
+  const [uploadSuccess, setUploadSuccess] = useState(''); // Mensaje de éxito
+  const [uploadError, setUploadError] = useState(''); // Mensaje de error
 
   const API_URL_INTERNAL_INTERNAL = `${BACKEND_URL}/api`;
   const token = localStorage.getItem("authToken");
@@ -226,21 +228,25 @@ const AdminCoursesPage = () => {
         fetchCourses();
         resetForm();
         
-        // Mostrar mensaje con información de Cloudinary si aplica
+        // Mostrar mensaje igual que documentos
         let message = editingCourse ? "Curso actualizado exitosamente" : "Curso creado exitosamente";
-        if (data.cloudinaryInfo) {
-          message += `\n\n📁 Video guardado en Cloudinary`;
-          message += `\n📂 Carpeta: ${data.cloudinaryInfo.folder}`;
-          message += `\n📊 Tamaño: ${data.cloudinaryInfo.sizeMB} MB`;
-          console.log('☁️ Información de Cloudinary:', data.cloudinaryInfo);
+        if (data.cloudinaryUrl) {
+          message += " - Video subido exitosamente a Cloudinary";
+          console.log('☁️ Video subido a Cloudinary:', data.cloudinaryUrl);
+          console.log('🆔 Public ID:', data.publicId);
         }
-        alert(message);
+        setUploadSuccess(message);
+        setTimeout(() => {
+          setShowModal(false);
+          setUploadSuccess('');
+        }, 2000);
       } else {
-        alert(data.message);
+        setUploadError(data.message || 'Error al crear el curso');
       }
     } catch (err) {
       console.error('Error al crear el curso:', err);
-      alert('Error al crear el curso: ' + err.message);
+      setUploadError('Error al crear el curso: ' + err.message);
+      setTimeout(() => setUploadError(''), 3000);
     } finally {
       setSubmitting(false);
     }
@@ -258,6 +264,8 @@ const AdminCoursesPage = () => {
     setTimeLimit(30);
     setShowEvaluation(false);
     setEditingCourse(null);
+    setUploadSuccess('');
+    setUploadError('');
   };
 
   const handleAddQuestion = () => {
@@ -533,6 +541,8 @@ const AdminCoursesPage = () => {
       }
     }
 
+    setUploadSuccess('');
+    setUploadError('');
     setShowModal(true);
   };
 
@@ -906,6 +916,42 @@ const AdminCoursesPage = () => {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Mensajes globales de éxito/error - igual que documentos */}
+      {uploadSuccess && (
+        <div style={{ 
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#16a34a',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(22, 163, 74, 0.3)',
+          zIndex: 1000,
+          fontSize: '0.9rem',
+          fontWeight: '500'
+        }}>
+          ✅ {uploadSuccess}
+        </div>
+      )}
+      {uploadError && (
+        <div style={{ 
+          position: 'fixed',
+          top: '20px',
+          right: '20px',
+          background: '#dc2626',
+          color: 'white',
+          padding: '12px 20px',
+          borderRadius: '8px',
+          boxShadow: '0 4px 12px rgba(220, 38, 38, 0.3)',
+          zIndex: 1000,
+          fontSize: '0.9rem',
+          fontWeight: '500'
+        }}>
+          ❌ {uploadError}
         </div>
       )}
       </div>
