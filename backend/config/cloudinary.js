@@ -47,12 +47,14 @@ async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
     console.log('📋 Tipo MIME:', mimeType);
     
     // Determinar el resource_type según el tipo de archivo
-    let resourceType = 'raw'; // Por defecto para documentos
+    let resourceType = 'raw'; // Por defecto para documentos y videos MP4
     
     if (mimeType.startsWith('image/')) {
       resourceType = 'image';
     } else if (mimeType.startsWith('video/')) {
-      resourceType = 'video';
+      // Los videos MP4 se guardan como archivos (raw) para persistencia
+      // Similar a los documentos, no como videos procesados
+      resourceType = 'raw';
     }
     
     console.log('📦 Resource Type:', resourceType);
@@ -60,13 +62,17 @@ async function uploadDocumentToCloudinary(fileBuffer, originalName, mimeType) {
     // Crear nombre único para el archivo
     const timestamp = Date.now();
     const sanitizedName = originalName.replace(/[^a-zA-Z0-9.-]/g, '_');
-    const publicId = `documents/${timestamp}_${sanitizedName}`;
+    
+    // Determinar carpeta según el tipo de archivo
+    const folder = mimeType.startsWith('video/') ? 'videos' : 'documents';
+    const publicId = `${folder}/${timestamp}_${sanitizedName}`;
     
     console.log('🆔 Public ID generado:', publicId);
+    console.log('📁 Carpeta:', folder);
     
     const uploadOptions = {
       resource_type: resourceType,
-      folder: 'documents',
+      folder: folder,
       public_id: publicId.split('.')[0], // Sin extensión
       use_filename: false,
       unique_filename: true,

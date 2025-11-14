@@ -528,34 +528,14 @@ app.get('/api/video/:filename', (req, res) => {
   }
 });
 
-// Configuración de almacenamiento para videos
-const storage = multer.diskStorage({
-  destination: function (req, file, cb) {
-    console.log('📁 === SUBIENDO VIDEO ===');
-    console.log('📂 Destino:', videosDir);
-    console.log('✅ Directorio existe:', fs.existsSync(videosDir));
-    
-    // Crear directorio si no existe
-    if (!fs.existsSync(videosDir)) {
-      console.log('📁 Creando directorio de videos...');
-      fs.mkdirSync(videosDir, { recursive: true });
-    }
-    
-    cb(null, videosDir); // Carpeta donde se guardarán los videos
-  },
-  filename: function (req, file, cb) {
-    const ext = path.extname(file.originalname);
-    const filename = Date.now() + '-' + file.fieldname + ext;
-    
-    console.log('📄 Archivo original:', file.originalname);
-    console.log('📄 Nombre generado:', filename);
-    console.log('📄 Tamaño:', file.size, 'bytes');
-    console.log('📄 Tipo MIME:', file.mimetype);
-    
-    cb(null, filename);
+// Configuración de almacenamiento para videos (en memoria para subir a Cloudinary)
+const videoStorage = multer.memoryStorage();
+const upload = multer({ 
+  storage: videoStorage,
+  limits: {
+    fileSize: 500 * 1024 * 1024 // 500MB máximo para videos
   }
 });
-const upload = multer({ storage: storage });
 
 // Configuración de Multer para imágenes de fondo (en memoria para guardar en DB)
 const backgroundImageUpload = multer({ 
@@ -1690,16 +1670,50 @@ app.get('/api/profile/:id', verifyToken, async (req, res) => {
 
 // server.js (continuación - agregar rutas de cursos y evaluaciones)
 
-// RUTA: Crear curso con evaluación (almacenamiento local simple)
+// RUTA: Crear curso con evaluación (almacenamiento en Cloudinary para videos MP4)
 app.post('/api/courses', verifyToken, upload.single('videoFile'), async (req, res) => {
   try {
     const { title, description, videoUrl, cargoId, attempts = 1, timeLimit = 30 } = req.body;
     let finalVideoUrl = videoUrl;
 
-    // Si se subió un archivo, usar la ruta local
+    // Si se subió un archivo de video MP4, subirlo a Cloudinary
     if (req.file) {
-      finalVideoUrl = `/uploads/videos/${req.file.filename}`;
-      console.log('✅ Video guardado localmente:', finalVideoUrl);
+      // Verificar si es un video MP4
+      if (req.file.mimetype === 'video/mp4' || req.file.originalname.toLowerCase().endsWith('.mp4')) {
+        console.log('☁️ Subiendo video MP4 a Cloudinary...');
+        try {
+          const cloudinaryResult = await uploadDocumentToCloudinary(
+            req.file.buffer,
+            req.file.originalname,
+            req.file.mimetype
+          );
+          finalVideoUrl = cloudinaryResult.url;
+          console.log('✅ Video MP4 subido exitosamente a Cloudinary:', finalVideoUrl);
+        } catch (cloudinaryError) {
+          console.error('❌ Error subiendo video a Cloudinary:', cloudinaryError);
+          // Fallback: guardar localmente si Cloudinary falla
+          const fs = require('fs');
+          if (!fs.existsSync(videosDir)) {
+            fs.mkdirSync(videosDir, { recursive: true });
+          }
+          const filename = Date.now() + '-' + req.file.fieldname + path.extname(req.file.originalname);
+          const filepath = path.join(videosDir, filename);
+          fs.writeFileSync(filepath, req.file.buffer);
+          finalVideoUrl = `/uploads/videos/${filename}`;
+          console.log('⚠️ Video guardado localmente como fallback:', finalVideoUrl);
+        }
+      } else {
+        // Para otros tipos de video, guardar localmente (compatibilidad)
+        const fs = require('fs');
+        if (!fs.existsSync(videosDir)) {
+          fs.mkdirSync(videosDir, { recursive: true });
+        }
+        const filename = Date.now() + '-' + req.file.fieldname + path.extname(req.file.originalname);
+        const filepath = path.join(videosDir, filename);
+        fs.writeFileSync(filepath, req.file.buffer);
+        finalVideoUrl = `/uploads/videos/${filename}`;
+        console.log('✅ Video guardado localmente:', finalVideoUrl);
+      }
     }
 
     // Procesar evaluation como JSON
@@ -1859,6 +1873,12 @@ app.delete('/api/courses/:id', verifyToken, async (req, res) => {
     const { id } = req.params;
     const connection = await createConnection();
 
+    // Obtener el video_url antes de eliminar el curso
+    const [courseData] = await connection.execute(
+      'SELECT video_url FROM courses WHERE id = ?',
+      [id]
+    );
+
     // Eliminar preguntas relacionadas (si hay)
     await connection.execute(`DELETE FROM questions WHERE course_id = ?`, [id]);
 
@@ -1869,6 +1889,22 @@ app.delete('/api/courses/:id', verifyToken, async (req, res) => {
 
     if (result.affectedRows === 0) {
       return res.status(404).json({ success: false, message: 'Curso no encontrado' });
+    }
+
+    // Eliminar video de Cloudinary si existe
+    if (courseData.length > 0 && courseData[0].video_url) {
+      const videoUrl = courseData[0].video_url;
+      if (videoUrl && videoUrl.includes('cloudinary.com')) {
+        try {
+          const publicId = extractPublicIdFromUrl(videoUrl);
+          if (publicId) {
+            await deleteDocumentFromCloudinary(publicId, 'raw');
+            console.log('🗑️ Video eliminado de Cloudinary:', publicId);
+          }
+        } catch (deleteError) {
+          console.warn('⚠️ No se pudo eliminar el video de Cloudinary:', deleteError.message);
+        }
+      }
     }
 
     res.json({ success: true, message: 'Curso eliminado exitosamente' });
