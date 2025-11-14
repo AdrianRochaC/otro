@@ -225,7 +225,16 @@ const AdminCoursesPage = () => {
       if (data.success) {
         fetchCourses();
         resetForm();
-        alert(editingCourse ? "Curso actualizado exitosamente" : "Curso creado exitosamente");
+        
+        // Mostrar mensaje con información de Cloudinary si aplica
+        let message = editingCourse ? "Curso actualizado exitosamente" : "Curso creado exitosamente";
+        if (data.cloudinaryInfo) {
+          message += `\n\n📁 Video guardado en Cloudinary`;
+          message += `\n📂 Carpeta: ${data.cloudinaryInfo.folder}`;
+          message += `\n📊 Tamaño: ${data.cloudinaryInfo.sizeMB} MB`;
+          console.log('☁️ Información de Cloudinary:', data.cloudinaryInfo);
+        }
+        alert(message);
       } else {
         alert(data.message);
       }
