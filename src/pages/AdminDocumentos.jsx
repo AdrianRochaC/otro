@@ -259,7 +259,6 @@ const AdminDocumentos = () => {
           setUploadSuccess('');
         }, 1200);
       } else {
-        console.error('❌ Error al subir documento:', data.message);
         setUploadError(data.message || 'Error al subir documento');
       }
     } catch (err) {

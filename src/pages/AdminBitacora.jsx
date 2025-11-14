@@ -54,11 +54,9 @@ const AdminBitacora = () => {
         });
         setUsuarios(usuariosActivos);
       } else {
-        console.error('Error al obtener usuarios:', data.message);
         alert('❌ Error al cargar usuarios: ' + data.message);
       }
     } catch (error) {
-      console.error('Error en fetchUsuarios:', error);
       alert('❌ No se pudo cargar la lista de usuarios');
     } finally {
       setLoadingUsuarios(false);
@@ -92,8 +90,6 @@ const AdminBitacora = () => {
       : `${BACKEND_URL}/api/bitacora`;
     const method = editingTarea ? "PUT" : "POST";
 
-    console.log('Enviando datos:', formData);
-
     try {
       const response = await fetch(url, {
         method,
@@ -105,7 +101,6 @@ const AdminBitacora = () => {
       });
 
       const data = await response.json();
-      console.log('Respuesta del servidor:', data);
       
       if (data.success) {
         fetchTareas();
@@ -120,11 +115,9 @@ const AdminBitacora = () => {
         });
         alert("✅ " + (data.message || "Operación exitosa"));
       } else {
-        console.error('Error del servidor:', data);
         alert("❌ " + (data.message || "Error desconocido"));
       }
     } catch (error) {
-      console.error('Error en la petición:', error);
       alert("❌ Error de conexión: " + error.message);
     } finally {
       setSubmitting(false);
@@ -146,8 +139,6 @@ const AdminBitacora = () => {
   };
 
   const handleEdit = (tarea) => {
-    console.log('Editando tarea:', tarea);
-    
     setEditingTarea(tarea);
     setFormData({
       titulo: tarea.titulo || "",
@@ -163,7 +154,6 @@ const AdminBitacora = () => {
           }
           return [];
         } catch (error) {
-          console.error('Error parseando asignados:', error);
           return [];
         }
       })(),

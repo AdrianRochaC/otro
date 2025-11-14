@@ -248,26 +248,12 @@ const DetailPage = () => {
                 : `${BACKEND_URL}${videoUrl.startsWith('/') ? '' : '/'}${videoUrl}`;
             }
             
-            console.log('🎬 DetailPage - Cargando video:', { 
-              originalUrl: videoUrl, 
-              finalUrl, 
-              isYouTube,
-              courseId: course.id 
-            });
-            
             return (
               <ReactPlayer
                 url={finalUrl}
                 controls
                 onProgress={handleProgress}
                 onEnded={() => setVideoEnded(true)}
-                onError={(error) => {
-                  console.error('❌ Error en ReactPlayer:', error);
-                  console.error('URL que falló:', finalUrl);
-                }}
-                onReady={() => {
-                  console.log('✅ ReactPlayer listo:', finalUrl);
-                }}
                 className="react-player"
               />
             );

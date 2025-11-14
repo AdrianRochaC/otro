@@ -17,14 +17,6 @@ const Perfil = () => {
       const token = localStorage.getItem("authToken");
 
       if (userData && token) {
-        // Debug: mostrar información del usuario
-        console.log('👤 Usuario cargado:', userData);
-        console.log('🔑 Rol del usuario:', userData.rol);
-        console.log('🔍 Tipo de rol:', typeof userData.rol);
-        console.log('🔍 Rol es undefined?', userData.rol === undefined);
-        console.log('🔍 Rol es null?', userData.rol === null);
-        console.log('🔍 Rol es string vacío?', userData.rol === '');
-        
         setUser(userData);
 
         // Obtener progreso
@@ -42,7 +34,6 @@ const Perfil = () => {
 
       setLoading(false);
     } catch (error) {
-      console.error('❌ Error cargando datos del usuario:', error);
       setLoading(false);
     }
   };

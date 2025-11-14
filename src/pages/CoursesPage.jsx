@@ -117,41 +117,6 @@ const CoursesPage = () => {
                       ? videoUrl 
                       : `${BACKEND_URL}${videoUrl.startsWith('/') ? '' : '/'}${videoUrl}`;
                     
-                    console.log('🎬 Cargando video:', { 
-                      originalUrl: videoUrl, 
-                      finalUrl, 
-                      courseId: course.id 
-                    });
-                    
-                    // Verificar si el archivo existe antes de cargar
-                    const checkVideoExists = async () => {
-                      try {
-                        const filename = videoUrl.replace('/uploads/videos/', '');
-                        console.log('🔍 Verificando video específico:', filename);
-                        
-                        // Verificar con el servidor
-                        const serverCheck = await checkSpecificVideo(filename);
-                        
-                        // Probar acceso directo
-                        const directAccess = await testVideoAccess(finalUrl);
-                        
-                        console.log('📊 Resultados de verificación:', {
-                          filename,
-                          serverCheck,
-                          directAccess,
-                          finalUrl
-                        });
-                        
-                        return serverCheck?.exists && directAccess;
-                      } catch (error) {
-                        console.error('❌ Error verificando video:', error);
-                        return false;
-                      }
-                    };
-                    
-                    // Verificar existencia del archivo
-                    checkVideoExists();
-                    
                     return (
                       <video
                         src={finalUrl}
@@ -159,16 +124,6 @@ const CoursesPage = () => {
                         width="100%"
                         height="315"
                         style={{ background: '#000' }}
-                        onError={(e) => {
-                          console.error('❌ Error cargando video:', e);
-                          console.error('URL que falló:', finalUrl);
-                        }}
-                        onLoadStart={() => {
-                          console.log('🔄 Iniciando carga de video:', finalUrl);
-                        }}
-                        onCanPlay={() => {
-                          console.log('✅ Video listo para reproducir:', finalUrl);
-                        }}
                       >
                         Tu navegador no soporta la reproducción de video.
                       </video>

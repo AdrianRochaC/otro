@@ -40,11 +40,9 @@ const Bitacora = () => {
       if (data.success) {
         setUsuarios(data.users || []);
       } else {
-        console.error('Error al obtener usuarios:', data.message);
         alert('❌ Error al cargar usuarios: ' + data.message);
       }
     } catch (error) {
-      console.error('Error en fetchUsuarios:', error);
       alert('❌ No se pudo cargar la lista de usuarios');
     }
   };

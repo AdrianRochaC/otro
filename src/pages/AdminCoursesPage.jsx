@@ -255,8 +255,6 @@ const AdminCoursesPage = () => {
         let message = editingCourse ? "Curso actualizado exitosamente" : "Curso creado exitosamente";
         if (data.cloudinaryUrl) {
           message += " - Video subido exitosamente a Cloudinary";
-          console.log('☁️ Video subido a Cloudinary:', data.cloudinaryUrl);
-          console.log('🆔 Public ID:', data.publicId);
         }
         setUploadSuccess(message);
         setTimeout(() => {
@@ -266,11 +264,9 @@ const AdminCoursesPage = () => {
       } else {
         const errorMsg = data.message || data.error || 'Error al crear el curso';
         setUploadError(errorMsg);
-        console.error('❌ Error al crear el curso:', data);
         setTimeout(() => setUploadError(''), 5000);
       }
     } catch (err) {
-      console.error('❌ Error al crear el curso:', err);
       setUploadError('Error al crear el curso: ' + (err.message || 'Error desconocido'));
       setTimeout(() => setUploadError(''), 5000);
     } finally {
