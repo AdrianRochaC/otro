@@ -3287,6 +3287,9 @@ app.post('/api/ai/analyze-youtube', verifyToken, async (req, res) => {
 
 // RUTA: Analizar archivo de video MP4 y generar preguntas
 app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), verifyToken, async (req, res) => {
+  const fs = require('fs');
+  const path = require('path');
+  let tempFilePath = null;
   
   try {
     // Verificar que el usuario sea admin
@@ -3308,118 +3311,117 @@ app.post('/api/ai/analyze-video-file', videoAnalysisUpload.single('videoFile'), 
     
     // Con multer.memoryStorage(), el archivo está en req.file.buffer
     // Necesitamos guardarlo temporalmente para procesarlo
-    const fs = require('fs');
-    const path = require('path');
     const tempDir = path.join(__dirname, 'temp', 'videos');
     
-    console.log('Directorio temporal:', tempDir);
+    console.log('📁 === INICIANDO ANÁLISIS DE VIDEO MP4 ===');
+    console.log('📂 Directorio temporal:', tempDir);
+    console.log('📄 Archivo:', req.file.originalname);
+    console.log('📊 Tamaño:', (req.file.size / (1024 * 1024)).toFixed(2), 'MB');
     
     // Crear directorio temporal si no existe
     if (!fs.existsSync(tempDir)) {
-      console.log('Creando directorio temporal...');
+      console.log('📁 Creando directorio temporal...');
       fs.mkdirSync(tempDir, { recursive: true });
     }
     
-    const tempFileName = `temp_${Date.now()}_${req.file.originalname}`;
-    const tempFilePath = path.join(tempDir, tempFileName);
+    const tempFileName = `temp_${Date.now()}_${req.file.originalname.replace(/[^a-zA-Z0-9.-]/g, '_')}`;
+    tempFilePath = path.join(tempDir, tempFileName);
     
-    console.log('Archivo temporal:', tempFilePath);
-    
-    // Guardar archivo temporalmente
-    console.log('Guardando archivo temporal...');
+    console.log('💾 Guardando archivo temporal...');
     fs.writeFileSync(tempFilePath, req.file.buffer);
-    console.log('Archivo guardado exitosamente');
+    console.log('✅ Archivo guardado exitosamente:', tempFilePath);
     
     try {
       // Analizar contenido del archivo de video con transcripción real
-      console.log('🎬 === INICIANDO ANÁLISIS DE VIDEO ===');
+      console.log('🎬 === INICIANDO PROCESAMIENTO DE VIDEO ===');
       console.log('📁 Archivo temporal:', tempFilePath);
       console.log('📊 Tamaño del archivo:', (fs.statSync(tempFilePath).size / (1024 * 1024)).toFixed(2), 'MB');
       
       const videoData = await aiService.processMP4WithTranscription(tempFilePath);
-      console.log('✅ === ANÁLISIS DE VIDEO COMPLETADO ===');
+      console.log('✅ === PROCESAMIENTO DE VIDEO COMPLETADO ===');
       console.log('📋 Datos obtenidos:', {
         title: videoData.title,
         contentLength: videoData.content?.length || 0,
         transcriptionLength: videoData.transcription?.length || 0
       });
     
-    // Combinar con datos personalizados si se proporcionan
-    const courseData = {
-      title: title || videoData.title,
-      description: description || videoData.content,
-      content: videoData.content,
-      contentType: 'video'
-    };
+      // Combinar con datos personalizados si se proporcionan
+      const courseData = {
+        title: title || videoData.title,
+        description: description || videoData.content,
+        content: videoData.content,
+        contentType: 'video'
+      };
 
-    // Generar preguntas usando IA
-    console.log('🤖 === INICIANDO GENERACIÓN DE PREGUNTAS ===');
-    console.log('📊 Datos del curso para IA:', {
-      title: courseData.title,
-      contentType: courseData.contentType,
-      contentLength: courseData.content?.length || 0
-    });
-    
-    const questions = await aiService.generateQuestions(courseData, numQuestions);
-    console.log('✅ === GENERACIÓN DE PREGUNTAS COMPLETADA ===');
-    console.log('📋 Preguntas generadas:', questions.length);
-    
-    const response = {
-      success: true,
-      message: `Se generaron ${questions.length} preguntas para el archivo de video`,
-      videoInfo: {
-        originalName: req.file.originalname,
-        size: req.file.size,
-        mimetype: req.file.mimetype,
-        ...videoData
-      },
-      questions: questions
-    };
-    
-    console.log('📤 === ENVIANDO RESPUESTA AL FRONTEND ===');
-    console.log('📊 Tamaño de la respuesta:', JSON.stringify(response).length, 'caracteres');
-    
-    // Logging adicional para debug
-    if (req.file) {
-      console.log('🎬 === RESUMEN DEL VIDEO ===');
-      console.log('📄 Archivo:', req.file.originalname);
-      console.log('🌐 URL final:', finalVideoUrl);
-      console.log('📊 Tamaño:', req.file.size, 'bytes');
-      console.log('🏷️ Almacenamiento:', req.file.googleDrive?.type || 'local');
-      console.log('✅ Curso guardado con video:', response.success);
-    }
-    
-    res.json(response);
-    console.log('✅ === RESPUESTA ENVIADA EXITOSAMENTE ===');
+      // Generar preguntas usando IA
+      console.log('🤖 === INICIANDO GENERACIÓN DE PREGUNTAS ===');
+      console.log('📊 Datos del curso para IA:', {
+        title: courseData.title,
+        contentType: courseData.contentType,
+        contentLength: courseData.content?.length || 0
+      });
+      
+      const questions = await aiService.generateQuestions(courseData, numQuestions);
+      console.log('✅ === GENERACIÓN DE PREGUNTAS COMPLETADA ===');
+      console.log('📋 Preguntas generadas:', questions.length);
+      
+      const response = {
+        success: true,
+        message: `Se generaron ${questions.length} preguntas para el archivo de video`,
+        videoInfo: {
+          originalName: req.file.originalname,
+          size: req.file.size,
+          mimetype: req.file.mimetype,
+          ...videoData
+        },
+        questions: questions
+      };
+      
+      console.log('📤 === ENVIANDO RESPUESTA AL FRONTEND ===');
+      console.log('📊 Tamaño de la respuesta:', JSON.stringify(response).length, 'caracteres');
+      
+      res.json(response);
+      console.log('✅ === RESPUESTA ENVIADA EXITOSAMENTE ===');
       
     } finally {
       // Limpiar archivo temporal
-      try {
-        if (fs.existsSync(tempFilePath)) {
-          fs.unlinkSync(tempFilePath);
+      if (tempFilePath) {
+        try {
+          if (fs.existsSync(tempFilePath)) {
+            fs.unlinkSync(tempFilePath);
+            console.log('🗑️ Archivo temporal eliminado:', tempFilePath);
+          }
+        } catch (cleanupError) {
+          console.warn('⚠️ Error limpiando archivo temporal:', cleanupError.message);
         }
-      } catch (cleanupError) {
-        console.warn('Error limpiando archivo temporal:', cleanupError);
       }
     }
 
   } catch (error) {
     console.error('❌ === ERROR EN ANÁLISIS DE VIDEO ===');
     console.error('💥 Error:', error.message);
+    console.error('📚 Stack:', error.stack);
     
     // Limpiar archivo temporal en caso de error
-    try {
-      if (tempFilePath && fs.existsSync(tempFilePath)) {
-        fs.unlinkSync(tempFilePath);
-        console.log('🗑️ Archivo temporal eliminado tras error');
+    if (tempFilePath) {
+      try {
+        if (fs.existsSync(tempFilePath)) {
+          fs.unlinkSync(tempFilePath);
+          console.log('🗑️ Archivo temporal eliminado tras error');
+        }
+      } catch (cleanupError) {
+        console.warn('⚠️ Error limpiando archivo temporal:', cleanupError.message);
       }
-    } catch (cleanupError) {
-      console.warn('⚠️ Error limpiando archivo temporal:', cleanupError.message);
     }
     
     res.status(500).json({
       success: false,
-      message: 'Error analizando archivo de video: ' + error.message
+      message: 'Error analizando archivo de video: ' + error.message,
+      debug: {
+        error: error.message,
+        stack: error.stack,
+        timestamp: new Date().toISOString()
+      }
     });
   }
 });
