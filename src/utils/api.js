@@ -7,6 +7,18 @@ const getBackendURL = () => {
     return "http://localhost:3001";
   }
   
+  // Si estamos en farmeoa.com (PRODUCCIÓN PRINCIPAL)
+  if (window.location.hostname === 'farmeoa.com' || 
+      window.location.hostname === 'www.farmeoa.com') {
+    // Opción 1: Si el backend está en un subdominio api.farmeoa.com
+    // Opción 2: Si el backend está en el mismo dominio con puerto 3001
+    // Opción 3: Si el backend está en Render (fallback)
+    
+    // Por defecto usar subdominio api (más común en producción)
+    // Si no funciona, cambiar a: "https://farmeoa.com:3001" o "https://otro-k5x5.onrender.com"
+    return "https://api.farmeoa.com";
+  }
+  
   // Si estamos en Render - FRONTEND
   if (window.location.hostname === 'otro-frontend.onrender.com') {
     return "https://otro-k5x5.onrender.com";
@@ -22,16 +34,16 @@ const getBackendURL = () => {
     return "https://otro-k5x5.onrender.com";
   }
   
-  // Si estamos en farmeoa.com (Frontend en Dongee, Backend en Render)
-  if (window.location.hostname === 'farmeoa.com' || 
-      window.location.hostname === 'www.farmeoa.com') {
-    return "https://otro-k5x5.onrender.com";
-  }
-  
   // Para otros hosting con carpetas separadas:
   // Frontend en public_html, Backend en app/backend
   const protocol = window.location.protocol;
   const hostname = window.location.hostname;
+  
+  // Si el hostname contiene 'farmeoa', intentar con subdominio api primero
+  if (hostname.includes('farmeoa')) {
+    return `${protocol}//api.${hostname.replace('www.', '')}`;
+  }
+  
   return `${protocol}//${hostname}:3001`;
 };
 

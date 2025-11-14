@@ -55,25 +55,41 @@ class AIService {
       // Crear prompt contextual para OpenAI
       const prompt = this.createPrompt(title, description, content, contentType, numQuestions);
       
+      // Usar GPT-4o-mini si está disponible (mejor que gpt-3.5-turbo y más barato que gpt-4)
+      const model = process.env.OPENAI_MODEL || "gpt-4o-mini";
+      
       const completion = await openai.chat.completions.create({
-        model: "gpt-3.5-turbo",
+        model: model,
         messages: [
           {
             role: "system",
-            content: "Eres un experto en crear evaluaciones educativas. Genera preguntas claras, relevantes y desafiantes basadas EXCLUSIVAMENTE en el contenido proporcionado. Las preguntas deben evaluar la comprensión real del material presentado."
+            content: "Eres un experto en crear evaluaciones educativas de alta calidad. Tu especialidad es generar preguntas específicas, relevantes y desafiantes que evalúen la comprensión REAL del contenido proporcionado. Las preguntas deben basarse EXCLUSIVAMENTE en el contenido específico mencionado, no en conocimiento general. Eres preciso, detallado y siempre generas JSON válido en formato de array."
           },
           {
             role: "user",
             content: prompt
           }
         ],
-        temperature: 0.7,
-        max_tokens: 2000
+        temperature: 0.5, // Reducido para mayor consistencia y precisión
+        max_tokens: 3000 // Aumentado para permitir preguntas más detalladas
       });
 
-      const response = completion.choices[0].message.content;
+      let response = completion.choices[0].message.content;
       console.log('📝 Respuesta de OpenAI recibida:', response.length, 'caracteres');
       console.log('📋 Primeros 300 chars de la respuesta:', response.substring(0, 300));
+      
+      // Si la respuesta está en formato JSON object, convertir a array
+      try {
+        const jsonResponse = JSON.parse(response);
+        if (jsonResponse.questions && Array.isArray(jsonResponse.questions)) {
+          response = JSON.stringify(jsonResponse.questions);
+        } else if (jsonResponse.questions) {
+          // Si está anidado de otra forma
+          response = JSON.stringify(Array.isArray(jsonResponse.questions) ? jsonResponse.questions : [jsonResponse.questions]);
+        }
+      } catch (e) {
+        // Si no es JSON object, continuar con el parsing normal
+      }
       
       const questions = this.parseAIResponse(response);
       console.log('✅ Preguntas generadas exitosamente:', questions.length);
@@ -180,25 +196,91 @@ class AIService {
     let specificInstructions = '';
     
     if (contentType === 'youtube') {
-      contentContext = `CONTENIDO DEL VIDEO DE YOUTUBE:
-${content}`;
-      specificInstructions = `
-INSTRUCCIONES ESPECÍFICAS PARA VIDEO DE YOUTUBE:
-- Analiza el título, descripción y metadatos del video
-- Genera preguntas que evalúen la comprensión de los conceptos principales
-- Considera la duración y categoría del video para ajustar el nivel de dificultad
-- Las preguntas deben ser relevantes para el contenido educativo del video`;
+      // Extraer información estructurada del contenido
+      const transcriptMatch = content.match(/TRANSCRIPCIÓN DEL CONTENIDO REAL:\s*([\s\S]*?)(?:\n\n|$)/);
+      const transcript = transcriptMatch ? transcriptMatch[1].trim() : '';
+      const hasTranscript = transcript && transcript.length > 50 && !transcript.includes('No se pudo obtener');
+      
+      if (hasTranscript) {
+        // Procesar transcripción para extraer conceptos clave
+        const concepts = this.extractKeyConcepts(transcript);
+        const sections = this.divideIntoSections(transcript);
+        
+        contentContext = `CONTENIDO COMPLETO DEL VIDEO DE YOUTUBE:
+${content}
+
+ANÁLISIS DEL CONTENIDO:
+- Transcripción disponible: SÍ (${transcript.length} caracteres)
+- Conceptos clave identificados: ${concepts.length > 0 ? concepts.slice(0, 10).join(', ') : 'Analizar transcripción'}
+- Secciones principales: ${sections.length} secciones identificadas
+${sections.length > 0 ? sections.map((s, i) => `  ${i + 1}. ${s.title}: ${s.summary.substring(0, 100)}...`).join('\n') : ''}`;
+        
+        specificInstructions = `
+INSTRUCCIONES ESPECÍFICAS PARA VIDEO DE YOUTUBE CON TRANSCRIPCIÓN REAL:
+- CRÍTICO: Las preguntas DEBEN basarse EXCLUSIVAMENTE en el contenido real mencionado en la transcripción
+- Analiza la transcripción completa para identificar:
+  * Conceptos específicos explicados en el video
+  * Ejemplos concretos mencionados por el instructor
+  * Pasos o procedimientos descritos
+  * Definiciones o explicaciones dadas
+  * Conclusiones o resúmenes presentados
+- Genera preguntas que evalúen la comprensión de:
+  * Conceptos específicos mencionados en la transcripción (NO genéricos)
+  * Detalles concretos explicados en el video
+  * Ejemplos reales presentados
+  * Relaciones entre conceptos explicados
+  * Aplicaciones prácticas mencionadas
+- Las preguntas deben ser ESPECÍFICAS al contenido del video, no preguntas genéricas sobre el tema
+- Si el video menciona números, fechas, nombres, o datos específicos, inclúyelos en las preguntas
+- Evita preguntas que puedan responderse sin haber visto el video
+- Prioriza preguntas que requieran haber escuchado y comprendido el contenido específico`;
+      } else {
+        contentContext = `CONTENIDO DEL VIDEO DE YOUTUBE:
+${content}
+
+NOTA: No se pudo obtener la transcripción completa del video.`;
+        
+        specificInstructions = `
+INSTRUCCIONES ESPECÍFICAS PARA VIDEO DE YOUTUBE (SIN TRANSCRIPCIÓN):
+- Analiza el título, descripción y metadatos disponibles
+- Genera preguntas que evalúen la comprensión de los conceptos principales sugeridos
+- Considera la categoría del video para ajustar el nivel de dificultad
+- Las preguntas deben ser relevantes para el contenido educativo sugerido por el título y descripción`;
+      }
     } else if (contentType === 'video') {
+      // Procesar transcripción de archivo de video
+      const transcriptMatch = content.match(/TRANSCRIPCIÓN COMPLETA DEL AUDIO:\s*([\s\S]*?)(?:\n\n|$)/);
+      const transcript = transcriptMatch ? transcriptMatch[1].trim() : '';
+      const concepts = transcript ? this.extractKeyConcepts(transcript) : [];
+      const sections = transcript ? this.divideIntoSections(transcript) : [];
+      
       contentContext = `CONTENIDO REAL DEL ARCHIVO DE VIDEO (TRANSCRIPCIÓN COMPLETA):
-${content}`;
+${content}
+
+ANÁLISIS DEL CONTENIDO:
+- Transcripción disponible: ${transcript ? 'SÍ' : 'NO'} (${transcript ? transcript.length : 0} caracteres)
+- Conceptos clave identificados: ${concepts.length > 0 ? concepts.slice(0, 10).join(', ') : 'Analizar transcripción'}
+- Secciones principales: ${sections.length} secciones`;
+      
       specificInstructions = `
 INSTRUCCIONES ESPECÍFICAS PARA ARCHIVO DE VIDEO CON TRANSCRIPCIÓN:
-- Analiza la transcripción real del audio del video para identificar los temas específicos tratados
-- Genera preguntas que evalúen la comprensión de los conceptos MENCIONADOS REALMENTE en el video
-- Usa los puntos clave, entidades y sentimientos identificados en la transcripción
-- Las preguntas deben ser específicas al contenido real del video, no genéricas
-- Considera la confianza de la transcripción para ajustar el nivel de detalle de las preguntas
-- Incluye preguntas sobre conceptos específicos, ejemplos mencionados, y conclusiones presentadas`;
+- CRÍTICO: Las preguntas DEBEN basarse EXCLUSIVAMENTE en el contenido real de la transcripción
+- Analiza la transcripción completa línea por línea para identificar:
+  * Conceptos específicos explicados
+  * Ejemplos concretos mencionados
+  * Pasos o procedimientos detallados
+  * Definiciones exactas dadas
+  * Conclusiones específicas presentadas
+- Genera preguntas que evalúen:
+  * Comprensión de conceptos específicos mencionados (NO genéricos)
+  * Detalles concretos explicados en el video
+  * Ejemplos reales presentados
+  * Secuencias o procesos descritos
+  * Aplicaciones prácticas mencionadas
+- Las preguntas deben ser ESPECÍFICAS al contenido real del video
+- Incluye datos específicos mencionados (números, nombres, fechas, etc.)
+- Evita preguntas genéricas que no requieran haber visto el video
+- Prioriza preguntas que demuestren comprensión del contenido específico`;
     } else if (contentType === 'file') {
       contentContext = `CONTENIDO DEL DOCUMENTO:
 ${content}`;
@@ -218,7 +300,7 @@ INSTRUCCIONES GENERALES:
     }
 
     return `
-Eres un experto en crear evaluaciones educativas. Genera ${numQuestions} preguntas de evaluación para el siguiente curso:
+Eres un experto en crear evaluaciones educativas de alta calidad. Tu tarea es generar ${numQuestions} preguntas de evaluación que evalúen la comprensión REAL del contenido presentado.
 
 TÍTULO DEL CURSO: ${title}
 DESCRIPCIÓN DEL CURSO: ${description}
@@ -227,26 +309,123 @@ ${contentContext}
 
 ${specificInstructions}
 
-REQUISITOS GENERALES:
-- Cada pregunta debe ser clara, específica y relevante
-- Las opciones deben ser plausibles pero solo una correcta
-- El nivel de dificultad debe ser apropiado para el contenido
-- Las preguntas deben cubrir diferentes aspectos del tema
-- Usa un lenguaje claro y profesional
-- Evita preguntas demasiado obvias o demasiado complejas
+REQUISITOS GENERALES PARA LAS PREGUNTAS:
+1. ESPECIFICIDAD: Las preguntas deben ser específicas al contenido real presentado, no genéricas
+2. RELEVANCIA: Cada pregunta debe evaluar comprensión de conceptos, ejemplos o información realmente mencionada
+3. DIFICULTAD: Varía el nivel de dificultad (algunas básicas, algunas que requieran análisis)
+4. COBERTURA: Cubre diferentes aspectos del contenido (conceptos, ejemplos, aplicaciones, conclusiones)
+5. CLARIDAD: Usa lenguaje claro, preciso y profesional
+6. OPCIONES: Las opciones incorrectas deben ser plausibles pero claramente incorrectas
+7. VALIDACIÓ: Las preguntas deben poder responderse correctamente solo con el contenido proporcionado
 
-FORMATO DE RESPUESTA (JSON):
+ESTRUCTURA DE LAS PREGUNTAS:
+- Preguntas de comprensión (30%): ¿Qué se explicó sobre X?
+- Preguntas de aplicación (30%): ¿Cómo se aplica X en Y?
+- Preguntas de análisis (25%): ¿Por qué X es importante según el video?
+- Preguntas de síntesis (15%): ¿Qué conclusión se puede extraer sobre X?
+
+FORMATO DE RESPUESTA (JSON estricto):
 [
   {
-    "question": "Pregunta aquí",
-    "options": ["Opción A", "Opción B", "Opción C", "Opción D"],
+    "question": "Pregunta específica basada en el contenido real",
+    "options": ["Opción A (correcta)", "Opción B (plausible pero incorrecta)", "Opción C (plausible pero incorrecta)", "Opción D (plausible pero incorrecta)"],
     "correctIndex": 0,
-    "explanation": "Explicación breve de por qué es correcta"
+    "explanation": "Explicación breve y clara de por qué esta es la respuesta correcta, mencionando el contenido específico del video"
   }
 ]
 
-IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate de que el JSON sea válido y que correctIndex sea un número entre 0 y 3.
+IMPORTANTE: 
+- Solo responde con el JSON válido, sin texto adicional antes o después
+- Asegúrate de que el JSON sea válido y parseable
+- correctIndex debe ser un número entre 0 y 3
+- Todas las preguntas deben tener exactamente 4 opciones
+- Las preguntas deben ser específicas al contenido proporcionado, no genéricas
 `;
+  }
+
+  /**
+   * Extrae conceptos clave de una transcripción
+   */
+  extractKeyConcepts(transcript) {
+    if (!transcript || transcript.length < 50) return [];
+    
+    // Dividir en oraciones
+    const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 20);
+    
+    // Palabras clave comunes en contenido educativo
+    const educationalKeywords = [
+      'definición', 'concepto', 'ejemplo', 'proceso', 'método', 'técnica',
+      'característica', 'función', 'importante', 'necesario', 'debe', 'debería',
+      'paso', 'procedimiento', 'aplicación', 'uso', 'utilidad', 'beneficio'
+    ];
+    
+    // Extraer frases que contengan palabras clave
+    const concepts = [];
+    sentences.forEach(sentence => {
+      const lowerSentence = sentence.toLowerCase();
+      educationalKeywords.forEach(keyword => {
+        if (lowerSentence.includes(keyword)) {
+          // Extraer la frase relevante (10-50 palabras alrededor de la palabra clave)
+          const words = sentence.split(/\s+/);
+          const keywordIndex = words.findIndex(w => w.toLowerCase().includes(keyword));
+          if (keywordIndex >= 0) {
+            const start = Math.max(0, keywordIndex - 5);
+            const end = Math.min(words.length, keywordIndex + 15);
+            const phrase = words.slice(start, end).join(' ').trim();
+            if (phrase.length > 20 && phrase.length < 200) {
+              concepts.push(phrase);
+            }
+          }
+        }
+      });
+    });
+    
+    // Eliminar duplicados y limitar
+    return [...new Set(concepts)].slice(0, 20);
+  }
+
+  /**
+   * Divide una transcripción en secciones lógicas
+   */
+  divideIntoSections(transcript) {
+    if (!transcript || transcript.length < 100) return [];
+    
+    // Dividir por párrafos o cambios de tema
+    const paragraphs = transcript.split(/\n\n+/).filter(p => p.trim().length > 50);
+    
+    // Si hay pocos párrafos, dividir por oraciones largas
+    if (paragraphs.length < 3) {
+      const sentences = transcript.split(/[.!?]+/).filter(s => s.trim().length > 50);
+      const chunkSize = Math.ceil(sentences.length / 5);
+      const sections = [];
+      
+      for (let i = 0; i < sentences.length; i += chunkSize) {
+        const chunk = sentences.slice(i, i + chunkSize).join('. ');
+        if (chunk.length > 100) {
+          sections.push({
+            title: `Sección ${Math.floor(i / chunkSize) + 1}`,
+            summary: chunk.substring(0, 200) + '...',
+            content: chunk
+          });
+        }
+      }
+      
+      return sections;
+    }
+    
+    // Procesar párrafos como secciones
+    return paragraphs.slice(0, 10).map((para, index) => {
+      const firstSentence = para.split(/[.!?]/)[0].trim();
+      const title = firstSentence.length > 60 
+        ? firstSentence.substring(0, 60) + '...' 
+        : firstSentence || `Sección ${index + 1}`;
+      
+      return {
+        title: title,
+        summary: para.substring(0, 200) + (para.length > 200 ? '...' : ''),
+        content: para
+      };
+    });
   }
 
   /**
@@ -366,20 +545,48 @@ IMPORTANTE: Solo responde con el JSON válido, sin texto adicional. Asegúrate d
         }
       }
       
-      // Crear contenido enriquecido
-      const enrichedContent = `
+      // Crear contenido enriquecido con mejor estructura
+      const hasTranscript = transcriptText && transcriptText.length > 50 && !transcriptText.includes('No se pudo obtener');
+      
+      let enrichedContent = `
 TÍTULO DEL VIDEO: ${videoTitle}
 DESCRIPCIÓN DEL VIDEO:
-${videoDescription}
+${videoDescription || 'No disponible'}
 
-TRANSCRIPCIÓN DEL CONTENIDO REAL:
-${transcriptText || 'No se pudo obtener transcripción del video'}
+`;
+
+      if (hasTranscript) {
+        // Procesar transcripción para mejor análisis
+        const concepts = this.extractKeyConcepts(transcriptText);
+        const sections = this.divideIntoSections(transcriptText);
+        
+        enrichedContent += `
+TRANSCRIPCIÓN COMPLETA DEL CONTENIDO REAL DEL VIDEO:
+${transcriptText}
+
+INFORMACIÓN ESTRUCTURADA:
+- Longitud de transcripción: ${transcriptText.length} caracteres
+- Conceptos clave identificados: ${concepts.length > 0 ? concepts.slice(0, 15).join(', ') : 'Analizar transcripción'}
+${sections.length > 0 ? `- Secciones principales del video:\n${sections.map((s, i) => `  ${i + 1}. ${s.title}`).join('\n')}` : ''}
+
+INSTRUCCIONES CRÍTICAS PARA LA IA:
+- La transcripción contiene el contenido REAL y COMPLETO del video
+- DEBES generar preguntas basadas EXCLUSIVAMENTE en lo que se menciona en esta transcripción
+- Las preguntas deben ser ESPECÍFICAS al contenido real, no genéricas sobre el tema
+- Incluye preguntas sobre conceptos, ejemplos, pasos, definiciones y conclusiones MENCIONADOS en la transcripción
+- Evita preguntas que puedan responderse sin haber visto/escuchado el video
+`;
+      } else {
+        enrichedContent += `
+TRANSCRIPCIÓN DEL CONTENIDO: No se pudo obtener transcripción completa del video
 
 INSTRUCCIONES PARA LA IA:
-${transcriptText ? 
-  'Basándote en la transcripción real del video de YouTube, genera preguntas de evaluación que evalúen la comprensión del contenido específico mencionado en el video. Las preguntas deben ser relevantes para el material educativo real que se presenta.' :
-  'Debido a limitaciones de acceso al contenido del video de YouTube, genera preguntas de evaluación generales sobre el tema educativo que se sugiere en el título. Las preguntas deben ser apropiadas para un curso educativo y evaluar conocimientos básicos del tema.'}
-      `;
+- Debido a limitaciones de acceso, genera preguntas de evaluación generales sobre el tema educativo
+- Basa las preguntas en el título y descripción del video
+- Las preguntas deben ser apropiadas para un curso educativo y evaluar conocimientos básicos del tema
+- Indica en las preguntas que se basan en el tema general, no en contenido específico del video
+`;
+      }
       
       console.log('📊 === RESUMEN DE INFORMACIÓN OBTENIDA ===');
       console.log('📏 Longitud total del contenido:', enrichedContent.length, 'caracteres');

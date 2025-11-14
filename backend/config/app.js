@@ -35,14 +35,19 @@ const appConfig = {
   // Configuración de CORS
   cors: {
     allowedOrigins: [
+      // Producción - farmeoa.com
       'https://farmeoa.com',
       'https://www.farmeoa.com',
       'http://farmeoa.com',
       'http://www.farmeoa.com',
+      'https://api.farmeoa.com',
+      'http://api.farmeoa.com',
       'https://farmeoa.com:3001',
       'http://farmeoa.com:3001',
+      // Render
       'https://otro-frontend.onrender.com',
       'https://otro-k5x5.onrender.com',
+      'https://farmeoan.onrender.com',
       // Desarrollo local
       'http://localhost:5173',
       'http://localhost:3000',
