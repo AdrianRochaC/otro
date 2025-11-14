@@ -6,6 +6,56 @@ import { BACKEND_URL } from '../utils/api';
 
 const API_URL = BACKEND_URL;
 
+// Función para convertir tipos MIME a nombres amigables
+const getFriendlyMimeType = (mimetype) => {
+  if (!mimetype) return 'Desconocido';
+  
+  const mimeParts = mimetype.split('/');
+  const type = mimeParts[0];
+  const subtype = mimeParts[1];
+  
+  // Mapeo de tipos MIME a nombres amigables
+  const mimeMap = {
+    'application/pdf': 'PDF',
+    'application/msword': 'Word',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word',
+    'application/vnd.ms-excel': 'Excel',
+    'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet': 'Excel',
+    'image/jpeg': 'JPEG',
+    'image/png': 'PNG',
+    'image/gif': 'GIF',
+    'text/plain': 'Texto',
+    'text/csv': 'CSV'
+  };
+  
+  // Si está en el mapa, devolver el nombre amigable
+  if (mimeMap[mimetype]) {
+    return mimeMap[mimetype];
+  }
+  
+  // Si no está en el mapa, devolver el subtipo en mayúsculas (sin el prefijo vnd.)
+  if (subtype) {
+    // Limpiar prefijos comunes
+    let cleanSubtype = subtype
+      .replace(/^vnd\./, '')
+      .replace(/^openxmlformats-officedocument\./, '')
+      .replace(/wordprocessingml\.document$/, 'Word')
+      .replace(/spreadsheetml\.sheet$/, 'Excel')
+      .replace(/presentationml\.presentation$/, 'PowerPoint')
+      .replace(/msword$/, 'Word')
+      .replace(/ms-excel$/, 'Excel');
+    
+    // Si después de limpiar sigue siendo muy largo, usar solo la primera parte
+    if (cleanSubtype.length > 15) {
+      cleanSubtype = cleanSubtype.split('.')[0];
+    }
+    
+    return cleanSubtype.toUpperCase();
+  }
+  
+  return type.toUpperCase();
+};
+
 const AdminDocumentos = () => {
   const [modalOpen, setModalOpen] = useState(false);
   const [file, setFile] = useState(null);
@@ -1015,7 +1065,7 @@ const AdminDocumentos = () => {
                         color: 'var(--text-secondary)',
                         fontSize: '0.9rem'
                       }}>
-                        {doc.mimetype.split('/')[1].toUpperCase()}
+                        {getFriendlyMimeType(doc.mimetype)}
                       </td>
                       <td style={{ 
                         padding: '14px 12px',
