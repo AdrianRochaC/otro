@@ -4,10 +4,10 @@ const uploadMemory = multer({ storage: multer.memoryStorage() });
 
 // Configuración de la base de datos
 const dbConfig = {
-  host: process.env.DB_HOST || 'caboose.proxy.rlwy.net',
-  port: process.env.DB_PORT || 16023,
+  host: process.env.DB_HOST || 'shinkansen.proxy.rlwy.net',
+  port: process.env.DB_PORT || 57379,
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'rGbXfHSKIBHcLqYqpFtHdAGCJddHREpz',
+  password: process.env.DB_PASSWORD || 'vZMgbwHaRlLbmPxGPAGOPDVIexcYQjkw',
   database: process.env.DB_NAME || 'railway'
 };
 

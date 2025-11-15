@@ -4,10 +4,10 @@ const mysql = require('mysql2/promise');
 // Configuración de base de datos - Solo Railway
 const dbConfig = {
   // Usar siempre Railway
-  host: process.env.DB_HOST || 'caboose.proxy.rlwy.net',
-  port: process.env.DB_PORT || 16023,
+  host: process.env.DB_HOST || 'shinkansen.proxy.rlwy.net',
+  port: process.env.DB_PORT || 57379,
   user: process.env.DB_USER || 'root',
-  password: process.env.DB_PASSWORD || 'rGbXfHSKIBHcLqYqpFtHdAGCJddHREpz',
+  password: process.env.DB_PASSWORD || 'vZMgbwHaRlLbmPxGPAGOPDVIexcYQjkw',
   database: process.env.DB_NAME || 'railway',
   
   // Configuraciones adicionales para mejor rendimiento

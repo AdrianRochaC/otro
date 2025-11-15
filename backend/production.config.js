@@ -4,10 +4,10 @@ export const productionConfig = {
   PORT: process.env.PORT || 3001, // Usar puerto del hosting o 3001
   
   // Base de datos - Configuración actual
-  DB_HOST: 'caboose.proxy.rlwy.net',
-  DB_PORT: 16023,
+  DB_HOST: 'shinkansen.proxy.rlwy.net',
+  DB_PORT: 57379,
   DB_USER: 'root',
-  DB_PASSWORD: 'rGbXfHSKIBHcLqYqpFtHdAGCJddHREpz',
+  DB_PASSWORD: 'vZMgbwHaRlLbmPxGPAGOPDVIexcYQjkw',
   DB_NAME: 'railway',
   
   // JWT Secret - Clave segura para producción
