@@ -506,14 +506,29 @@
 }
 
 .contacto-link-icon {
-  font-size: 1rem;
   opacity: 0.7;
   flex-shrink: 0;
   display: inline-block;
+  transition: opacity 0.2s ease;
 }
 
 .contacto-link-small:hover .contacto-link-icon {
   opacity: 1;
+}
+
+.gmail-icon {
+  width: 16px;
+  height: 16px;
+}
+
+.phone-icon {
+  width: 14px;
+  height: 14px;
+  color: var(--text-secondary);
+}
+
+.contacto-link-small:hover .phone-icon {
+  color: var(--text-info);
 }
 
 .contacto-admin .contacto-link-small:hover {
