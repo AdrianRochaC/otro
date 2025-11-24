@@ -142,14 +142,55 @@ const Perfil = () => {
           </div>
         )}
 
-        {/* Nota informativa */}
-        <div className="perfil-card info-card">
-          <div className="info-message">
-            <div className="info-icon">ℹ️</div>
-            <div className="info-text">
-              <h3>¿Necesitas cambiar tu información?</h3>
-              <p>Solo los administradores pueden modificar la información de las cuentas. 
-                 Si necesitas actualizar tus datos, contacta a tu administrador.</p>
+        {/* Información de Contacto */}
+        <div className="contacto-section">
+          {/* Cuadro de Contacto Administrativo */}
+          <div className="contacto-card contacto-admin">
+            <div className="contacto-header">
+              <div className="contacto-icon">👤</div>
+              <h3>Contacto Administrativo</h3>
+            </div>
+            <div className="contacto-content">
+              <p className="contacto-description">
+                Si deseas modificar tu información personal o tienes dudas sobre el contenido cargado en el sistema, 
+                contacta al administrador.
+              </p>
+              <div className="contacto-info">
+                <div className="contacto-item">
+                  <span className="contacto-label">📧 Correo:</span>
+                  <a href="mailto:oscarandres211@hotmail.com" className="contacto-link">
+                    oscarandres211@hotmail.com
+                  </a>
+                </div>
+                <div className="contacto-item">
+                  <span className="contacto-label">📱 Teléfono:</span>
+                  <a href="tel:+573502483182" className="contacto-link">
+                    +57 350 2483182
+                  </a>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          {/* Cuadro de Soporte Técnico */}
+          <div className="contacto-card contacto-soporte">
+            <div className="contacto-header">
+              <div className="contacto-icon">🔧</div>
+              <h3>Soporte Técnico</h3>
+            </div>
+            <div className="contacto-content">
+              <p className="contacto-description">
+                Si tienes problemas técnicos con el sistema, errores de funcionamiento o dificultades para acceder 
+                a las funcionalidades, contacta a nuestro equipo de soporte.
+              </p>
+              <div className="contacto-info">
+                <div className="contacto-item">
+                  <span className="contacto-label">📧 Correo:</span>
+                  <a href="mailto:adriancamrochac@gmail.com" className="contacto-link">
+                    adriancamrochac@gmail.com
+                  </a>
+                </div>
+              </div>
             </div>
           </div>
         </div>
