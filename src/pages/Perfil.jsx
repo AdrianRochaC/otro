@@ -153,9 +153,11 @@ const Perfil = () => {
                 <p className="contacto-subtitle">Modificación de información o dudas sobre contenido</p>
                 <div className="contacto-details">
                   <a href="mailto:oscarandres211@hotmail.com" className="contacto-link-small">
+                    <span className="contacto-link-icon">📧</span>
                     oscarandres211@hotmail.com
                   </a>
                   <a href="tel:+573502483182" className="contacto-link-small">
+                    <span className="contacto-link-icon">📱</span>
                     +57 350 2483182
                   </a>
                 </div>
@@ -172,6 +174,7 @@ const Perfil = () => {
                 <p className="contacto-subtitle">Errores del sistema o dificultades de acceso</p>
                 <div className="contacto-details">
                   <a href="mailto:adriancamrochac@gmail.com" className="contacto-link-small">
+                    <span className="contacto-link-icon">📧</span>
                     adriancamrochac@gmail.com
                   </a>
                 </div>
